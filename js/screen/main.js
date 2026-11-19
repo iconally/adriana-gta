@@ -171,8 +171,12 @@ $('p-clear').onclick = () => {
 };
 
 function renderBots() {
-  const n = bots.count;
-  $('p-bots').textContent = n ? `Virtualių vaikų: ${n} (spaudo mygtukus patys)` : 'Virtualių vaikų nėra';
+  const list = host.list().filter((p) => p.bot);
+  const t = list.filter((p) => host.isTeacher(p.name)).length;
+  const k = list.length - t;
+  $('p-bots').textContent = list.length
+    ? `Virtualių: ${k} vaikų${t ? ' + mokytoja' : ''} (spaudo mygtukus patys)`
+    : 'Virtualių vaikų nėra';
 }
 $('p-bots-add').onclick = () => {
   if (!host.roster.kids.length) { alert('Pirma įkelk klasę (arba demo klasę).'); return; }

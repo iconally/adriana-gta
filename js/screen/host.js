@@ -38,7 +38,10 @@ export class Host extends EventBus {
     try {
       const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
       if (!s || s.room !== this.room) return;
-      if (s.roster) this.roster = s.roster;
+      if (s.roster) {
+        // laikinai pridėta virtuali mokytoja neišsaugoma tarp perkrovimų
+        this.roster = { ...s.roster, kids: (s.roster.kids || []).filter((k) => !k.virtual) };
+      }
       if (Array.isArray(s.done)) this.done = new Set(s.done);
       for (const p of s.players || []) {
         if (this.kid(p.name)) this.players.set(p.pid, { ...p, lastSeen: 0, lastPress: 0, joinedAt: p.joinedAt || Date.now() });
