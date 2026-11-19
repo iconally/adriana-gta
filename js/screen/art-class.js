@@ -35,51 +35,60 @@ function seeded(seed) {
 }
 
 // Lentos vieta klasės paveikslėlyje (ją naudoja ir scena).
-export const BOARD = { x: 1440, y: 150, w: 450, h: 330 };
+export const BOARD = { x: 1440, y: 100, w: 450, h: 330 };
 
 export function generateClassArt(scene) {
   // ---------- klasė: siena, langai, grindys, lenta ----------
   tex(scene, 'class_room', 1920, 1080, (c) => {
-    const g = c.createLinearGradient(0, 0, 0, 760);
+    const WALL = 440; // kur prasideda grindys (visi suolai stovi ant grindų)
+    const g = c.createLinearGradient(0, 0, 0, WALL);
     g.addColorStop(0, '#2c1d5c');
     g.addColorStop(1, '#4a2a7a');
     c.fillStyle = g;
-    c.fillRect(0, 0, 1920, 760);
+    c.fillRect(0, 0, 1920, WALL);
     c.fillStyle = '#1a0b2e'; c.fillRect(0, 0, 1920, 16);
     // apatinė sienos dalis
-    c.fillStyle = '#3a2468'; c.fillRect(0, 560, 1920, 200);
-    c.fillStyle = '#ff3ea5'; c.fillRect(0, 556, 1920, 8);
-    // langai kairėje su sniegu
+    c.fillStyle = '#3a2468'; c.fillRect(0, WALL - 90, 1920, 90);
+    c.fillStyle = '#ff3ea5'; c.fillRect(0, WALL - 94, 1920, 6);
+    // langai su sniegu
     const rnd = seeded(31);
-    for (const x0 of [60, 420, 780]) {
-      shape(c, (x) => rr(x, x0, 90, 260, 300, 10), '#f1e6ff', 6);
-      const sg = c.createLinearGradient(0, 110, 0, 370);
+    for (const x0 of [50, 360, 670]) {
+      shape(c, (x) => rr(x, x0, 40, 240, 250, 10), '#f1e6ff', 6);
+      const sg = c.createLinearGradient(0, 56, 0, 274);
       sg.addColorStop(0, '#2a1a5e'); sg.addColorStop(1, '#ff9a6b');
-      c.fillStyle = sg; c.fillRect(x0 + 18, 108, 224, 264);
+      c.fillStyle = sg; c.fillRect(x0 + 16, 56, 208, 218);
       c.fillStyle = '#eef3ff';
-      c.beginPath(); c.moveTo(x0 + 18, 330); c.quadraticCurveTo(x0 + 130, 300, x0 + 242, 335); c.lineTo(x0 + 242, 372); c.lineTo(x0 + 18, 372); c.fill();
+      c.beginPath(); c.moveTo(x0 + 16, 240); c.quadraticCurveTo(x0 + 120, 214, x0 + 224, 244); c.lineTo(x0 + 224, 274); c.lineTo(x0 + 16, 274); c.fill();
       c.fillStyle = '#ffffff';
-      for (let i = 0; i < 14; i++) c.fillRect(x0 + 22 + rnd() * 216, 112 + rnd() * 200, 3, 3);
-      c.lineWidth = 6; c.strokeStyle = OUT; c.strokeRect(x0 + 18, 108, 224, 264);
-      c.fillStyle = '#f1e6ff'; c.fillRect(x0 + 124, 108, 12, 264); c.strokeRect(x0 + 124, 108, 12, 264);
+      for (let i = 0; i < 12; i++) c.fillRect(x0 + 20 + rnd() * 200, 60 + rnd() * 160, 3, 3);
+      c.lineWidth = 6; c.strokeStyle = OUT; c.strokeRect(x0 + 16, 56, 208, 218);
+      c.fillStyle = '#f1e6ff'; c.fillRect(x0 + 114, 56, 12, 218); c.strokeRect(x0 + 114, 56, 12, 218);
     }
     // laikrodis ir plakatas
-    shape(c, (x) => x.arc(1365, 92, 46, 0, Math.PI * 2), '#f1e6ff', 6);
+    shape(c, (x) => x.arc(1365, 70, 42, 0, Math.PI * 2), '#f1e6ff', 6);
     c.lineWidth = 6; c.strokeStyle = OUT;
-    c.beginPath(); c.moveTo(1365, 92); c.lineTo(1365, 62); c.moveTo(1365, 92); c.lineTo(1387, 104); c.stroke();
-    shape(c, (x) => rr(x, 1110, 220, 180, 230, 8), '#ffd23f', 5);
-    c.fillStyle = OUT; c.font = 'bold 34px Anton, Impact, sans-serif'; c.textAlign = 'center';
-    c.fillText('A B C', 1200, 280);
-    c.fillText('1 2 3', 1200, 340);
-    c.fillStyle = '#ff3ea5'; c.fillText('★', 1200, 410);
-    // grindys
-    const fg = c.createLinearGradient(0, 760, 0, 1080);
-    fg.addColorStop(0, '#7a4a32'); fg.addColorStop(1, '#3a2018');
-    c.fillStyle = fg; c.fillRect(0, 760, 1920, 320);
+    c.beginPath(); c.moveTo(1365, 70); c.lineTo(1365, 42); c.moveTo(1365, 70); c.lineTo(1385, 81); c.stroke();
+    shape(c, (x) => rr(x, 1010, 60, 170, 220, 8), '#ffd23f', 5);
+    c.fillStyle = OUT; c.font = 'bold 30px Anton, Impact, sans-serif'; c.textAlign = 'center';
+    c.fillText('π = 3,14', 1095, 120);
+    c.fillText('a² + b²', 1095, 175);
+    c.fillText('= c²', 1095, 215);
+    c.fillStyle = '#ff3ea5'; c.fillText('★', 1095, 262);
+    // grindys perspektyvoje
+    const fg = c.createLinearGradient(0, WALL, 0, 1080);
+    fg.addColorStop(0, '#5e3a28'); fg.addColorStop(1, '#3a2018');
+    c.fillStyle = fg; c.fillRect(0, WALL, 1920, 1080 - WALL);
     c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 3;
-    for (let y = 790; y < 1080; y += 36) { c.beginPath(); c.moveTo(0, y); c.lineTo(1920, y); c.stroke(); }
-    c.fillStyle = '#f1e6ff'; c.fillRect(0, 752, 1920, 12);
-    c.fillStyle = OUT; c.fillRect(0, 764, 1920, 4);
+    for (let k = 1, y = WALL + 14; y < 1080; k += 1, y += 12 + k * 5) { c.beginPath(); c.moveTo(0, y); c.lineTo(1920, y); c.stroke(); }
+    const vx = 960;
+    const vy = WALL - 600;
+    for (let x = -1400; x <= 3300; x += 160) {
+      const t = (WALL - vy) / (1080 - vy);
+      c.beginPath(); c.moveTo(vx + (x - vx) * t, WALL); c.lineTo(x, 1080); c.stroke();
+    }
+    // grindjuostė
+    c.fillStyle = '#f1e6ff'; c.fillRect(0, WALL - 8, 1920, 12);
+    c.fillStyle = OUT; c.fillRect(0, WALL + 4, 1920, 4);
   });
 
   tex(scene, 'chalkboard', 460, 340, (c, w, h) => {

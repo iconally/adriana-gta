@@ -216,6 +216,7 @@ export class Host extends EventBus {
 
   // ---------- etapai ir rolės ----------
   setPhase(phase, stage = this.stage) {
+    if (stage !== this.stage) { this.locks = {}; this.status = null; }
     const stageChanged = stage !== this.stage;
     this.phase = phase;
     this.stage = stage;
@@ -298,6 +299,7 @@ export class Host extends EventBus {
     const role = this.roleOf(pid);
     const btn = role && role.buttons.find((b) => b.id === a);
     if (!btn) return;
+    if (this.locks && a in this.locks && this.locks[a] !== pid) return; // užrakinta kitiems
     const now = Date.now();
     if (now - p.lastPress < MIN_PRESS_GAP) return;
     // Mygtuko pertrauka tikrinama ir čia (telefonas gali vėluoti, botai jos nežino).
@@ -321,7 +323,30 @@ export class Host extends EventBus {
       stage: this.stage.id,
       title: this.stage.title,
       roles: { map: this.roles, defs },
+      locks: this.locks || null,
+      status: this.status || null,
     };
+  }
+
+  // Nuolatinė žinutė telefonų viršuje: all - visiems, by - konkretiems vaikams (null - nerodyti).
+  setStatus(all, by = {}, sync = true) {
+    this.status = all || Object.keys(by).length ? { all: all || null, by } : null;
+    if (sync) this.syncNow();
+  }
+
+  // Mygtuką gali spausti tik vienas vaikas (pvz. „Perduoti“ - tik tas, pas kurį atvirukas).
+  // lock(id, pid): pid - kam leidžiama (null - niekam); lock(id) be pid - užraktą nuimti.
+  lock(buttonId, pid, sync = true) {
+    this.locks = this.locks || {};
+    if (pid === undefined) delete this.locks[buttonId];
+    else this.locks[buttonId] = pid;
+    if (sync) this.syncNow();
+  }
+
+  clearLocks() {
+    if (!this.locks || !Object.keys(this.locks).length) return;
+    this.locks = {};
+    this.syncSoon();
   }
 
   syncNow() {

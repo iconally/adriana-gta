@@ -5,7 +5,8 @@
 // Pas ką atvirukas - tas vaikas paryškintas ekrane ir gauna žinutę telefone; jis spaudžia
 // „Perduoti“. Adriana pradeda (→ arba TARPAS) ir gali padėti, jei kas užsižiopsojo.
 // Mokytoja rašo lentoje, kartais sustoja („Hmm?“) ir atsisuka. Jei tada atvirukas
-// skrenda - PAGAVO, atvirukas grįžta vienu vaiku atgal. Laiko 60 s.
+// skrenda - PAGAVO, atvirukas grįžta vienu vaiku atgal. Laiko riba nėra - misija baigiasi,
+// kai atvirukas pasiekia mokytoją (laikas tik skaičiuojamas).
 // Kiekvienas vaikas turi „Perduoti“ ir vieną savo mygtuką:
 //  - paklausti mokytojos (ji iškart atsisuka!), rašyti uoliai (ilgiau rašo),
 //    čiaudėti, numesti penalą, žiovauti, kelti ranką (fonas);
@@ -18,7 +19,6 @@ import { BOARD } from '../art-class.js';
 import { isBoy, GIRL_COLORS, BOY_COLORS, shuffle } from '../../common.js';
 
 const STAGE = STAGES.pamoka;
-const TIME_LIMIT = 60;
 const CAUGHT_BACK = 1;
 const FREEZE_MS = 1200;
 const HELP_MS = 3000; // tiek palaukus Adriana gali perduoti už užsižiopsojusį
@@ -43,10 +43,10 @@ const SEATS = [
   ['F', 190], ['F', 976], ['M', 976], ['M', 1133],
   ['B', 150], ['B', 330], ['B', 510], ['B', 690], ['B', 870], ['B', 1050],
 ];
-const TEACHER_DESK = { x: 1300, y: 902 };
-const CARD_END = { x: 1290, y: 760 };
-const TEACHER = { x: 1610, y: 884, s: 1.15 };
-const BOARD_LINES = ['KALĖDŲ PAMOKA', '2 + 2 = 4', 'Linksmų Kalėdų!'];
+const TEACHER_DESK = { x: 1330, y: 770 };
+const CARD_END = { x: 1320, y: 632 };
+const TEACHER = { x: 1650, y: 670, s: 1.0 };
+const BOARD_LINES = ['PAMOKA', 'log₂(x³ - 7x) = ∫ sin²θ dθ', 'Σ 1/n² = π²/6', 'lim (1 + 1/n)ⁿ = e', '∂²u/∂t² = c²·∇²u'];
 
 const rand = (a, b) => a + Math.random() * (b - a);
 function tintOf(name) {
@@ -64,6 +64,7 @@ export class PamokaScene extends Phaser.Scene {
     this.A = A;
     this.mode = 'intro'; // intro -> count -> play -> end -> result
     A.host.setPhase('intro', STAGE);
+    A.host.lock('perduoti', null); // „Perduoti“ aktyvus tik tam, pas kurį atvirukas
 
     // Phaser naudoja tą patį scenos objektą, todėl visą būseną nustatom iš naujo.
     this.seq = []; // atviruko kelias: Adriana, vaikai atsitiktine tvarka, mokytoja
@@ -77,11 +78,7 @@ export class PamokaScene extends Phaser.Scene {
     this.helps = 0;
     this.lastQuestion = -99999;
     this.lastDiligent = 0;
-    this.timeLeft = TIME_LIMIT;
     this.elapsed = 0;
-    this.lastTick = 99;
-    this.timerDanger = undefined;
-    this.saidTen = false;
     this.lastSub = 0;
     this.stats = new Map();
     this.seats = new Map(); // pid -> sėdintis vaikas
@@ -93,8 +90,8 @@ export class PamokaScene extends Phaser.Scene {
 
     this.add.image(960, 540, 'class_room').setDepth(-100);
     this.add.image(BOARD.x + BOARD.w / 2, BOARD.y + BOARD.h / 2, 'chalkboard').setDepth(-90);
-    this.boardText = bodyText(this, BOARD.x + 40, BOARD.y + 50, '', 34, '#f4f7ff', {
-      align: 'left', strokeThickness: 0, lineSpacing: 14, fontStyle: 'bold',
+    this.boardText = bodyText(this, BOARD.x + 36, BOARD.y + 34, '', 27, '#f4f7ff', {
+      align: 'left', strokeThickness: 0, lineSpacing: 10, fontStyle: 'bold',
     }).setOrigin(0, 0).setDepth(-89);
 
     this.makeDesks();
@@ -138,7 +135,13 @@ export class PamokaScene extends Phaser.Scene {
       this.botWait = 0;
       return 'perduoti';
     };
-    this.events.once('shutdown', () => { offs.forEach((f) => f()); A.host.botFilter = null; A.host.botPick = null; });
+    this.events.once('shutdown', () => {
+      offs.forEach((f) => f());
+      A.host.botFilter = null;
+      A.host.botPick = null;
+      A.host.lock('perduoti', undefined, false);
+      A.host.setStatus(null);
+    });
   }
 
   // ---------------- valdymas ----------------
@@ -270,7 +273,7 @@ export class PamokaScene extends Phaser.Scene {
     const faceKey = t && this.textures.exists(avatarKey(t.name)) ? avatarKey(t.name) : 'teacher_face';
     const face = this.add.image(0, -290, faceKey).setDisplaySize(104, 104).setVisible(false);
     const hair = this.add.image(0, -292, 'teacher_hair').setTint(0x8a5a33).setScale(0.95);
-    const tag = bodyText(this, 0, -372, this.teacherName, 28, C.yellow);
+    const tag = bodyText(this, 0, 26, this.teacherName, 28, C.yellow); // po kojomis - kad neuždengtų lentos
     box.add([body, face, hair, tag]);
     this.teacher = { box, body, face, hair, state: 'writing', since: 0, until: 0, extra: 0, avatarKey: t ? avatarKey(t.name) : null };
     if (t) {
@@ -303,7 +306,7 @@ export class PamokaScene extends Phaser.Scene {
     t.face.setVisible(false);
     t.hair.setVisible(true).setX(0);
     if (this.stateText) this.stateText.setText('Mokytoja rašo - perduok!').setColor(C.green);
-    if (this.seq) this.cueHolder();
+    if (this.seq) this.updateStatus();
   }
 
   teacherWarn(ms = WARN * 1000) {
@@ -317,7 +320,7 @@ export class PamokaScene extends Phaser.Scene {
     this.stateText.setText('HMM? NEPERDUOK!').setColor(C.orange);
     this.tweens.add({ targets: this.stateText, scale: 1.25, yoyo: true, duration: 120 });
     this.A.sfx.pop();
-    this.cueHolder();
+    this.updateStatus();
   }
 
   teacherFace() {
@@ -330,7 +333,7 @@ export class PamokaScene extends Phaser.Scene {
     t.hair.setVisible(false);
     this.stateText.setText('ŽIŪRI!').setColor(C.red);
     this.tweens.add({ targets: t.box, scaleX: TEACHER.s * 0.9, yoyo: true, duration: 90 });
-    this.cueHolder();
+    this.updateStatus();
   }
 
   // ---------------- atvirukas ----------------
@@ -356,22 +359,35 @@ export class PamokaScene extends Phaser.Scene {
     this.ring.setPosition(p.x, p.y + 12).setSize(170 * p.s, 54 * p.s).setVisible(!last);
     this.holderTag.setPosition(p.x, p.y - 190 * h.s - 40).setText(h.type === 'adriana' ? 'ADRIANA TURI ATVIRUKĄ! →' : `${h.name.toUpperCase()} TURI ATVIRUKĄ!`).setVisible(!last);
     this.helpTag.setVisible(false);
+    this.updateStatus();
     if (h.type === 'kid' && this.mode === 'play') {
-      this.cueHolder(true);
       this.tweens.add({ targets: h.v.box, y: h.v.y - 12, yoyo: true, duration: 140 });
       this.stat(h, 'gavo');
     }
   }
 
-  // Turėtojo telefone: ar dabar galima perduoti (žalia) ar laukti (raudona).
-  cueHolder(first = false) {
-    const h = this.seq[this.idx];
-    if (!h || h.type !== 'kid' || this.flight || this.mode !== 'play') return;
-    const st = this.teacher.state;
+  // Telefonų viršuje nuolatinė žinutė: turėtojui - žalia „Greičiau perduok!“ arba
+  // raudona „Mokytoja žiūri - lauk!“; kitiems - raudona, kai mokytoja žiūri.
+  // Kartu užrakinamas „Perduoti“ visiems, išskyrus turėtoją.
+  updateStatus() {
     const host = this.A.host;
-    if (st === 'writing') host.cue(h.pid, first ? 'ATVIRUKAS PAS TAVE! DABAR - PERDUOK!' : 'DABAR - PERDUOK!', { tone: 'go', ms: 6000, buzz: first });
-    else if (st === 'warning') host.cue(h.pid, 'ATVIRUKAS PAS TAVE! HMM? PALAUK!', { tone: 'wait', ms: 6000, buzz: first });
-    else host.cue(h.pid, 'ATVIRUKAS PAS TAVE! MOKYTOJA ŽIŪRI - LAUK!', { tone: 'wait', ms: 6000, buzz: first });
+    if (this.mode !== 'play') {
+      host.lock('perduoti', null, false);
+      host.setStatus(null);
+      return;
+    }
+    const looking = this.teacher.state !== 'writing';
+    const by = {};
+    for (const t of host.teachers()) by[t.pid] = null;
+    const h = this.seq[this.idx];
+    const holder = h && h.type === 'kid' && !this.flight ? h.pid : null;
+    if (holder) {
+      by[holder] = looking
+        ? { text: 'ATVIRUKAS PAS TAVE! Mokytoja žiūri - lauk!', tone: 'wait', holder: true }
+        : { text: 'ATVIRUKAS PAS TAVE! Greičiau perduok!', tone: 'go', holder: true };
+    }
+    host.lock('perduoti', holder, false);
+    host.setStatus(looking ? { text: 'Mokytoja žiūri!', tone: 'wait' } : null, by);
   }
 
   // Perdavimas iš dabartinio į kitą (atvirukas skrenda lanku).
@@ -386,6 +402,7 @@ export class PamokaScene extends Phaser.Scene {
     this.ring.setVisible(false);
     this.holderTag.setVisible(false);
     this.helpTag.setVisible(false);
+    this.updateStatus();
     this.A.sfx.throw();
     // perduoti, kai mokytoja jau žiūri - iškart pagauna
     if (this.teacher.state === 'facing') this.caughtNow();
@@ -569,7 +586,7 @@ export class PamokaScene extends Phaser.Scene {
     const D = 1800;
     headText(this, 40, 54, STAGE.mission, 46, C.yellow).setOrigin(0, 0.5).setDepth(D);
     this.caughtText = bodyText(this, 40, 112, 'Pagavo: 0', 26, '#f1e6ff').setOrigin(0, 0.5).setDepth(D);
-    this.timerText = headText(this, 960, 70, `1:00`, 92, C.white).setDepth(D);
+    this.timerText = headText(this, 960, 70, '0:00', 92, C.white).setDepth(D);
     const w = 560;
     this.add.rectangle(960, 140, w + 8, 22, 0x000000, 0.6).setStrokeStyle(3, 0x14081f).setDepth(D);
     this.barFill = this.add.rectangle(960 - w / 2, 140, 1, 12, 0xffd23f).setOrigin(0, 0.5).setDepth(D);
@@ -580,20 +597,9 @@ export class PamokaScene extends Phaser.Scene {
   }
 
   updateHud() {
-    const t = Math.max(0, this.timeLeft);
-    const s = Math.ceil(t);
+    // laiko riba nėra - laikrodis tik skaičiuoja, kiek užtruko
+    const s = Math.floor(this.elapsed);
     this.timerText.setText(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`);
-    const danger = t <= 10 && this.mode === 'play';
-    if (danger !== this.timerDanger) {
-      this.timerDanger = danger;
-      this.timerText.setColor(danger ? C.red : C.white);
-    }
-    if (danger && s !== this.lastTick) {
-      this.lastTick = s;
-      this.A.sfx.tick();
-      this.tweens.add({ targets: this.timerText, scale: 1.18, yoyo: true, duration: 120 });
-      if (!this.saidTen && s >= 9) { this.saidTen = true; this.maybeSub(this.A.lines.pick('pamoka', 'ten'), C.red, 0); }
-    }
     const total = Math.max(1, this.seq.length - 1);
     const done = this.flight ? this.flight.from + this.flight.t : this.idx;
     const f = Phaser.Math.Clamp(done / total, 0, 1);
@@ -606,6 +612,7 @@ export class PamokaScene extends Phaser.Scene {
   // ---------------- pabaiga ----------------
   win() {
     this.mode = 'end';
+    this.updateStatus();
     this.ring.setVisible(false);
     this.holderTag.setVisible(false);
     this.helpTag.setVisible(false);
@@ -622,18 +629,6 @@ export class PamokaScene extends Phaser.Scene {
     this.bigBanner('MISIJA ĮVYKDYTA!', '+100 RESPEKTO', { color: C.yellow, hold: 2800 });
     this.time.delayedCall(1300, () => this.sub(this.A.lines.pick('pamoka', 'success'), C.yellow));
     this.time.delayedCall(3600, () => this.showResult(true));
-  }
-
-  fail() {
-    this.mode = 'end';
-    this.ring.setVisible(false);
-    this.holderTag.setVisible(false);
-    this.helpTag.setVisible(false);
-    this.A.sfx.schoolBell();
-    this.time.delayedCall(600, () => this.A.sfx.fail());
-    this.bigBanner('PAMOKA BAIGĖSI', 'ATVIRUKAS - PO PAMOKŲ', { color: C.red, hold: 2600 });
-    this.time.delayedCall(1000, () => this.sub(this.A.lines.pick('pamoka', 'fail'), C.orange));
-    this.time.delayedCall(3400, () => this.showResult(false));
   }
 
   showResult(ok) {
@@ -672,7 +667,6 @@ export class PamokaScene extends Phaser.Scene {
     const t = this.teacher;
 
     if (play) {
-      this.timeLeft -= dt;
       this.elapsed += dt;
       // mokytojos ciklas: rašo -> „Hmm?“ -> žiūri -> vėl rašo
       if (t.state === 'writing' && now >= t.until) this.teacherWarn();
@@ -726,6 +720,5 @@ export class PamokaScene extends Phaser.Scene {
     }
 
     this.updateHud();
-    if (play && this.timeLeft <= 0) this.fail();
   }
 }

@@ -217,6 +217,7 @@ function render() {
     state.lastRoleKey = key;
     $('role-emoji').textContent = role.emoji;
     $('role-name').textContent = role.name;
+    $('role-name').hidden = !role.name;
     $('role-desc').textContent = role.desc;
     const box = $('buttons');
     box.innerHTML = '';
@@ -230,13 +231,32 @@ function render() {
     play: 'Spausk!',
   }[s.phase] || '';
   $('role-state').className = `state ${s.phase}`;
-  for (const btn of document.querySelectorAll('#buttons .act')) btn.classList.toggle('off', !live);
+  // nuolatinė žinutė viršuje (pvz. „ATVIRUKAS PAS TAVE!“)
+  const st = s.status;
+  const mine = st ? (st.by && state.pid in st.by ? st.by[state.pid] : st.all) : null;
+  const box = $('status');
+  if (mine && mine.text && s.phase === 'play') {
+    box.textContent = mine.text;
+    box.className = `status ${mine.tone || ''}`;
+    box.hidden = false;
+    if (mine.holder && !state.wasHolder && navigator.vibrate) navigator.vibrate([150, 60, 150]);
+  } else {
+    box.hidden = true;
+  }
+  state.wasHolder = !!(mine && mine.holder && s.phase === 'play');
+  for (const btn of document.querySelectorAll('#buttons .act')) {
+    const id = btn.dataset.id;
+    const locked = !!(s.locks && id in s.locks && s.locks[id] !== state.pid);
+    btn.classList.toggle('off', !live || locked);
+    btn.classList.toggle('locked', locked);
+  }
   ui.show('s-role');
 }
 
 function makeButton(def) {
   const btn = document.createElement('button');
   btn.className = 'act';
+  btn.dataset.id = def.id;
   btn.innerHTML = `<span class="emo">${def.emoji}</span><span class="lbl"></span><span class="ok"></span><span class="cd"></span>`;
   btn.querySelector('.lbl').textContent = def.label;
   let busyUntil = 0;
