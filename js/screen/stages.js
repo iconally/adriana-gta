@@ -106,6 +106,59 @@ export const STAGES = {
       },
     },
   },
+  pamoka: {
+    id: 'pamoka',
+    nr: 3,
+    title: 'Kai mokytoja nusisuka',
+    mission: 'PERDUOK ATVIRUKĄ',
+    // Pirmiausia perdavėjai (jų suolai atviruko kelyje), tada sumaišytos kitos grupės:
+    // 6 perdavėjai, 4 klausinėtojai, 4 uolūs mokiniai, 3 triukšmadariai.
+    slots: [
+      'perdavejas', 'klausinetojas', 'uolus', 'perdavejas', 'triuksmadarys',
+      'perdavejas', 'uolus', 'klausinetojas', 'perdavejas', 'uolus',
+      'triuksmadarys', 'perdavejas', 'klausinetojas', 'uolus', 'perdavejas',
+      'triuksmadarys', 'klausinetojas',
+    ],
+    fallback: 'uolus',
+    teacherRole: 'lenta',
+    roles: {
+      perdavejas: {
+        name: 'Perdavėjas', emoji: '✉️', desc: 'Tavo suolas atviruko kelyje! Kai atvirukas pas tave - perduok greičiau. Jei mokytoja atsisuka - paslėpk po knyga!',
+        buttons: [
+          { id: 'perduoti', label: 'Perduoti', emoji: '✉️', cd: 1500, ok: 'Skrenda!' },
+          { id: 'slepti', label: 'Paslėpti po knyga', emoji: '📖', cd: 2500, ok: 'Paslėpta!' },
+        ],
+      },
+      klausinetojas: {
+        name: 'Klausinėtojas', emoji: '🙋', desc: 'Užduok mokytojai klausimą - ji iškart atsisuks! (Adrianai pavojinga...)',
+        buttons: [
+          { id: 'klausti', label: 'Klausti mokytojos', emoji: '🙋', cd: 6000, ok: 'Mokytoja!' },
+          { id: 'ranka', label: 'Kelti ranką', emoji: '✋', cd: 1500, ok: 'Aš! Aš!' },
+        ],
+      },
+      uolus: {
+        name: 'Uolus mokinys', emoji: '✍️', desc: 'Rašyk uoliai - mokytoja ilgiau rašys lentoje ir neatsisuks.',
+        buttons: [
+          { id: 'rasyti', label: 'Rašyti uoliai', emoji: '✍️', cd: 1500, ok: 'Rašau!' },
+          { id: 'ziovauti', label: 'Žiovauti', emoji: '🥱', cd: 2000, ok: 'Aaa...' },
+        ],
+      },
+      triuksmadarys: {
+        name: 'Triukšmadarys', emoji: '🤧', desc: 'Klasėje per tylu. Čiaudėk arba numesk penalą!',
+        buttons: [
+          { id: 'ciaudeti', label: 'Čiaudėti', emoji: '🤧', cd: 1500, ok: 'APČIHI!' },
+          { id: 'penalas', label: 'Numesti penalą', emoji: '✏️', cd: 2000, ok: 'Bum!' },
+        ],
+      },
+      lenta: {
+        name: 'Mokytoja prie lentos', emoji: '👀', desc: 'Jūs rašote lentoje. Atsisukite ir pagaukite, kas perdavinėja atviruką! Arba rašykite toliau.',
+        buttons: [
+          { id: 'atsisukti', label: 'Atsisukti!', emoji: '👀', cd: 5000, ok: 'Kas čia vyksta?' },
+          { id: 'rasyti', label: 'Rašyti toliau', emoji: '✏️', cd: 3000, ok: 'Rašau...' },
+        ],
+      },
+    },
+  },
   autobusas: {
     id: 'autobusas',
     nr: 4,
@@ -185,7 +238,7 @@ export const STAGES = {
 export const ROUTE = [
   { id: 'broliai', nr: 1, title: 'Soskė broliukams', mission: 'NURAMINK BROLIUKUS', place: 'Namai', where: 'Namai', icon: '🏠', pos: [1016, 183], scene: 'Broliai' },
   { id: 'laiptai', nr: 2, title: 'Laiptai su kuprine', mission: 'UŽLIPK Į MOKYKLĄ', place: 'Mokykla', where: 'Mokykla', icon: '🎒', pos: [331, 256], scene: 'Laiptai' },
-  { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', where: 'Klasė', icon: '✏️', pos: [426, 331], scene: null },
+  { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', where: 'Klasė', icon: '✏️', pos: [426, 331], scene: 'Pamoka' },
   { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė', where: 'Stotelė prie Akropolio', icon: '🚌', pos: [725, 219], scene: 'Bus' },
   { id: 'podiumas', nr: 5, title: 'Podiumas', mission: 'NENUGRIŪK PODIUME', place: 'Mados šou', where: 'Vingio estrada', icon: '👗', pos: [464, 644], scene: null },
   { id: 'pianinas', nr: 6, title: 'Pianinas', mission: 'SUGROK KALĖDAS', place: 'Piano koncertas', where: 'Filharmonija', icon: '🎹', pos: [1407, 796], scene: null },

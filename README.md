@@ -67,7 +67,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 - Jei du vaikai tuo pačiu vardu, pridėk pavardės raidę.
 - Avataras - kvadratinis PNG ar JPG, bus apkarpytas į apskritimą. Jei avataro nėra, rodomos vardo raidės.
 - `adriana.png` - Adrianos galva, dedama ant bėgančio kūno.
-- Mokytojai pridėk `"mokytoja": true` - ji neužims vaikų vietų, o kiekviename etape gaus savo rolę (namuose - stebukladarė, mokykloje - budėtoja, autobuse - vairuotoja).
+- Mokytojai pridėk `"mokytoja": true` - ji neužims vaikų vietų, o kiekviename etape gaus savo rolę (namuose - stebukladarė, laiptuose - budėtoja, klasėje - prie lentos, autobuse - vairuotoja).
 - Pulte spausk **Įkelti klasės aplanką**. Sąrašas išsaugomas tik šios naršyklės atmintyje. Po vakarėlio spausk **Ištrinti visus duomenis**.
 
 ## Vakarėlio metu
@@ -78,6 +78,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 | ← → | Adriana bėga po kambarį (1 etapas) |
 | ↓ arba TARPAS | ieškoti soskės (1 etapas) |
 | ← → paeiliui | lipti laiptais (2 etapas); ta pati rodyklė du kartus - suklumpa |
+| laikyti → arba TARPĄ | atvirukas keliauja per suolus (3 etapas); paleisk, kai mokytoja sako „Hmm?“ |
 | TARPAS arba ↑ | Adrianos šuolis (autobusas) |
 | R | kartoti etapą |
 | ESC | į laukiamąjį |
@@ -147,6 +148,11 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/sc
 | school_wall_tile | 160×160 | 2 etapo siena (kartojasi) |
 | school_window, school_door, school_board | 240×280, 260×330, 260×170 | aprasojęs langas, 3 aukšto durys, skelbimų lenta |
 | school_door_open | 260×330 | atidarytos durys į klasę (Adrianai užlipus) |
+| class_room | 1920×1080 | 3 etapo klasė (siena, langai, grindys) |
+| chalkboard | 460×340 | lenta (tekstas rašomas kode, vieta - `BOARD` iš `art-class.js`) |
+| desk, teacher_desk | 180×96, 250×170 | mokinio suolas, mokytojos stalas |
+| teacher_back, teacher_hair, teacher_face | 150×250, 120×130, 120×120 | mokytoja iš nugaros, plaukai (spalvinami), veidas be avataro |
+| xmas_card, pencil_case | 80×60, 70×30 | kalėdinis atvirukas, penalas |
 | teacher_body | 150×250 | budinčios mokytojos kūnas be galvos (galva - jos avataras) |
 | backpack_big | 120×150 | didelė kuprinė (didėja nuo knygų) |
 | book, mandarin | 70×54, 56×56 | knyga (balta, spalvinama kode), mandarinas |
