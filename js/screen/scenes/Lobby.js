@@ -40,7 +40,7 @@ export class LobbyScene extends Phaser.Scene {
       }),
       host.on('press', (e) => this.onPress(e)),
       host.on('roster', () => {
-        loadAllAvatars(this, host, { reload: true });
+        loadAllAvatars(this, host);
         this.updateCount();
       }),
     ];

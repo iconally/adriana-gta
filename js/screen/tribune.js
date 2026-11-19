@@ -4,32 +4,39 @@
 import { bodyText, C } from './fx.js';
 
 export const avatarKey = (name) => `av:${name}`;
-const pending = new Set();
+const srcOf = new Map(); // tekstūros raktas -> paveikslėlis (data URL), kurį jau piešiam
+
+// Paveikslėlį nupiešia į drobės tekstūrą. Jei tekstūra jau yra, ji perpiešiama
+// vietoje - niekada netrinama, nes ją tuo metu gali rodyti ekrane esantys vaizdai
+// (ištrynus tekstūrą, kurią naudoja vaizdas, Phaser nustoja piešti visą ekraną).
+function drawToTexture(scene, key, dataUrl) {
+  if (!dataUrl || srcOf.get(key) === dataUrl) return;
+  srcOf.set(key, dataUrl);
+  const img = new Image();
+  img.onload = () => {
+    if (srcOf.get(key) !== dataUrl) return; // jau pakeista naujesniu
+    const tm = scene.sys.game.textures;
+    let t = tm.exists(key) ? tm.get(key) : null;
+    if (t && !t.context) return; // ne drobės tekstūra (pvz. tikras PNG iš manifest) - nekeičiam
+    if (!t) t = tm.createCanvas(key, img.width || 128, img.height || 128);
+    t.context.clearRect(0, 0, t.width, t.height);
+    t.context.drawImage(img, 0, 0, t.width, t.height);
+    t.refresh();
+  };
+  img.src = dataUrl;
+}
 
 export function ensureAvatar(scene, name, dataUrl) {
   const key = avatarKey(name);
-  if (scene.textures.exists(key)) return key;
-  if (dataUrl && !pending.has(key)) {
-    pending.add(key);
-    scene.textures.once(`addtexture-${key}`, () => pending.delete(key));
-    scene.textures.addBase64(key, dataUrl);
-  }
-  return null;
+  drawToTexture(scene, key, dataUrl);
+  return scene.textures.exists(key) ? key : null;
 }
 
-export function loadAllAvatars(scene, host, { reload = false } = {}) {
-  for (const kid of host.roster.kids) {
-    if (reload && scene.textures.exists(avatarKey(kid.name))) scene.textures.remove(avatarKey(kid.name));
-    ensureAvatar(scene, kid.name, kid.avatar);
-  }
-  if (host.roster.adriana) {
-    if (reload && scene.textures.exists('adr_face')) scene.textures.remove('adr_face');
-    if (!scene.textures.exists('adr_face') && !pending.has('adr_face')) {
-      pending.add('adr_face');
-      scene.textures.once('addtexture-adr_face', () => pending.delete('adr_face'));
-      scene.textures.addBase64('adr_face', host.roster.adriana);
-    }
-  }
+// Įkelia visų vaikų avatarus ir Adrianos veidą. Galima kviesti kiek nori kartų:
+// pasikeitę paveikslėliai perpiešiami, nepasikeitę - praleidžiami.
+export function loadAllAvatars(scene, host) {
+  for (const kid of host.roster.kids) ensureAvatar(scene, kid.name, kid.avatar);
+  if (host.roster.adriana) drawToTexture(scene, 'adr_face', host.roster.adriana);
 }
 
 export class Tribune {

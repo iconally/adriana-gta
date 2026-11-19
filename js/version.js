@@ -1,3 +1,3 @@
 // Versija rodoma ekrano ir telefono kampe - taip matai, ar naršyklė įkėlė naujausią kodą.
 // Didinama kiekvieną kartą, kai keičiamas kodas.
-export const VERSION = 'v0.15 · 11-19 20:13';
+export const VERSION = 'v0.16 · 11-19 20:23';

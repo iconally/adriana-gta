@@ -32,11 +32,11 @@ const ADR_S = 0.9;
 const KID_S = 0.78;
 const TIME_LIMIT = 30;
 const MAX_BONUS = 5;
-const BOOK_W = 0.085; // kiek viena knyga sunkina
+const BOOK_W = 0.15; // kiek viena knyga sulėtina (14 knygų - 3 kartus lėčiau)
 const MAX_BOOKS = 14;
 const BOOK_GAP = 1200; // ms tarp knygų (visiems kartu)
-const PUSH = 0.7; // kiek žingsnių pastumia stūmikas
-const PUSH_GAP = 700;
+const PUSH = 0.5; // kiek žingsnių pastumia stūmikas
+const PUSH_GAP = 1000;
 const WHISTLE_MS = 4000;
 const STUMBLE_T = 0.4;
 const WINDOWS = [4, 9.5, 15.5, 21, 26.5, 34, 39.5, 45.5, 51, 56.5];
@@ -90,6 +90,9 @@ export class LaiptaiScene extends Phaser.Scene {
     this.steps = 0;
     this.books = 0;
     this.mandarins = 0;
+    this.pile = []; // knygos, kyšančios iš kuprinės
+    this.tilt = { a: 0 }; // suklupimo pasvirimas
+    this.sweatT = 0;
     this.pushes = 0;
     this.lastBook = 0;
     this.lastPush = 0;
@@ -196,7 +199,7 @@ export class LaiptaiScene extends Phaser.Scene {
     this.stumbleT = STUMBLE_T;
     this.lastFoot = null;
     this.A.sfx.hit();
-    this.tweens.add({ targets: this.adrInner, angle: 16, yoyo: true, duration: 140, onComplete: () => this.adrInner.setAngle(0) });
+    this.tweens.add({ targets: this.tilt, a: 16, yoyo: true, duration: 140 });
     this.worldText(this.adr.x + 60, this.adr.y - 300, 'Oi!', C.orange, 40);
     this.maybeSub(this.A.lines.pick('laiptai', 'stumble'), C.orange, 2500);
     this.updateKeys();
@@ -496,9 +499,41 @@ export class LaiptaiScene extends Phaser.Scene {
       this.worldText(bw.x, bw.y - 70, `${player.name}: mandarinas!`, C.orange, 22);
       if (Math.random() < 0.3) this.maybeSub(this.A.lines.pick('laiptai', 'mandarin'), C.orange, 4000);
     }
-    const sc = 0.85 + 0.045 * this.books;
-    this.tweens.add({ targets: this.backpack, scale: sc * 1.15, duration: 90, yoyo: true, onComplete: () => this.backpack.setScale(sc) });
+    this.growBackpack(book);
     this.updateWeight();
+  }
+
+  bagScale() {
+    return 0.85 + 0.08 * this.books; // 14 knygų - beveik 2 kartus didesnė
+  }
+
+  // Kuprinė didėja, o iš viršaus kyšo vis daugiau knygų.
+  growBackpack(book) {
+    const sc = this.bagScale();
+    this.tweens.killTweensOf(this.backpack);
+    this.tweens.add({ targets: this.backpack, scale: sc * 1.18, duration: 110, yoyo: true, onComplete: () => this.backpack.setScale(sc) });
+    if (book) {
+      const b = this.add.image(0, 0, 'book').setTint(pick(BOOK_COLORS)).setOrigin(0.5, 0.8);
+      b.rot = rand(-35, 35);
+      this.adrInner.addAt(b, 0); // už kuprinės - atrodo, lyg kyšotų iš jos
+      this.pile.push(b);
+    }
+    this.layoutPile(sc);
+    const marks = { 5: 'SUNKU!', 10: 'LABAI SUNKU!', [MAX_BOOKS]: 'PILNA!' };
+    if (book && marks[this.books]) {
+      this.worldText(this.adr.x - 60, this.adr.y - 380, marks[this.books], this.books >= 10 ? C.red : C.orange, 44);
+    }
+  }
+
+  layoutPile(sc) {
+    const cx = -40 - 14 * sc; // kuprinės vidurys
+    const top = -128 - 62 * sc; // kuprinės viršus
+    this.pile.forEach((b, i) => {
+      const row = Math.floor(i / 3);
+      const col = (i % 3) - 1;
+      b.setPosition(cx + col * 30 * sc, top + 18 - row * 16 * sc);
+      b.setScale(0.75 * sc).setAngle(b.rot + col * 12);
+    });
   }
 
   push(player) {
@@ -805,6 +840,17 @@ export class LaiptaiScene extends Phaser.Scene {
       this.shadow.setPosition(this.adr.x, yAt(this.ud) + 2);
     }
     this.adrHead.y = -196 + (moving ? Math.sin(this.walkT * 24) * 3 : 0);
+    // kuo sunkesnė kuprinė, tuo labiau pasilenkusi ir prakaituoja
+    this.adrInner.setAngle(Math.min(14, this.books) + this.tilt.a);
+    if (this.books >= 7 && moving && this.mode === 'play') {
+      this.sweatT -= dt;
+      if (this.sweatT <= 0) {
+        this.sweatT = this.books >= 11 ? 0.25 : 0.45;
+        const d = this.add.image(this.adr.x + rand(10, 40), this.adr.y - 300 * ADR_S, 'tear').setScale(0.9);
+        this.L.fx.add(d);
+        this.tweens.add({ targets: d, x: d.x + rand(20, 50), y: d.y + rand(40, 80), alpha: 0, duration: 500, ease: 'Quad.In', onComplete: () => d.destroy() });
+      }
+    }
 
     if (play) {
       if (!this.saidFloor && this.ud >= FLOOR2_U) {
