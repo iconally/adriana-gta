@@ -430,6 +430,98 @@ export function generateHomeArt(scene) {
     shape(c, (x) => { x.moveTo(9, 2); x.quadraticCurveTo(18, 14, 15, 18); x.arc(9, 17, 6, 0, Math.PI); x.quadraticCurveTo(0, 14, 9, 2); }, '#6fd3ff', 2);
   });
 
+  // ---------- žaisliukai (ramintojų dovanos broliukams) ----------
+  tex(scene, 'toy_bear', 90, 90, (c) => {
+    for (const ex of [24, 66]) {
+      shape(c, (x) => x.arc(ex, 16, 11, 0, Math.PI * 2), '#b9783f', 5);
+      shape(c, (x) => x.arc(ex, 16, 5, 0, Math.PI * 2), '#f2c79a', 0);
+    }
+    shape(c, (x) => x.ellipse(45, 66, 26, 21, 0, 0, Math.PI * 2), '#b9783f', 5);
+    shape(c, (x) => x.ellipse(45, 70, 13, 11, 0, 0, Math.PI * 2), '#f2c79a', 0);
+    shape(c, (x) => x.arc(45, 34, 24, 0, Math.PI * 2), '#b9783f', 5);
+    shape(c, (x) => x.ellipse(45, 42, 11, 8, 0, 0, Math.PI * 2), '#f2c79a', 3);
+    c.fillStyle = OUT;
+    c.beginPath(); c.arc(37, 30, 3.5, 0, Math.PI * 2); c.arc(53, 30, 3.5, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.ellipse(45, 39, 4, 3, 0, 0, Math.PI * 2); c.fill();
+    shape(c, (x) => { x.moveTo(34, 54); x.lineTo(45, 60); x.lineTo(56, 54); x.lineTo(56, 64); x.lineTo(45, 58); x.lineTo(34, 64); x.closePath(); }, '#2de2e6', 3);
+  });
+
+  tex(scene, 'toy_duck', 90, 80, (c) => {
+    shape(c, (x) => { x.moveTo(10, 46); x.quadraticCurveTo(12, 76, 48, 74); x.quadraticCurveTo(82, 74, 80, 50); x.quadraticCurveTo(70, 40, 58, 46); x.lineTo(22, 46); x.quadraticCurveTo(14, 36, 10, 46); x.closePath(); }, '#ffd23f', 5);
+    shape(c, (x) => x.arc(38, 30, 18, 0, Math.PI * 2), '#ffd23f', 5);
+    shape(c, (x) => { x.moveTo(18, 30); x.quadraticCurveTo(4, 32, 6, 38); x.quadraticCurveTo(14, 40, 22, 36); x.closePath(); }, '#ff9a3c', 4);
+    c.fillStyle = OUT; c.beginPath(); c.arc(34, 25, 3.5, 0, Math.PI * 2); c.fill();
+    shape(c, (x) => { x.moveTo(46, 56); x.quadraticCurveTo(60, 48, 70, 58); x.quadraticCurveTo(58, 64, 46, 56); x.closePath(); }, '#ffb03a', 3);
+  });
+
+  tex(scene, 'toy_ball', 80, 80, (c) => {
+    const cols = ['#ff3ea5', '#ffffff', '#2de2e6', '#ffd23f', '#ffffff', '#3ddc84'];
+    cols.forEach((col, i) => {
+      c.beginPath(); c.moveTo(40, 40);
+      c.arc(40, 40, 34, (i * Math.PI) / 3, ((i + 1) * Math.PI) / 3);
+      c.closePath(); c.fillStyle = col; c.fill();
+    });
+    c.lineWidth = 5; c.strokeStyle = OUT; c.beginPath(); c.arc(40, 40, 34, 0, Math.PI * 2); c.stroke();
+    shape(c, (x) => x.arc(40, 40, 7, 0, Math.PI * 2), '#ffffff', 3);
+    c.fillStyle = 'rgba(255,255,255,.6)'; c.beginPath(); c.ellipse(28, 24, 8, 4, -0.6, 0, Math.PI * 2); c.fill();
+  });
+
+  tex(scene, 'toy_dino', 100, 80, (c) => {
+    shape(c, (x) => {
+      x.moveTo(6, 56); x.quadraticCurveTo(26, 50, 34, 40);
+      x.quadraticCurveTo(52, 26, 66, 36); x.lineTo(70, 18); x.quadraticCurveTo(76, 6, 90, 12);
+      x.quadraticCurveTo(98, 20, 90, 28); x.lineTo(78, 30); x.lineTo(76, 46);
+      x.quadraticCurveTo(76, 62, 64, 64); x.lineTo(64, 74); x.lineTo(54, 74); x.lineTo(54, 64);
+      x.lineTo(40, 64); x.lineTo(40, 74); x.lineTo(30, 74); x.lineTo(30, 62);
+      x.quadraticCurveTo(18, 62, 6, 56); x.closePath();
+    }, '#3ddc84', 5);
+    for (const [px, py] of [[40, 34], [50, 28], [60, 28]]) shape(c, (x) => { x.moveTo(px - 5, py + 4); x.lineTo(px, py - 6); x.lineTo(px + 5, py + 4); x.closePath(); }, '#ffd23f', 3);
+    c.fillStyle = OUT; c.beginPath(); c.arc(84, 18, 3, 0, Math.PI * 2); c.fill();
+    c.fillStyle = 'rgba(20,8,31,.25)'; c.beginPath(); c.ellipse(52, 52, 10, 6, 0, 0, Math.PI * 2); c.fill();
+  });
+
+  tex(scene, 'toy_bunny', 80, 96, (c) => {
+    for (const ex of [28, 52]) shape(c, (x) => x.ellipse(ex, 22, 9, 20, ex < 40 ? -0.15 : 0.15, 0, Math.PI * 2), '#a9d8ff', 5);
+    for (const ex of [28, 52]) shape(c, (x) => x.ellipse(ex, 24, 4, 12, ex < 40 ? -0.15 : 0.15, 0, Math.PI * 2), '#ffffff', 0);
+    shape(c, (x) => x.ellipse(40, 74, 22, 18, 0, 0, Math.PI * 2), '#a9d8ff', 5);
+    shape(c, (x) => x.arc(40, 50, 20, 0, Math.PI * 2), '#a9d8ff', 5);
+    c.fillStyle = OUT;
+    c.beginPath(); c.arc(33, 47, 3, 0, Math.PI * 2); c.arc(47, 47, 3, 0, Math.PI * 2); c.fill();
+    shape(c, (x) => x.ellipse(40, 55, 4, 3, 0, 0, Math.PI * 2), '#ff9a3c', 2);
+    shape(c, (x) => x.ellipse(40, 76, 10, 9, 0, 0, Math.PI * 2), '#ffffff', 0);
+  });
+
+  tex(scene, 'toy_car', 100, 70, (c) => {
+    shape(c, (x) => { x.moveTo(22, 30); x.lineTo(34, 12); x.lineTo(66, 12); x.lineTo(78, 30); x.closePath(); }, '#9fd8ff', 5);
+    shape(c, (x) => rr(x, 6, 28, 88, 24, 10), '#e2333a', 5);
+    c.fillStyle = OUT; c.fillRect(48, 14, 5, 16);
+    shape(c, (x) => x.arc(86, 38, 4, 0, Math.PI * 2), '#ffd23f', 2);
+    for (const wx of [26, 74]) {
+      shape(c, (x) => x.arc(wx, 54, 11, 0, Math.PI * 2), '#2a1a12', 4);
+      shape(c, (x) => x.arc(wx, 54, 4, 0, Math.PI * 2), '#d9d2ee', 0);
+    }
+  });
+
+  tex(scene, 'toy_rattle', 70, 96, (c) => {
+    shape(c, (x) => rr(x, 30, 44, 10, 30, 4), '#ffd23f', 4);
+    c.lineWidth = 10; c.strokeStyle = OUT; c.beginPath(); c.arc(35, 80, 12, 0, Math.PI * 2); c.stroke();
+    c.lineWidth = 5; c.strokeStyle = '#ff9a3c'; c.beginPath(); c.arc(35, 80, 12, 0, Math.PI * 2); c.stroke();
+    shape(c, (x) => x.arc(35, 26, 22, 0, Math.PI * 2), '#2de2e6', 5);
+    c.fillStyle = '#ffffff';
+    for (const [dx, dy] of [[-8, -6], [6, -10], [8, 6], [-6, 8]]) { c.beginPath(); c.arc(35 + dx, 26 + dy, 3.5, 0, Math.PI * 2); c.fill(); }
+  });
+
+  tex(scene, 'toy_blocks', 100, 84, (c) => {
+    const block = (x0, y0, col, letter) => {
+      shape(c, (x) => rr(x, x0, y0, 38, 38, 5), col, 5);
+      c.fillStyle = OUT; c.font = 'bold 26px Anton, Impact, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(letter, x0 + 19, y0 + 21);
+    };
+    block(6, 42, '#ff3ea5', 'A');
+    block(48, 42, '#2de2e6', 'B');
+    block(27, 6, '#ffd23f', 'C');
+  });
+
   // ---------- soskė ----------
   tex(scene, 'soske', 80, 80, (c) => {
     c.lineWidth = 7; c.strokeStyle = OUT;

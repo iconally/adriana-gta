@@ -52,8 +52,8 @@ function noise(dur, { vol = 0.3, freq = 1200, delay = 0 } = {}) {
 // Nuolatinis mažylio verksmas: "uaaa" bangomis. Garsumas ir aukštis priklauso
 // nuo level (0 - tylu, 1 - garsiausiai). Kuo didesnis level, tuo ilgesni ir
 // garsesni "uaaa", o pauzės įkvėpti trumpesnės.
-class CryVoice {
-  constructor(c, base) {
+export class CryVoice {
+  constructor(c, base, dest = master) {
     this.c = c;
     this.base = base;
     this.level = 0;
@@ -81,13 +81,13 @@ class CryVoice {
     this.dry.type = 'lowpass';
     this.dry.frequency.value = 2400;
     this.dryGain = c.createGain();
-    this.dryGain.gain.value = 0.25;
+    this.dryGain.gain.value = 0.45;
     this.env = c.createGain();
     this.env.gain.value = 0.0001;
     this.osc.connect(this.f1).connect(this.env);
     this.osc.connect(this.f2).connect(this.env);
     this.osc.connect(this.dry).connect(this.dryGain).connect(this.env);
-    this.env.connect(master);
+    this.env.connect(dest);
     this.osc.start();
     this.vib.start();
   }
@@ -113,7 +113,7 @@ class CryVoice {
     const t = now + 0.02;
     const dur = 0.45 + 0.75 * L + Math.random() * 0.25;
     const gap = 0.45 - 0.3 * L + Math.random() * 0.15;
-    const peak = 0.03 + 0.3 * L ** 1.3;
+    const peak = (0.1 + 0.35 * L) * 1.3; // garsiau nei kiti efektai - verksmas svarbiausias
     const f0 = this.base * (1 + 0.3 * L) * (0.95 + Math.random() * 0.1);
     const fr = this.osc.frequency;
     fr.cancelScheduledValues(t);

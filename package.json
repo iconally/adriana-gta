@@ -5,7 +5,7 @@
   "description": "GTA - Garsioji Talentingoji Adriana: kalėdinis klasės žaidimas",
   "scripts": {
     "serve": "python3 -m http.server 8765",
-    "test": "PHONES=26 node tests/load-test.cjs"
+    "test": "node tests/load-test.cjs"
   },
   "devDependencies": {
     "playwright": "^1.65.1"

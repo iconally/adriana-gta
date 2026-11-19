@@ -57,7 +57,7 @@ const BROTHERS = [
   { x: 875, tex: 'baby_sit1', hair: 0x8a5a33, voice: 430 },
   { x: 1045, tex: 'baby_sit2', hair: 0xe0b45c, voice: 500 },
 ];
-const TOYS = ['🧸', '🦆', '🚂', '⚽', '🦖', '🪀', '🐰', '🚗'];
+const TOYS = ['toy_bear', 'toy_duck', 'toy_ball', 'toy_dino', 'toy_bunny', 'toy_car', 'toy_rattle', 'toy_blocks'];
 const SWITCH = { x: 500, y: 560 };
 const MONSTER_AT = [{ x: 420, y: 500 }, { x: 1520, y: 470 }];
 
@@ -458,7 +458,7 @@ export class BroliaiScene extends Phaser.Scene {
     const target = this.crying().sort((p, q) => q.tears - p.tears)[0] || pick(this.brothers);
     const x = Phaser.Math.Clamp(target.x + rand(-100, 100), KIDS_X - 220, KIDS_X + 220);
     const ly = rand(866, 905);
-    const t = this.add.text(x, -60, pick(TOYS), { fontSize: '56px' }).setOrigin(0.5, 1).setDepth(ly > TRACK.y ? 172 : 158);
+    const t = this.add.image(x, -60, pick(TOYS)).setOrigin(0.5, 1).setScale(0.85).setDepth(ly > TRACK.y ? 172 : 158);
     this.tweens.add({
       targets: t, y: ly, angle: rand(-30, 30), duration: 650, ease: 'Bounce.Out',
       onComplete: () => {

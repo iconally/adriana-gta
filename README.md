@@ -85,12 +85,12 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 
 Jei kompiuteris silpnas, atidaryk `screen.html?canvas`.
 
-## Testas su Playwright (30 virtualių telefonų)
+## Testas su Playwright (18 virtualių telefonų: 17 vaikų ir mokytoja)
 
 ```bash
 npm i -D playwright && npx playwright install chromium
 python3 -m http.server 8765          # kitame terminale
-PHONES=26 node tests/load-test.cjs   # vietinis režimas
+node tests/load-test.cjs             # vietinis režimas
 NET=supabase BASE_URL=https://<vartotojas>.github.io/adriana-gta/ node tests/load-test.cjs
 ```
 
@@ -142,6 +142,7 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/sc
 | baby_hair | 140×140 | plaukai (balti, spalvinami kode) |
 | train_engine, train_car | 96×70, 76×60 | medinis traukinukas (bėgiai piešiami kode) |
 | soske, tear, home_monster | 80×80, 18×24, 420×460 | soskė, ašara, pabaisos šešėlis |
+| toy_bear, toy_duck, toy_ball, toy_dino, toy_bunny, toy_car, toy_rattle, toy_blocks | apie 90×90 | ramintojų žaisliukai |
 
 ## Struktūra
 

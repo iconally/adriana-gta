@@ -6,7 +6,8 @@
 //   node tests/load-test.cjs
 //
 // Kintamieji:
-//   BASE_URL=http://localhost:8765/   PHONES=26   NET=local|supabase
+//   BASE_URL=http://localhost:8765/   PHONES=18   NET=local|supabase
+// Klasėje 17 vaikų (be Adrianos) ir mokytoja - todėl numatyta 18 telefonų.
 //   HEADED=1 (rodyti naršyklę)   SHOTS=./shots (ekrano nuotraukų aplankas)
 //
 // NET=local - viskas vienoje naršyklėje (BroadcastChannel), Supabase nereikia.
@@ -16,7 +17,7 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 
 const BASE = (process.env.BASE_URL || 'http://localhost:8765/').replace(/\/?$/, '/');
-const N = Number(process.env.PHONES || 26);
+const N = Number(process.env.PHONES || 18);
 const NET = process.env.NET || 'local';
 const SHOTS = process.env.SHOTS || './shots';
 const PLAY_SECONDS = Number(process.env.PLAY_SECONDS || 60);
@@ -48,11 +49,11 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     room: window.AGTA.room,
     kids: window.AGTA.host.roster.kids.map((k) => ({ name: k.name, md: k.md })),
   }));
-  console.log(`Kambarys ${room}, klasėje ${kids.length}, telefonų ${N}`);
+  const count = Math.min(N, kids.length);
+  console.log(`Kambarys ${room}, klasėje ${kids.length}, telefonų ${count}`);
 
   const phones = [];
-  const t0 = Date.now();
-  for (let i = 0; i < Math.min(N, kids.length); i++) {
+  const join = async (i) => {
     const ctx = NET === 'local' ? screenCtx : await browser.newContext();
     const page = await ctx.newPage();
     await page.setViewportSize({ width: 390, height: 780 });
@@ -67,19 +68,19 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     await page.click('#date-ok');
     await page.waitForSelector('#s-wait:not([hidden]), #s-role:not([hidden])', { timeout: 10000 });
     phones.push({ page, kid });
-  }
-  const joined = await screen.evaluate(() => window.AGTA.host.list().length);
-  console.log(`Prisijungė ${joined}/${phones.length} per ${((Date.now() - t0) / 1000).toFixed(1)} s`);
+  };
+  const t0 = Date.now();
+  for (let i = 0; i < count - 1; i++) await join(i);
 
-  // neteisinga data ir užrakinimas
-  if (kids.length > phones.length) {
+  // neteisinga data ir užrakinimas (paskutinis vaikas dar neprisijungęs)
+  {
     const ctx = NET === 'local' ? screenCtx : await browser.newContext();
     const bad = await ctx.newPage();
     await bad.setViewportSize({ width: 390, height: 780 });
     watch(bad, 'blogas');
     await bad.goto(`${BASE}join.html?r=${room}${q}`);
     await bad.waitForSelector('#s-names:not([hidden]) .name');
-    const kid = kids[phones.length];
+    const kid = kids[count - 1];
     await bad.locator('.name', { hasText: new RegExp(`^${kid.name}$`) }).click();
     for (let k = 0; k < 3; k++) {
       await bad.selectOption('#month', '1');
@@ -91,6 +92,10 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     await shot(bad, 'tel-bloga-data');
     await bad.close();
   }
+  await sleep(15500); // užraktas 15 s
+  await join(count - 1);
+  const joined = await screen.evaluate(() => window.AGTA.host.list().length);
+  console.log(`Prisijungė ${joined}/${count} per ${((Date.now() - t0) / 1000).toFixed(1)} s (su 15 s užraktu)`);
 
   await sleep(2500);
   for (const p of phones.slice(0, 8)) await p.page.locator('.act').first().click();
