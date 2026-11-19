@@ -31,9 +31,11 @@ const ADR_S = 0.9;
 const KID_S = 0.78;
 const TIME_LIMIT = 30;
 const MAX_BONUS = 5;
-const BOOK_W = 0.1; // kiek viena knyga sulėtina (14 knygų - 2,4 karto lėčiau)
-const MAX_BOOKS = 14;
-const BOOK_GAP = 1800; // ms tarp knygų (visiems kartu)
+const BOOK_W = 0.14; // kiek viena knyga sulėtina (8 knygos - 2,1 karto lėčiau)
+const MAX_BOOKS = 8; // tiek knygų - ir kuprinė pilna
+const BOOK_KG = 2.5; // kiek sveria viena knyga
+const BOOK_GAP = 1500; // ms tarp knygų (visiems kartu)
+const BELLS_AT = [15, 5]; // kiek sekundžių likus skamba "dzin dzin"
 const WHISTLE_MS = 5000; // tiek laiko po švilpuko mesti negalima
 const STUMBLE_T = 0.4;
 const WINDOWS = [4, 9.5, 15.5, 21, 26.5, 34, 39.5, 45.5, 51, 56.5];
@@ -101,6 +103,7 @@ export class LaiptaiScene extends Phaser.Scene {
     this.saidTen = false;
     this.saidFloor = false;
     this.saidNear = false;
+    this.bellsRung = new Set();
     this.lastSub = 0;
     this.walkT = 0;
     this.autoT = 0;
@@ -167,6 +170,20 @@ export class LaiptaiScene extends Phaser.Scene {
     this.mode = 'play';
     this.A.host.setPhase('play', STAGE);
     subtitle(this, this.A.lines.pick('laiptai', 'start'), { color: C.yellow });
+    this.time.delayedCall(400, () => this.ring(false));
+  }
+
+  // Mokyklos skambutis: "DZIN DZIN!" su varpeliu po laikmačiu.
+  ring(urgent) {
+    this.A.sfx.dzin(urgent);
+    const box = this.add.container(960, 300).setDepth(760);
+    const bell = this.add.image(-150, 0, 'school_bell').setScale(0.8);
+    const t = headText(this, 30, 0, 'DZIN DZIN!', urgent ? 70 : 58, urgent ? C.red : C.yellow);
+    box.add([bell, t]);
+    box.setScale(0.4).setAlpha(0);
+    this.tweens.add({ targets: box, scale: 1, alpha: 1, duration: 180, ease: 'Back.Out' });
+    this.tweens.add({ targets: bell, angle: { from: -22, to: 22 }, yoyo: true, repeat: 7, duration: 70 });
+    this.tweens.add({ targets: box, alpha: 0, delay: 1300, duration: 300, onComplete: () => box.destroy() });
   }
 
   factor() {
@@ -462,7 +479,7 @@ export class LaiptaiScene extends Phaser.Scene {
   }
 
   bagScale() {
-    return 0.85 + 0.08 * this.books; // 14 knygų - beveik 2 kartus didesnė
+    return 0.85 + 0.14 * this.books; // 8 knygos - beveik 2 kartus didesnė
   }
 
   // Kuprinė didėja, o iš viršaus kyšo vis daugiau knygų.
@@ -471,15 +488,18 @@ export class LaiptaiScene extends Phaser.Scene {
     this.tweens.killTweensOf(this.backpack);
     this.tweens.add({ targets: this.backpack, scale: sc * 1.18, duration: 110, yoyo: true, onComplete: () => this.backpack.setScale(sc) });
     if (book) {
-      const b = this.add.image(0, 0, 'book').setTint(pick(BOOK_COLORS)).setOrigin(0.5, 0.8);
-      b.rot = rand(-35, 35);
-      this.adrInner.addAt(b, 0); // už kuprinės - atrodo, lyg kyšotų iš jos
-      this.pile.push(b);
+      // viena "knyga" sunki - iš kuprinės iškart kyšo dvi
+      for (let k = 0; k < 2; k++) {
+        const b = this.add.image(0, 0, 'book').setTint(pick(BOOK_COLORS)).setOrigin(0.5, 0.8);
+        b.rot = rand(-35, 35);
+        this.adrInner.addAt(b, 0); // už kuprinės - atrodo, lyg kyšotų iš jos
+        this.pile.push(b);
+      }
     }
     this.layoutPile(sc);
-    const marks = { 5: 'SUNKU!', 10: 'LABAI SUNKU!', [MAX_BOOKS]: 'PILNA!' };
+    const marks = { 3: 'SUNKU!', 6: 'LABAI SUNKU!', [MAX_BOOKS]: 'PILNA!' };
     if (book && marks[this.books]) {
-      this.worldText(this.adr.x - 60, this.adr.y - 380, marks[this.books], this.books >= 10 ? C.red : C.orange, 44);
+      this.worldText(this.adr.x - 60, this.adr.y - 380, marks[this.books], this.books >= 6 ? C.red : C.orange, 44);
     }
   }
 
@@ -607,9 +627,9 @@ export class LaiptaiScene extends Phaser.Scene {
   }
 
   updateWeight() {
-    const kg = 6 + this.books * 1.5 + this.mandarins * 0.2;
+    const kg = 6 + this.books * BOOK_KG + this.mandarins * 0.2;
     this.weightText.setText(`Kuprinė: ${kg.toFixed(1).replace('.', ',')} kg`);
-    this.weightText.setColor(this.books >= MAX_BOOKS ? C.red : this.books > 6 ? C.orange : '#f1e6ff');
+    this.weightText.setColor(this.books >= MAX_BOOKS ? C.red : this.books >= 3 ? C.orange : '#f1e6ff');
   }
 
   updateHud() {
@@ -620,6 +640,11 @@ export class LaiptaiScene extends Phaser.Scene {
     if (danger !== this.timerDanger) {
       this.timerDanger = danger;
       this.timerText.setColor(danger ? C.red : C.white);
+    }
+    if (this.mode === 'play') {
+      for (const b of BELLS_AT) {
+        if (t <= b && !this.bellsRung.has(b)) { this.bellsRung.add(b); this.ring(b <= 5); }
+      }
     }
     if (danger && s !== this.lastTick) {
       this.lastTick = s;
@@ -647,6 +672,7 @@ export class LaiptaiScene extends Phaser.Scene {
       onComplete: () => this.tweens.add({ targets: this.adr, alpha: 0, duration: 250 }),
     });
     banner(this, 'MISIJA ĮVYKDYTA!', '+100 RESPEKTO', { color: C.yellow, hold: 2800 });
+    this.time.delayedCall(900, () => this.A.sfx.dzin(false)); // skambutis - jau už durų
     this.time.delayedCall(1200, () => subtitle(this, this.A.lines.pick('laiptai', 'success'), { color: C.yellow }));
     this.time.delayedCall(3400, () => this.showResult(true));
   }
@@ -669,7 +695,7 @@ export class LaiptaiScene extends Phaser.Scene {
     box.add(headText(this, 0, -235, ok ? 'UŽLIPO!' : 'BEVEIK UŽLIPO!', 80, ok ? C.yellow : C.orange));
     const all = [...this.stats.values()];
     const best = (k) => all.map((x) => [x, x.counts[k] || 0]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1])[0];
-    const kg = 6 + this.books * 1.5 + this.mandarins * 0.2;
+    const kg = 6 + this.books * BOOK_KG + this.mandarins * 0.2;
     const rows = [
       [`Laikas: ${this.elapsed.toFixed(1).replace('.', ',')} s   ·   Žingsniai: ${this.steps}   ·   Suklupo: ${this.stumbles} k.`, C.white],
       [`Kuprinė: ${kg.toFixed(1).replace('.', ',')} kg   ·   Knygos: ${this.books}   ·   Mandarinai: ${this.mandarins}   ·   Atšoko: ${this.bounced}`, C.white],
@@ -721,11 +747,11 @@ export class LaiptaiScene extends Phaser.Scene {
     }
     this.adrHead.y = -196 + (moving ? Math.sin(this.walkT * 24) * 3 : 0);
     // kuo sunkesnė kuprinė, tuo labiau pasilenkusi ir prakaituoja
-    this.adrInner.setAngle(Math.min(14, this.books) + this.tilt.a);
-    if (this.books >= 7 && moving && this.mode === 'play') {
+    this.adrInner.setAngle(Math.min(14, this.books * 1.75) + this.tilt.a);
+    if (this.books >= 4 && moving && this.mode === 'play') {
       this.sweatT -= dt;
       if (this.sweatT <= 0) {
-        this.sweatT = this.books >= 11 ? 0.25 : 0.45;
+        this.sweatT = this.books >= 6 ? 0.25 : 0.45;
         const d = this.add.image(this.adr.x + rand(10, 40), this.adr.y - 300 * ADR_S, 'tear').setScale(0.9);
         this.L.fx.add(d);
         this.tweens.add({ targets: d, x: d.x + rand(20, 50), y: d.y + rand(40, 80), alpha: 0, duration: 500, ease: 'Quad.In', onComplete: () => d.destroy() });

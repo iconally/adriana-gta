@@ -120,6 +120,18 @@ export function generateSchoolArt(scene) {
     shape(c, (x) => { x.moveTo(28, 10); x.quadraticCurveTo(42, 0, 46, 10); x.quadraticCurveTo(36, 16, 28, 10); x.closePath(); }, '#3ddc84', 4);
   });
 
+  // ---------- mokyklos skambutis (varpelis) ----------
+  tex(scene, 'school_bell', 90, 90, (c) => {
+    shape(c, (x) => { x.moveTo(20, 66); x.quadraticCurveTo(20, 18, 45, 16); x.quadraticCurveTo(70, 18, 70, 66); x.lineTo(78, 72); x.lineTo(12, 72); x.closePath(); }, '#ffd23f', 6);
+    shape(c, (x) => x.arc(45, 12, 7, 0, Math.PI * 2), '#ffd23f', 5);
+    shape(c, (x) => x.arc(45, 80, 8, 0, Math.PI * 2), '#ff9a3c', 5);
+    c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.ellipse(34, 40, 5, 14, 0.2, 0, Math.PI * 2); c.fill();
+    // skambėjimo brūkšneliai iš šonų
+    c.lineWidth = 5; c.strokeStyle = OUT;
+    c.beginPath(); c.arc(45, 44, 44, Math.PI * 1.1, Math.PI * 1.35); c.stroke();
+    c.beginPath(); c.arc(45, 44, 44, -0.35, -0.1); c.stroke();
+  });
+
   // ---------- skelbimų lenta su piešiniais ----------
   tex(scene, 'school_board', 260, 170, (c, w, h) => {
     shape(c, (x) => rr(x, 4, 4, w - 8, h - 8, 10), '#b9783f', 6);

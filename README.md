@@ -148,6 +148,7 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/sc
 | school_window, school_door, school_board | 240×280, 260×330, 260×170 | aprasojęs langas, 3 aukšto durys, skelbimų lenta |
 | backpack_big | 120×150 | didelė kuprinė (didėja nuo knygų) |
 | book, mandarin | 70×54, 56×56 | knyga (balta, spalvinama kode), mandarinas |
+| school_bell | 90×90 | mokyklos skambutis ("DZIN DZIN!") |
 
 ## Struktūra
 

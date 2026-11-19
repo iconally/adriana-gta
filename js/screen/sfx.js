@@ -185,6 +185,16 @@ export const sfx = {
   step() { tone(220 + Math.random() * 40, 0.05, { type: 'triangle', vol: 0.12 }); noise(0.04, { vol: 0.08, freq: 700 }); },
   thud() { tone(140, 0.16, { type: 'sine', vol: 0.25, slide: -60 }); noise(0.1, { vol: 0.18, freq: 400 }); },
   whistle() { tone(2100, 0.5, { type: 'sine', vol: 0.12, slide: 120 }); tone(2300, 0.5, { type: 'sine', vol: 0.06, slide: 120 }); },
+  // mokyklos skambutis "dzin dzin": du trumpi skambėjimai (urgent - garsiau ir ilgiau)
+  dzin(urgent = false) {
+    const n = urgent ? 12 : 8;
+    for (const start of [0, n * 0.045 + 0.15]) {
+      for (let i = 0; i < n; i++) {
+        tone(1320, 0.04, { type: 'square', vol: urgent ? 0.09 : 0.07, delay: start + i * 0.045 });
+        tone(1760, 0.035, { type: 'triangle', vol: 0.05, delay: start + i * 0.045 + 0.01 });
+      }
+    }
+  },
   schoolBell() { for (let i = 0; i < 14; i++) tone(1250, 0.06, { type: 'square', vol: 0.07, delay: i * 0.07 }); },
   fail() { [392, 349, 311, 262].forEach((f, i) => tone(f, 0.25, { type: 'triangle', vol: 0.15, delay: i * 0.16 })); },
 };
