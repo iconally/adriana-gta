@@ -13,8 +13,11 @@ export class BootScene extends Phaser.Scene {
   create() {
     const man = this.cache.json.get('manifest') || {};
     const images = Object.entries(man.images || {}).filter(([k, f]) => k && f && !k.startsWith('_'));
-    if (!images.length) return this.finish();
     for (const [key, file] of images) this.load.image(key, file);
+    const own = new Set(images.map(([k]) => k));
+    // Logotipas ir žemėlapis - SVG, nebent manifest.json nurodo kitą failą.
+    if (!own.has('logo')) this.load.svg('logo', 'assets/logo.svg', { width: 1200, height: 700 });
+    if (!own.has('map')) this.load.svg('map', 'assets/map.svg', { width: 1920, height: 1080 });
     this.load.once('complete', () => this.finish());
     this.load.start();
   }

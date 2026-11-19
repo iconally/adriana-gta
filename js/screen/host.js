@@ -21,6 +21,7 @@ export class Host extends EventBus {
     this.phase = 'lobby';
     this.stage = LOBBY;
     this.roles = {}; // pid -> roleId
+    this.done = new Set(); // įvykdytų etapų id (žemėlapio maršrutas)
     this._syncTimer = null;
     this.restore();
     this.assignAll();
@@ -38,6 +39,7 @@ export class Host extends EventBus {
       const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
       if (!s || s.room !== this.room) return;
       if (s.roster) this.roster = s.roster;
+      if (Array.isArray(s.done)) this.done = new Set(s.done);
       for (const p of s.players || []) {
         if (this.kid(p.name)) this.players.set(p.pid, { ...p, lastSeen: 0, lastPress: 0, joinedAt: p.joinedAt || Date.now() });
       }
@@ -47,7 +49,7 @@ export class Host extends EventBus {
   save() {
     const players = [...this.players.values()].map(({ pid, name, token, joinedAt }) => ({ pid, name, token, joinedAt }));
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ room: this.room, roster: this.roster, players }));
+      localStorage.setItem(STORE_KEY, JSON.stringify({ room: this.room, roster: this.roster, players, done: [...this.done] }));
     } catch (e) { console.warn('[host] save', e); }
   }
 
@@ -158,6 +160,19 @@ export class Host extends EventBus {
     this.net.send('kick', { pid, why });
     this.emit('players');
     this.syncSoon();
+  }
+
+  // ---------- maršrutas ----------
+  markDone(id) {
+    this.done.add(id);
+    this.save();
+    this.emit('progress');
+  }
+
+  resetProgress() {
+    this.done.clear();
+    this.save();
+    this.emit('progress');
   }
 
   // ---------- etapai ir rolės ----------

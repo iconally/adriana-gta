@@ -6,10 +6,11 @@ import { Host } from './host.js';
 import { loadRosterFromFiles, loadDemoRoster } from './roster.js';
 import { Lines } from './lines.js';
 import { sfx } from './sfx.js';
-import { STAGES, STAGE_ORDER } from './stages.js';
+import { STAGES, ROUTE } from './stages.js';
 import { BootScene } from './scenes/Boot.js';
 import { LobbyScene } from './scenes/Lobby.js';
 import { BusScene } from './scenes/Bus.js';
+import { MapScene } from './scenes/Map.js';
 
 const $ = (id) => document.getElementById(id);
 const ROOM_KEY = 'agta.room';
@@ -38,10 +39,8 @@ const game = new Phaser.Game({
   height: 1080,
   backgroundColor: '#1a0b2e',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-  scene: [BootScene, LobbyScene, BusScene],
+  scene: [BootScene, LobbyScene, MapScene, BusScene],
 });
-
-const SCENE_OF = { autobusas: 'Bus' };
 
 function go(key) {
   for (const s of game.scene.getScenes(true)) {
@@ -121,7 +120,17 @@ function renderStages() {
     box.appendChild(b);
   };
   add('Laukiamasis', 'Lobby');
-  for (const id of STAGE_ORDER) add(`${STAGES[id].nr}. ${STAGES[id].title}`, SCENE_OF[id]);
+  add('Žemėlapis', 'Map');
+  for (const r of ROUTE) if (r.scene) add(`${r.nr}. ${r.title}`, r.scene);
+  const reset = document.createElement('button');
+  reset.className = 'btn ghost small';
+  reset.textContent = 'Maršrutas iš naujo';
+  reset.onclick = () => {
+    if (!confirm('Pradėti maršrutą nuo pradžių (visos misijos neįvykdytos)?')) return;
+    host.resetProgress();
+    go('Map');
+  };
+  box.appendChild(reset);
 }
 
 async function applyRoster(promise) {

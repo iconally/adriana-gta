@@ -69,7 +69,8 @@ export function banner(scene, title, sub = '', { color = C.yellow, hold = 2600, 
 // Subtitrai ekrano apačioje (viena eilutė vienu metu).
 export function subtitle(scene, text, { color = C.white, ms = 2600, y = 905 } = {}) {
   if (!text) return;
-  if (!scene._subtitle) {
+  // Po scenos perkrovimo senas tekstas būna sunaikintas - kuriam naują.
+  if (!scene._subtitle || !scene._subtitle.scene) {
     scene._subtitle = bodyText(scene, 960, y, '', 40, C.white, { wordWrap: { width: 1500 } }).setDepth(800);
   }
   const s = scene._subtitle;

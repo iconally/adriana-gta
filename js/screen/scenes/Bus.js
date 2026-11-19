@@ -78,6 +78,10 @@ export class BusScene extends Phaser.Scene {
     this.lastSub = 0;
     this.lastTick = 99;
     this.windowSlot = 0;
+    // Phaser naudoja tą patį scenos objektą, todėl ankstesnio žaidimo būseną išvalom.
+    this.slowDown = false;
+    this.arriveMul = 1;
+    this.timerDanger = undefined;
     this.stats = new Map(); // pid -> { name, mesti, mojuoti, duris, sauk }
 
     this.makeAdriana();
@@ -105,7 +109,10 @@ export class BusScene extends Phaser.Scene {
   // ---------------- valdymas ----------------
   onEnter() {
     if (this.mode === 'intro') this.countdown();
-    else if (this.mode === 'result') this.A.go('Lobby');
+    else if (this.mode === 'result') {
+      this.A.host.markDone(STAGE.id);
+      this.A.go('Map');
+    }
   }
 
   countdown() {

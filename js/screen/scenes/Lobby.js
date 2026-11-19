@@ -16,15 +16,18 @@ export class LobbyScene extends Phaser.Scene {
     this.add.rectangle(960, 890 + 95, 1920, 190, 0x1d1233).setDepth(-39);
     this.drawQR(A.joinUrl);
 
-    const logo = headText(this, 1250, 175, 'GTA', 230, C.yellow);
-    gradientFill(logo, ['#fff07a', '#ffb03a', '#ff3ea5']);
-    this.tweens.add({ targets: logo, scale: 1.04, yoyo: true, repeat: -1, duration: 1400, ease: 'Sine.InOut' });
-    headText(this, 1250, 330, 'GARSIOJI TALENTINGOJI ADRIANA', 58, C.white);
-    bodyText(this, 1250, 400, 'Vilnius · Žiema · Viena diena', 30, C.teal);
+    if (this.textures.exists('logo')) {
+      const logo = this.add.image(1250, 262, 'logo').setScale(0.7);
+      this.tweens.add({ targets: logo, scale: 0.73, yoyo: true, repeat: -1, duration: 1600, ease: 'Sine.InOut' });
+    } else {
+      const logo = headText(this, 1250, 175, 'GTA', 230, C.yellow);
+      gradientFill(logo, ['#fff07a', '#ffb03a', '#ff3ea5']);
+      headText(this, 1250, 330, 'GARSIOJI TALENTINGOJI ADRIANA', 58, C.white);
+    }
 
-    this.countText = headText(this, 1250, 520, '', 84, C.yellow);
-    this.infoText = bodyText(this, 1250, 610, '', 32, '#f1e6ff', { wordWrap: { width: 900 } });
-    bodyText(this, 1250, 730, 'ENTER - pradėti misiją   ·   H - vedėjo pultas', 26, '#d8c4ff');
+    this.countText = headText(this, 1250, 580, '', 76, C.yellow);
+    this.infoText = bodyText(this, 1250, 660, '', 30, '#f1e6ff', { wordWrap: { width: 900 } });
+    bodyText(this, 1250, 722, 'ENTER - į žemėlapį   ·   H - vedėjo pultas', 26, '#d8c4ff');
 
     this.tribune = new Tribune(this, host, { y: 945, maxSize: 112 });
     this.updateCount();
@@ -43,7 +46,7 @@ export class LobbyScene extends Phaser.Scene {
     ];
     this.events.once('shutdown', () => offs.forEach((f) => f()));
 
-    this.input.keyboard.on('keydown-ENTER', () => A.go('Bus'));
+    this.input.keyboard.on('keydown-ENTER', () => A.go('Map'));
     this.time.addEvent({
       delay: 9000, loop: true,
       callback: () => subtitle(this, lines.pick('common', 'lobby'), { color: '#f1e6ff', y: 840 }),

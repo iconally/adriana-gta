@@ -39,6 +39,8 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
   await screen.goto(`${BASE}screen.html${NET === 'local' ? '?net=local' : ''}`);
   await screen.waitForFunction(() => window.AGTA?.host && window.AGTA.game.scene.isActive('Lobby'));
   await screen.evaluate(() => localStorage.clear());
+  await screen.reload();
+  await screen.waitForFunction(() => window.AGTA?.host && window.AGTA.game.scene.isActive('Lobby'));
   await screen.click('#p-demo');
   await screen.waitForFunction(() => window.AGTA.host.roster.kids.length > 0);
   await screen.keyboard.press('h');
@@ -103,7 +105,10 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
 
   // autobuso etapas (ekranas turi būti priekyje, kitaip naršyklė jį sulėtina)
   await screen.bringToFront();
-  await screen.keyboard.press('Enter');
+  await screen.keyboard.press('Enter'); // laukiamasis -> žemėlapis
+  await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Map')?.ready?.id === 'autobusas', null, { timeout: 60000 });
+  await shot(screen, '15-zemelapis');
+  await screen.keyboard.press('Enter'); // žemėlapis -> autobusas
   await sleep(1500);
   await shot(screen, '20-autobusas-ivadas');
   await shot(phones[0].page, 'tel-role-ivadas');
@@ -153,8 +158,10 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
 
   await screen.keyboard.press('Enter');
   await sleep(1500);
-  const back = await screen.evaluate(() => window.AGTA.game.scene.isActive('Lobby'));
-  console.log(`Grįžo į laukiamąjį: ${back}`);
+  const back = await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'));
+  console.log(`Grįžo į žemėlapį: ${back}`);
+  await sleep(4000);
+  await shot(screen, '50-zemelapis-po-autobuso');
 
   console.log(errors.length ? `KLAIDOS (${errors.length}):\n${errors.slice(0, 30).join('\n')}` : 'Klaidų konsolėje nėra.');
   await browser.close();

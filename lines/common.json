@@ -22,5 +22,17 @@
     "Linksmų!",
     "Čia aš!",
     "Valio!"
+  ],
+  "map": [
+    "Vilnius FM: kamščių nėra, sniego - daug.",
+    "Navigacija: po 200 m sukite į nuotykį.",
+    "Skambina Mama: kur tu dabar?",
+    "Patarimas: žemėlapyje nėra trumpesnio kelio. Patikrinta.",
+    "Vilnius FM: šiandien sninga talentais."
+  ],
+  "skip": [
+    "{vieta}: misija dar kuriama. Važiuojam toliau!",
+    "{vieta}: šią misiją pamatysit vakarėlyje.",
+    "{vieta}: kol kas tik pamojuojam pro langą."
   ]
 }

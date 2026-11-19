@@ -73,7 +73,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 
 | Klavišas | Veiksmas |
 | --- | --- |
-| ENTER | pradėti etapą / toliau |
+| ENTER | laukiamasis → žemėlapis → misija → žemėlapis |
 | TARPAS arba ↑ | Adrianos šuolis |
 | R | kartoti etapą |
 | ESC | į laukiamąjį |
@@ -96,6 +96,13 @@ Ekrano nuotraukos išsaugomos `shots/` aplanke.
 ## Replikos
 
 `lines/<etapas>.json`. Vardą įterpia `{vardas}`. Vardas visada rašomas vardininku, todėl replikas verta kurti taip, kad vardas būtų sakinio veikėjas ("{vardas} laiko duris!"), o ne kreipinys.
+
+## Logotipas ir žemėlapis
+
+- `assets/logo.svg` - logotipas (tekstas paverstas kontūrais iš šrifto Anton, SIL Open Font License).
+- `assets/map.svg` - stilizuotas žiemos Vilniaus žemėlapis be užrašų. Taškų vietos, pavadinimai ir ikonos - `js/screen/stages.js` (`ROUTE`).
+- Norint žemėlapį pakeisti AI sugeneruotu paveikslėliu: įdėk `assets/map.png` (1920×1080) ir `assets/manifest.json` įrašyk `"map": "assets/map.png"`.
+- Žemėlapyje etapai, kurie dar nesukurti, praleidžiami automatiškai. Pulte **Maršrutas iš naujo** grąžina žymą į pradžią.
 
 ## Tikri paveikslėliai
 
