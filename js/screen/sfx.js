@@ -49,6 +49,101 @@ function noise(dur, { vol = 0.3, freq = 1200, delay = 0 } = {}) {
   src.start(t);
 }
 
+// Nuolatinis mažylio verksmas: "uaaa" bangomis. Garsumas ir aukštis priklauso
+// nuo level (0 - tylu, 1 - garsiausiai). Kuo didesnis level, tuo ilgesni ir
+// garsesni "uaaa", o pauzės įkvėpti trumpesnės.
+class CryVoice {
+  constructor(c, base) {
+    this.c = c;
+    this.base = base;
+    this.level = 0;
+    this.burstLevel = 0;
+    this.nextAt = 0;
+    this.osc = c.createOscillator();
+    this.osc.type = 'sawtooth';
+    this.osc.frequency.value = base;
+    // drebėjimas balse
+    this.vib = c.createOscillator();
+    this.vib.frequency.value = 6.5;
+    this.vibGain = c.createGain();
+    this.vibGain.gain.value = base * 0.025;
+    this.vib.connect(this.vibGain).connect(this.osc.frequency);
+    // "a" garso formantės
+    this.f1 = c.createBiquadFilter();
+    this.f1.type = 'bandpass';
+    this.f1.frequency.value = 1000;
+    this.f1.Q.value = 3;
+    this.f2 = c.createBiquadFilter();
+    this.f2.type = 'bandpass';
+    this.f2.frequency.value = 1600;
+    this.f2.Q.value = 4;
+    this.dry = c.createBiquadFilter();
+    this.dry.type = 'lowpass';
+    this.dry.frequency.value = 2400;
+    this.dryGain = c.createGain();
+    this.dryGain.gain.value = 0.25;
+    this.env = c.createGain();
+    this.env.gain.value = 0.0001;
+    this.osc.connect(this.f1).connect(this.env);
+    this.osc.connect(this.f2).connect(this.env);
+    this.osc.connect(this.dry).connect(this.dryGain).connect(this.env);
+    this.env.connect(master);
+    this.osc.start();
+    this.vib.start();
+  }
+
+  // Kviečiama dažnai (kiekviename kadre); naujas "uaaa" pradedamas, kai baigiasi senas,
+  // arba iškart, jei verksmas staiga sustiprėjo (pvz. po "BŪ!").
+  update(level) {
+    const c = this.c;
+    const now = c.currentTime;
+    this.level = Math.max(0, Math.min(1, level));
+    if (this.level < 0.02) {
+      if (this.burstLevel > 0) {
+        this.env.gain.cancelScheduledValues(now);
+        this.env.gain.setTargetAtTime(0.0001, now, 0.08);
+        this.burstLevel = 0;
+        this.nextAt = now + 0.3;
+      }
+      return;
+    }
+    const jump = this.level - this.burstLevel > 0.22;
+    if (now < this.nextAt && !jump) return;
+    const L = this.level;
+    const t = now + 0.02;
+    const dur = 0.45 + 0.75 * L + Math.random() * 0.25;
+    const gap = 0.45 - 0.3 * L + Math.random() * 0.15;
+    const peak = 0.03 + 0.3 * L ** 1.3;
+    const f0 = this.base * (1 + 0.3 * L) * (0.95 + Math.random() * 0.1);
+    const fr = this.osc.frequency;
+    fr.cancelScheduledValues(t);
+    fr.setValueAtTime(f0 * 0.8, t);
+    fr.linearRampToValueAtTime(f0 * 1.12, t + dur * 0.3);
+    fr.linearRampToValueAtTime(f0 * 0.78, t + dur);
+    const f1 = this.f1.frequency;
+    f1.cancelScheduledValues(t);
+    f1.setValueAtTime(650, t);
+    f1.linearRampToValueAtTime(1150, t + 0.12);
+    f1.linearRampToValueAtTime(900, t + dur);
+    const g = this.env.gain;
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(Math.max(0.0001, g.value), t);
+    g.linearRampToValueAtTime(peak, t + 0.07);
+    g.linearRampToValueAtTime(peak * 0.75, t + dur * 0.8);
+    g.linearRampToValueAtTime(0.0001, t + dur);
+    this.burstLevel = L;
+    this.nextAt = t + dur + gap;
+  }
+
+  stop() {
+    const now = this.c.currentTime;
+    this.env.gain.cancelScheduledValues(now);
+    this.env.gain.setTargetAtTime(0.0001, now, 0.05);
+    this.osc.stop(now + 0.4);
+    this.vib.stop(now + 0.4);
+  }
+}
+
 export const sfx = {
   unlock() {
     const c = ensure();
@@ -72,6 +167,11 @@ export const sfx = {
     tone(1046, 0.6, { type: 'triangle', vol: 0.15, delay: 0.44 });
   },
   // 1 etapas: broliukai
+  cryVoice(base = 450) {
+    const c = ensure();
+    if (!c || c.state !== 'running') return null;
+    return new CryVoice(c, base);
+  },
   cry() { tone(520, 0.5, { type: 'sawtooth', vol: 0.07, slide: 160 }); tone(680, 0.45, { type: 'sawtooth', vol: 0.06, slide: -220, delay: 0.42 }); },
   boo() { tone(110, 0.45, { type: 'sawtooth', vol: 0.16, slide: -50 }); noise(0.3, { vol: 0.15, freq: 300 }); },
   howl() { tone(380, 0.35, { type: 'sine', vol: 0.14, slide: 260 }); tone(640, 0.6, { type: 'sine', vol: 0.12, slide: -300, delay: 0.32 }); },

@@ -9,6 +9,7 @@
 //  - mokytoja: vienas stebuklas (TV bokštas užsidega kaip eglė), durų skambutis.
 // Jei broliuko ašarų matuoklis prisipildo - verksmo priepuolis, Adriana sekundę užsikemša ausis.
 // Broliukai (2 metų) sėdi prie medinio traukinuko bėgių prieš didelį langą su TV bokštu.
+// Jų verksmas girdisi visą laiką: kuo daugiau ašarų (ir kuo daugiau gąsdina), tuo garsiau.
 
 import { headText, bodyText, banner, subtitle, floatText, missionCard, C } from '../fx.js';
 import { Tribune } from '../tribune.js';
@@ -53,8 +54,8 @@ const SPOTS = [
   { id: 'saldytuvas', tex: 'home_fridge', x: 1790, w: 210 },
 ];
 const BROTHERS = [
-  { x: 875, tex: 'baby_sit1', hair: 0x8a5a33 },
-  { x: 1045, tex: 'baby_sit2', hair: 0xe0b45c },
+  { x: 875, tex: 'baby_sit1', hair: 0x8a5a33, voice: 430 },
+  { x: 1045, tex: 'baby_sit2', hair: 0xe0b45c, voice: 500 },
 ];
 const TOYS = ['🧸', '🦆', '🚂', '⚽', '🦖', '🪀', '🐰', '🚗'];
 const SWITCH = { x: 500, y: 560 };
@@ -98,6 +99,7 @@ export class BroliaiScene extends Phaser.Scene {
     this.dark = { on: false, start: 0, until: 0, ready: 0 };
     this.garlandUntil = 0;
     this.wasParty = false;
+    this.voices = null;
     this.toys = [];
     this.stats = new Map();
     this.autoplay = !!this.autoplay;
@@ -128,7 +130,7 @@ export class BroliaiScene extends Phaser.Scene {
     kb.on('keydown-R', () => this.scene.restart());
 
     const off = A.host.on('press', (e) => this.onPress(e));
-    this.events.once('shutdown', off);
+    this.events.once('shutdown', () => { off(); this.stopCrying(); });
   }
 
   // ---------------- valdymas ----------------
@@ -643,6 +645,31 @@ export class BroliaiScene extends Phaser.Scene {
   }
 
   // ---------------- pabaiga ----------------
+  // Verksmo garsas: kiekvienam broliukui savas balsas.
+  updateCrying() {
+    const sfx = this.A.sfx;
+    const live = this.mode === 'play' || this.mode === 'end';
+    if (!this.voices) {
+      if (!live || !sfx.ready) return;
+      this.voices = this.brothers.map((b) => sfx.cryVoice(b.voice));
+      if (this.voices.some((v) => !v)) { this.stopCrying(); return; }
+    }
+    const now = this.time.now;
+    this.brothers.forEach((b, i) => {
+      let level = 0;
+      if (live && !b.isCalm) {
+        level = Phaser.Math.Clamp((b.tears - 15) / 85, 0.06, 1);
+        if (now < b.scaredUntil) level = Math.min(1, level + 0.3);
+      }
+      this.voices[i].update(level);
+    });
+  }
+
+  stopCrying() {
+    if (this.voices) this.voices.forEach((v) => v && v.stop());
+    this.voices = null;
+  }
+
   endPlay() {
     this.mode = 'end';
     if (this.dark.on) this.lightsOn();
@@ -667,6 +694,7 @@ export class BroliaiScene extends Phaser.Scene {
 
   showResult(ok) {
     this.mode = 'result';
+    this.stopCrying();
     this.A.host.setPhase('result', STAGE);
     const box = this.add.container(960, 500).setDepth(950).setAlpha(0);
     box.add(this.add.rectangle(0, 0, 1240, 600, 0x0b0418, 0.9).setStrokeStyle(6, ok ? 0xffd23f : 0xff4d5e));
@@ -814,6 +842,7 @@ export class BroliaiScene extends Phaser.Scene {
       this.wasParty = party;
     }
 
+    this.updateCrying();
     this.updateHud();
     if (play) {
       if (this.timeLeft <= 0) this.fail();
