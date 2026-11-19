@@ -3,31 +3,96 @@
   "klase": "Demo",
   "adriana": "adriana.png",
   "vaikai": [
-    { "vardas": "Agnė", "gimimo_data": "2016-01-15", "avataras": "agne.png" },
-    { "vardas": "Benas", "gimimo_data": "2016-02-03", "avataras": "benas.png" },
-    { "vardas": "Domantas", "gimimo_data": "2016-03-21", "avataras": "domantas.png" },
-    { "vardas": "Emilija", "gimimo_data": "2016-04-09", "avataras": "emilija.png" },
-    { "vardas": "Gabija", "gimimo_data": "2016-05-30", "avataras": "gabija.png" },
-    { "vardas": "Herkus", "gimimo_data": "2016-06-12", "avataras": "herkus.png" },
-    { "vardas": "Ieva", "gimimo_data": "2016-07-07", "avataras": "ieva.png" },
-    { "vardas": "Jonas", "gimimo_data": "2016-08-18", "avataras": "jonas.png" },
-    { "vardas": "Kamilė", "gimimo_data": "2016-09-01", "avataras": "kamile.png" },
-    { "vardas": "Lukas", "gimimo_data": "2016-10-25", "avataras": "lukas.png" },
-    { "vardas": "Marija", "gimimo_data": "2016-11-11", "avataras": "marija.png" },
-    { "vardas": "Nojus", "gimimo_data": "2016-12-02", "avataras": "nojus.png" },
-    { "vardas": "Olivija", "gimimo_data": "2016-01-28", "avataras": "olivija.png" },
-    { "vardas": "Paulius", "gimimo_data": "2016-02-14", "avataras": "paulius.png" },
-    { "vardas": "Rugilė", "gimimo_data": "2016-03-03", "avataras": "rugile.png" },
-    { "vardas": "Simas", "gimimo_data": "2016-04-22", "avataras": "simas.png" },
-    { "vardas": "Smiltė", "gimimo_data": "2016-05-05", "avataras": "smilte.png" },
-    { "vardas": "Tomas", "gimimo_data": "2016-06-30", "avataras": "tomas.png" },
-    { "vardas": "Urtė", "gimimo_data": "2016-07-19", "avataras": "urte.png" },
-    { "vardas": "Vakaris", "gimimo_data": "2016-08-08", "avataras": "vakaris.png" },
-    { "vardas": "Viltė", "gimimo_data": "2016-09-16", "avataras": "vilte.png" },
-    { "vardas": "Žygimantas", "gimimo_data": "2016-10-04", "avataras": "zygimantas.png" },
-    { "vardas": "Austėja", "gimimo_data": "2016-11-27", "avataras": "austeja.png" },
-    { "vardas": "Matas", "gimimo_data": "2016-12-20", "avataras": "matas.png" },
-    { "vardas": "Elzė", "gimimo_data": "2016-01-06", "avataras": "elze.png" },
-    { "vardas": "Kajus", "gimimo_data": "2016-02-24", "avataras": "kajus.png" }
+    {
+      "vardas": "Agnė",
+      "gimimo_data": "2016-01-15",
+      "avataras": "agne.png"
+    },
+    {
+      "vardas": "Benas",
+      "gimimo_data": "2016-02-03",
+      "avataras": "benas.png"
+    },
+    {
+      "vardas": "Domantas",
+      "gimimo_data": "2016-03-21",
+      "avataras": "domantas.png"
+    },
+    {
+      "vardas": "Emilija",
+      "gimimo_data": "2016-04-09",
+      "avataras": "emilija.png"
+    },
+    {
+      "vardas": "Gabija",
+      "gimimo_data": "2016-05-30",
+      "avataras": "gabija.png"
+    },
+    {
+      "vardas": "Herkus",
+      "gimimo_data": "2016-06-12",
+      "avataras": "herkus.png"
+    },
+    {
+      "vardas": "Ieva",
+      "gimimo_data": "2016-07-07",
+      "avataras": "ieva.png"
+    },
+    {
+      "vardas": "Jonas",
+      "gimimo_data": "2016-08-18",
+      "avataras": "jonas.png"
+    },
+    {
+      "vardas": "Kamilė",
+      "gimimo_data": "2016-09-01",
+      "avataras": "kamile.png"
+    },
+    {
+      "vardas": "Lukas",
+      "gimimo_data": "2016-10-25",
+      "avataras": "lukas.png"
+    },
+    {
+      "vardas": "Marija",
+      "gimimo_data": "2016-11-11",
+      "avataras": "marija.png"
+    },
+    {
+      "vardas": "Nojus",
+      "gimimo_data": "2016-12-02",
+      "avataras": "nojus.png"
+    },
+    {
+      "vardas": "Olivija",
+      "gimimo_data": "2016-01-28",
+      "avataras": "olivija.png"
+    },
+    {
+      "vardas": "Paulius",
+      "gimimo_data": "2016-02-14",
+      "avataras": "paulius.png"
+    },
+    {
+      "vardas": "Rugilė",
+      "gimimo_data": "2016-03-03",
+      "avataras": "rugile.png"
+    },
+    {
+      "vardas": "Simas",
+      "gimimo_data": "2016-04-22",
+      "avataras": "simas.png"
+    },
+    {
+      "vardas": "Smiltė",
+      "gimimo_data": "2016-05-05",
+      "avataras": "smilte.png"
+    },
+    {
+      "vardas": "Mokytoja Rūta",
+      "gimimo_data": "1985-04-12",
+      "avataras": "mokytoja.png",
+      "mokytoja": true
+    }
   ]
 }

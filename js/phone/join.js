@@ -2,8 +2,10 @@
 
 import { connectNet } from '../net.js';
 import { MONTHS_LT, uid, mdFrom, netModeFromUrl } from '../common.js';
+import { VERSION } from '../version.js';
 
 const $ = (id) => document.getElementById(id);
+document.getElementById('ver').textContent = VERSION;
 const params = new URLSearchParams(location.search);
 const room = (params.get('r') || '').toUpperCase();
 

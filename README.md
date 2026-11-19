@@ -67,6 +67,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 - Jei du vaikai tuo pačiu vardu, pridėk pavardės raidę.
 - Avataras - kvadratinis PNG ar JPG, bus apkarpytas į apskritimą. Jei avataro nėra, rodomos vardo raidės.
 - `adriana.png` - Adrianos galva, dedama ant bėgančio kūno.
+- Mokytojai pridėk `"mokytoja": true` - ji neužims vaikų vietų, o kiekviename etape gaus savo rolę (autobuse - vairuotoja).
 - Pulte spausk **Įkelti klasės aplanką**. Sąrašas išsaugomas tik šios naršyklės atmintyje. Po vakarėlio spausk **Ištrinti visus duomenis**.
 
 ## Vakarėlio metu

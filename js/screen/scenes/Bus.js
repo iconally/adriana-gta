@@ -49,6 +49,7 @@ const YARD = {
   laukiantis: { xs: [1600, 1670, 1740, 1810], prop: 1705 },
 };
 const KID_TINTS = [0xff6fb5, 0x6fe6ff, 0xffd166, 0xa98bff, 0x7dff9b, 0xff9a6b];
+const DRIVER_WIN = { x: 704, y: 116, size: 50 }; // autobuso priekinis langas (vairuotoja)
 const BUILD_PER_STAGE = 3;
 const WRECK_HP = 12;
 
@@ -407,6 +408,9 @@ export class BusScene extends Phaser.Scene {
       case 'keleivis':
         if (action === 'duris') return this.holdDoors(player);
         return this.waveFromBus(player);
+      case 'vairuotoja':
+        if (action === 'duris') return this.holdDoors(player);
+        return this.honk();
       default:
         return undefined;
     }
@@ -591,6 +595,20 @@ export class BusScene extends Phaser.Scene {
     if (Math.random() < 0.25) this.maybeSub(this.A.lines.pick('autobusas', 'wave', { vardas: player.name }));
   }
 
+  honk() {
+    this.A.sfx.horn();
+    this.tweens.add({ targets: this.hudBus, scale: this.hudBus.scale * 1.06, yoyo: true, duration: 120 });
+    floatText(this, 1700, 230, 'PYP PYP!', { color: C.yellow, size: 34 });
+  }
+
+  driverImage(container, x, y, size) {
+    const t = this.A.host.teachers()[0];
+    if (!t || !this.textures.exists(avatarKey(t.name))) return null;
+    const img = this.add.image(x, y, avatarKey(t.name)).setDisplaySize(size, size);
+    if (container) container.add(img);
+    return img;
+  }
+
   holdDoors(player) {
     this.tribune.bubble(player.pid, '🚪', C.green);
     if (this.mode !== 'play') return;
@@ -629,7 +647,9 @@ export class BusScene extends Phaser.Scene {
     const bx = 1500;
     const by = 40;
     const sc = 0.52;
-    this.add.image(bx, by, 'bus').setOrigin(0, 0).setScale(sc).setDepth(D);
+    this.hudBus = this.add.image(bx, by, 'bus').setOrigin(0, 0).setScale(sc).setDepth(D);
+    const drv = this.driverImage(null, bx + DRIVER_WIN.x * sc, by + DRIVER_WIN.y * sc, DRIVER_WIN.size * sc);
+    if (drv) drv.setDepth(D + 1);
     this.hudWindows = BUS_WINDOWS.map((w) => ({
       x: bx + (w.x + w.w / 2) * sc,
       y: by + (w.y + w.h / 2) * sc,
@@ -662,7 +682,7 @@ export class BusScene extends Phaser.Scene {
   passengers() {
     const host = this.A.host;
     const first = [...host.playersWithRole('laukiantis'), ...host.playersWithRole('keleivis')];
-    const rest = host.list().filter((p) => !first.includes(p));
+    const rest = host.list().filter((p) => !first.includes(p) && !host.isTeacher(p.name));
     return [...first, ...rest];
   }
 
@@ -720,6 +740,7 @@ export class BusScene extends Phaser.Scene {
       if (!p || !this.textures.exists(avatarKey(p.name))) return;
       bus.add(this.add.image(w.x + w.w / 2, w.y + w.h / 2 + 4, avatarKey(p.name)).setDisplaySize(w.w - 10, w.w - 10));
     });
+    this.driverImage(bus, DRIVER_WIN.x, DRIVER_WIN.y, DRIVER_WIN.size);
     this.busDoor = this.add.image(BUS_DOOR.x, BUS_DOOR.y, 'bus_door').setOrigin(0, 0);
     bus.add(this.busDoor);
     return bus;

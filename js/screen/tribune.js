@@ -93,7 +93,9 @@ export class Tribune {
     box.add(img);
     let label = null;
     if (this.names) {
-      label = bodyText(this.scene, 0, 0, p.name, 18, C.white).setOrigin(0.5, 0);
+      // ilgas vardas (pvz. "Mokytoja Rūta") tribūnoje sutrumpinamas iki pirmo žodžio
+      const short = p.name.length > 9 ? p.name.split(' ')[0] : p.name;
+      label = bodyText(this.scene, 0, 0, short, 18, C.white).setOrigin(0.5, 0);
       box.add(label);
     }
     return { box, img, label, name: p.name };

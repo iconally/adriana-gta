@@ -11,6 +11,7 @@ import { BootScene } from './scenes/Boot.js';
 import { LobbyScene } from './scenes/Lobby.js';
 import { BusScene } from './scenes/Bus.js';
 import { MapScene } from './scenes/Map.js';
+import { VERSION } from '../version.js';
 
 const $ = (id) => document.getElementById(id);
 const ROOM_KEY = 'agta.room';
@@ -75,6 +76,8 @@ function togglePult(force) {
 $('pult-toggle').onclick = () => togglePult();
 
 $('p-room').textContent = room;
+$('ver').textContent = VERSION;
+document.querySelector('#pult h2').insertAdjacentHTML('beforeend', ` <small style="font: 600 12px Rubik, sans-serif; color: #d8c4ff">${VERSION}</small>`);
 $('p-link').href = joinUrl;
 $('p-link').textContent = joinUrl;
 
@@ -101,7 +104,7 @@ function renderPlayers() {
     const kid = host.kid(p.name);
     li.innerHTML = `<img alt=""><span></span><button title="Atjungti">✕</button>`;
     li.querySelector('img').src = kid?.avatar || '';
-    li.querySelector('span').textContent = `${p.name}${host.isOnline(p) ? '' : ' (neaktyvus)'}`;
+    li.querySelector('span').textContent = `${p.name}${host.isTeacher(p.name) ? ' (mokytoja)' : ''}${host.isOnline(p) ? '' : ' (neaktyvus)'}`;
     li.querySelector('button').onclick = () => {
       if (confirm(`Atjungti ${p.name}?`)) host.kick(p.pid);
     };

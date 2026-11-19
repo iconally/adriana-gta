@@ -6,3 +6,6 @@ klase*.json
 node_modules/
 shots/
 .DS_Store
+
+# OpenStreetMap žaliavos (didelės)
+tools/*.json

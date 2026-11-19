@@ -24,14 +24,21 @@ export const STAGES = {
     nr: 4,
     title: 'Bėgimas iki autobuso',
     mission: 'SPĖK Į AUTOBUSĄ',
-    // Rolės dalijamos iš eilės: taip net maža klasė gauna visas grupes.
+    // 17 vietų pagal prioritetą (klasėje 17 vaikų be Adrianos). Vaikai išdalijami
+    // atsitiktinai, o vietos pildomos iš eilės: pirma 2 kelyje (žaidimui būtini),
+    // tada pilnos bendros grupės, tada dar 2 kelyje, stotelė ir keleivis.
+    // Neprisijungęs vaikas tiesiog nerodomas.
     slots: [
-      'kelyje', 'lipdytojas', 'laukiantis', 'griovejas', 'ciuozejas', 'keleivis',
-      'kelyje', 'lipdytojas', 'laukiantis', 'griovejas', 'ciuozejas', 'keleivis',
-      'kelyje', 'lipdytojas', 'laukiantis', 'griovejas', 'ciuozejas',
-      'kelyje', 'laukiantis', 'kelyje', 'kelyje',
+      'kelyje', 'kelyje',
+      'lipdytojas', 'lipdytojas', 'lipdytojas',
+      'griovejas', 'griovejas', 'griovejas',
+      'ciuozejas', 'ciuozejas', 'ciuozejas',
+      'kelyje', 'kelyje',
+      'laukiantis', 'laukiantis', 'laukiantis',
+      'keleivis',
     ],
     fallback: 'keleivis',
+    teacherRole: 'vairuotoja',
     roles: {
       kelyje: {
         name: 'Adrianos kelyje', emoji: '🧍', desc: 'Stovi ant šaligatvio. Kai ekrane pasirodysi, mesk gniūžtę arba pritūpk, kad Adriana lengviau peršoktų!',
@@ -66,6 +73,13 @@ export const STAGES = {
         buttons: [
           { id: 'laikrodis', label: 'Žiūrėti į laikrodį', emoji: '⌚', cd: 1500, ok: 'Tik-tak!' },
           { id: 'skubek', label: 'Šaukti „Skubėk!“', emoji: '📣', cd: 1500, ok: 'Girdi!' },
+        ],
+      },
+      vairuotoja: {
+        name: 'Autobuso vairuotoja', emoji: '🚍', desc: 'Jūs vairuojate Adrianos autobusą! Pypsėkit ir palaikykit duris.',
+        buttons: [
+          { id: 'pypseti', label: 'Pypsėti', emoji: '📯', cd: 1500, ok: 'PYP PYP!' },
+          { id: 'duris', label: 'Laikyti duris', emoji: '🚪', cd: 1200, ok: 'Laukiam!' },
         ],
       },
       keleivis: {

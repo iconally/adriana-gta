@@ -84,6 +84,10 @@ export class Host extends EventBus {
 
   avatarOf(name) { return this.kid(name)?.avatar || null; }
 
+  isTeacher(name) { return !!this.kid(name)?.teacher; }
+
+  teachers() { return this.list().filter((p) => this.isTeacher(p.name)); }
+
   touch(pid) {
     const p = this.players.get(pid);
     if (p) {
@@ -188,7 +192,14 @@ export class Host extends EventBus {
   assignAll() {
     this.roles = {};
     const counts = {};
-    const players = shuffle(this.list());
+    const all = shuffle(this.list());
+    // Mokytoja gauna savo specialią rolę ir neužima vaikų vietų.
+    for (const t of all.filter((p) => this.isTeacher(p.name))) {
+      const id = this.stage.teacherRole || this.pickRole(counts);
+      this.roles[t.pid] = id;
+      counts[id] = (counts[id] || 0) + 1;
+    }
+    const players = all.filter((p) => !this.isTeacher(p.name));
     if (this.stage.slots) {
       players.forEach((p, i) => { this.roles[p.pid] = this.stage.slots[i] || this.stage.fallback; });
       return;
@@ -203,6 +214,10 @@ export class Host extends EventBus {
   assignOne(player) {
     const counts = {};
     for (const id of Object.values(this.roles)) counts[id] = (counts[id] || 0) + 1;
+    if (this.isTeacher(player.name)) {
+      this.roles[player.pid] = this.stage.teacherRole || this.pickRole(counts);
+      return;
+    }
     if (this.stage.slots) {
       const seen = {};
       for (const id of this.stage.slots) {

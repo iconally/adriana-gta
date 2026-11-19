@@ -42,7 +42,7 @@ async function buildRoster(data, loadImage) {
     if (seen.has(name.toLowerCase())) { problems.push(`${name}: vardas kartojasi (pridėk pavardės raidę)`); continue; }
     seen.add(name.toLowerCase());
     const avatar = (await loadImage(v.avataras)) || placeholderAvatar(name);
-    kids.push({ name, md, avatar });
+    kids.push({ name, md, avatar, teacher: !!v.mokytoja });
   }
   kids.sort((a, b) => a.name.localeCompare(b.name, 'lt'));
   const adriana = data.adriana ? await loadImage(data.adriana) : null;
