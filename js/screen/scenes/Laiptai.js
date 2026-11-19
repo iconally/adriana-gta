@@ -4,10 +4,10 @@
 // Du kartus ta pati rodyklė - suklumpa. Kuo sunkesnė kuprinė, tuo lėčiau.
 // Laiko 30 s, pabaigoje skambutis.
 // Klasiokai matosi ant laiptų:
-//  - krovikai: įmeta knygą (kuprinė sunkėja) arba mandariną (juokui);
-//  - stūmikai: pastumia iš apačios (Adriana pajuda į priekį), šaukia „Pirmyn!“;
-//  - bėgikai per pertrauką: nubėga žemyn pro šalį, paslysta (fonas);
-//  - mokytoja (budėtoja prie 3 aukšto durų): laiko duris (+1 s), švilpukas (stūmikai stumia 2x).
+//  - krovikai (13): įmeta knygą (kuprinė sunkėja) arba mandariną (juokui);
+//  - bėgikai per pertrauką (4): nubėga žemyn pro šalį, paslysta (fonas);
+//  - mokytoja (budėtoja prie 3 aukšto durų): laiko duris (+1 s),
+//    švilpukas - kelias sekundes mesti negalima, knygos atšoka.
 
 import { headText, bodyText, banner, subtitle, floatText, missionCard, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
@@ -31,12 +31,10 @@ const ADR_S = 0.9;
 const KID_S = 0.78;
 const TIME_LIMIT = 30;
 const MAX_BONUS = 5;
-const BOOK_W = 0.15; // kiek viena knyga sulėtina (14 knygų - 3 kartus lėčiau)
+const BOOK_W = 0.1; // kiek viena knyga sulėtina (14 knygų - 2,4 karto lėčiau)
 const MAX_BOOKS = 14;
-const BOOK_GAP = 1200; // ms tarp knygų (visiems kartu)
-const PUSH = 0.5; // kiek žingsnių pastumia stūmikas
-const PUSH_GAP = 1000;
-const WHISTLE_MS = 4000;
+const BOOK_GAP = 1800; // ms tarp knygų (visiems kartu)
+const WHISTLE_MS = 5000; // tiek laiko po švilpuko mesti negalima
 const STUMBLE_T = 0.4;
 const WINDOWS = [4, 9.5, 15.5, 21, 26.5, 34, 39.5, 45.5, 51, 56.5];
 const BOOK_COLORS = [0xff3ea5, 0x2de2e6, 0xffd23f, 0x3ddc84, 0xa98bff, 0xff9a3c];
@@ -92,9 +90,8 @@ export class LaiptaiScene extends Phaser.Scene {
     this.pile = []; // knygos, kyšančios iš kuprinės
     this.tilt = { a: 0 }; // suklupimo pasvirimas
     this.sweatT = 0;
-    this.pushes = 0;
+    this.bounced = 0;
     this.lastBook = 0;
-    this.lastPush = 0;
     this.whistleUntil = 0;
     this.bonus = 0;
     this.timeLeft = TIME_LIMIT;
@@ -393,8 +390,6 @@ export class LaiptaiScene extends Phaser.Scene {
     switch (action) {
       case 'knyga': return this.throwItem(player, true);
       case 'mandarinas': return this.throwItem(player, false);
-      case 'stumti': return this.push(player);
-      case 'pirmyn': return this.cheer(player);
       case 'begti': return this.runDown(player, false);
       case 'paslysti': return this.runDown(player, true);
       case 'duris': return this.holdDoors(player);
@@ -410,7 +405,7 @@ export class LaiptaiScene extends Phaser.Scene {
       return;
     }
     if (book) this.lastBook = now;
-    const v = this.makeKid(player, this.ud + rand(3.6, 4.8));
+    const v = this.makeKid(player, this.ud + rand(3.2, 6.5));
     this.tweens.add({ targets: v.box, angle: -12, yoyo: true, duration: 140 });
     this.fadeKid(v, 1800);
     const sx = v.box.x - 20;
@@ -437,10 +432,16 @@ export class LaiptaiScene extends Phaser.Scene {
 
   itemLanded(player, item, book) {
     if (this.mode === 'result') { item.destroy(); return; }
-    if (book && this.books >= MAX_BOOKS) {
-      // kuprinė pilna - knyga atšoka
+    const blocked = this.time.now < this.whistleUntil;
+    if (blocked || (book && this.books >= MAX_BOOKS)) {
+      // kuprinė pilna arba mokytoja švilpia - knyga atšoka
       this.tweens.add({ targets: item, x: item.x - 120, y: item.y + 260, angle: -300, alpha: 0, duration: 700, ease: 'Quad.In', onComplete: () => item.destroy() });
-      this.maybeSub(this.A.lines.pick('laiptai', 'full'), C.white, 3000);
+      if (blocked) {
+        this.bounced += 1;
+        this.worldText(item.x, item.y - 60, 'FIIIT!', C.yellow, 30);
+      } else {
+        this.maybeSub(this.A.lines.pick('laiptai', 'full'), C.white, 3000);
+      }
       return;
     }
     item.destroy();
@@ -491,30 +492,6 @@ export class LaiptaiScene extends Phaser.Scene {
       b.setPosition(cx + col * 30 * sc, top + 18 - row * 16 * sc);
       b.setScale(0.75 * sc).setAngle(b.rot + col * 12);
     });
-  }
-
-  push(player) {
-    const now = this.time.now;
-    if (now - this.lastPush < PUSH_GAP) {
-      this.tribune.bubble(player.pid, '💪', C.white);
-      return;
-    }
-    this.lastPush = now;
-    const v = this.makeKid(player, Math.max(-1.5, this.ud - 1.4));
-    this.tweens.add({ targets: v.box, angle: 18, x: v.box.x + 30, duration: 160, yoyo: true });
-    this.fadeKid(v, 1200);
-    if (this.mode !== 'play') return;
-    const boost = now < this.whistleUntil ? 2 : 1;
-    this.u = Math.min(GOAL_U + 0.3, this.u + PUSH * boost);
-    this.pushes += 1;
-    this.stat(player, 'stumimai');
-    this.worldText(this.adr.x - 90, this.adr.y - 200, boost > 1 ? 'HOP HOP!' : 'Hop!', C.green, 34);
-    if (Math.random() < 0.4) this.maybeSub(this.A.lines.pick('laiptai', 'push', { vardas: player.name }), C.green, 3000);
-  }
-
-  cheer(player) {
-    this.tribune.bubble(player.pid, 'Pirmyn!', C.yellow);
-    if (Math.random() < 0.15) this.maybeSub(this.A.lines.pick('laiptai', 'cheer'), C.yellow, 4000);
   }
 
   runDown(player, slip) {
@@ -570,6 +547,7 @@ export class LaiptaiScene extends Phaser.Scene {
   whistle() {
     this.whistleUntil = this.time.now + WHISTLE_MS;
     this.A.sfx.whistle();
+    this.whistleText.setVisible(true);
     floatText(this, this.teacherHud ? 1700 : 960, 230, 'FIIIT!', { color: C.yellow, size: 44 });
     this.maybeSub(this.A.lines.pick('laiptai', 'whistle'), C.yellow, 1500);
   }
@@ -584,6 +562,7 @@ export class LaiptaiScene extends Phaser.Scene {
 
     this.timerText = headText(this, 960, 70, '0:30', 92, C.white).setDepth(D);
     this.bonusText = bodyText(this, 960, 182, '', 24, C.green).setDepth(D);
+    this.whistleText = bodyText(this, 960, 250, 'FIIIT! Mokytoja švilpia - mesti negalima!', 28, C.yellow).setDepth(D).setVisible(false);
     const barW = 640;
     this.add.rectangle(960, 140, barW + 10, 26, 0x000000, 0.6).setDepth(D).setStrokeStyle(3, 0x14081f);
     this.barFill = this.add.rectangle(960 - barW / 2, 140, 1, 16, 0xff3ea5).setOrigin(0, 0.5).setDepth(D);
@@ -693,12 +672,12 @@ export class LaiptaiScene extends Phaser.Scene {
     const kg = 6 + this.books * 1.5 + this.mandarins * 0.2;
     const rows = [
       [`Laikas: ${this.elapsed.toFixed(1).replace('.', ',')} s   ·   Žingsniai: ${this.steps}   ·   Suklupo: ${this.stumbles} k.`, C.white],
-      [`Kuprinė: ${kg.toFixed(1).replace('.', ',')} kg   ·   Knygos: ${this.books}   ·   Mandarinai: ${this.mandarins}   ·   Stūmimai: ${this.pushes}`, C.white],
+      [`Kuprinė: ${kg.toFixed(1).replace('.', ',')} kg   ·   Knygos: ${this.books}   ·   Mandarinai: ${this.mandarins}   ·   Atšoko: ${this.bounced}`, C.white],
     ];
     const loader = best('knygos');
     if (loader) rows.push([`Sunkiausias krovikas: ${loader[0].name} (${loader[1]})`, C.orange]);
-    const pusher = best('stumimai');
-    if (pusher) rows.push([`Stipriausias stūmikas: ${pusher[0].name} (${pusher[1]})`, C.green]);
+    const fruit = best('mandarinas');
+    if (fruit) rows.push([`Mandarinų karalius: ${fruit[0].name} (${fruit[1]})`, C.orange]);
     if (this.bonus) rows.push([`Budėtoja laikė duris: +${this.bonus} s`, C.yellow]);
     rows.slice(0, 6).forEach(([r, c], i) => box.add(bodyText(this, 0, -140 + i * 54, r, 30, c)));
     const next = headText(this, 0, 240, 'ENTER - TOLIAU', 48, C.white);
@@ -772,6 +751,7 @@ export class LaiptaiScene extends Phaser.Scene {
     this.cam.y += (ty - this.cam.y) * Math.min(1, dt * 6);
     this.applyCam();
 
+    if (this.whistleText.visible && this.time.now >= this.whistleUntil) this.whistleText.setVisible(false);
     this.updateHud();
     if (play) {
       if (this.ud >= GOAL_U) this.win();

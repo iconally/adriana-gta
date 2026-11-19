@@ -72,25 +72,17 @@ export const STAGES = {
     nr: 2,
     title: 'Laiptai su kuprine',
     mission: 'UŽLIPK Į MOKYKLĄ',
-    // 5 stūmikai, 8 krovikai, 4 bėgikai - sumaišyta, kad
-    // ir su keliais vaikais būtų visko po truputį.
+    // 13 krovikų ir 4 bėgikai - sumaišyta, kad ir su keliais vaikais būtų abiejų.
     slots: [
-      'stumikas', 'krovikas', 'krovikas', 'begikas',
-      'stumikas', 'krovikas', 'krovikas', 'begikas',
-      'stumikas', 'krovikas', 'krovikas', 'begikas',
-      'stumikas', 'krovikas', 'krovikas', 'begikas',
-      'stumikas',
+      'krovikas', 'krovikas', 'krovikas', 'begikas',
+      'krovikas', 'krovikas', 'krovikas', 'begikas',
+      'krovikas', 'krovikas', 'krovikas', 'begikas',
+      'krovikas', 'krovikas', 'krovikas', 'begikas',
+      'krovikas',
     ],
-    fallback: 'stumikas',
+    fallback: 'krovikas',
     teacherRole: 'budetoja',
     roles: {
-      stumikas: {
-        name: 'Stūmikas', emoji: '💪', desc: 'Padėk Adrianai užlipti: pastumk ją iš apačios arba šauk „Pirmyn!“',
-        buttons: [
-          { id: 'stumti', label: 'Pastumti', emoji: '💪', cd: 2000, ok: 'Hop!' },
-          { id: 'pirmyn', label: 'Šaukti „Pirmyn!“', emoji: '📣', cd: 1500, ok: 'Pirmyn!' },
-        ],
-      },
       krovikas: {
         name: 'Kuprinės krovikas', emoji: '📚', desc: 'Adrianos kuprinė per lengva! Įmesk knygą - ji lips lėčiau. Arba mandariną - tiesiog juokui.',
         buttons: [
@@ -106,10 +98,10 @@ export const STAGES = {
         ],
       },
       budetoja: {
-        name: 'Budinti mokytoja', emoji: '🔔', desc: 'Jūs budite prie 3 aukšto durų. Palaikykite duris (+1 s) arba švilpkite - stūmikai stums stipriau!',
+        name: 'Budinti mokytoja', emoji: '🔔', desc: 'Jūs budite prie 3 aukšto durų. Palaikykite duris (+1 s) arba švilpkite - 5 sekundes niekas negalės mesti knygų!',
         buttons: [
           { id: 'duris', label: 'Laikyti duris', emoji: '🚪', cd: 2500, ok: '+1 s!' },
-          { id: 'svilpukas', label: 'Švilpukas', emoji: '📢', cd: 8000, ok: 'FIIIT!' },
+          { id: 'svilpukas', label: 'Švilpukas: nemėtyti!', emoji: '📢', cd: 10000, ok: 'FIIIT!' },
         ],
       },
     },

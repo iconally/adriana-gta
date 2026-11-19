@@ -2,8 +2,8 @@
   "intro": [
     "Patarimas: kairė, dešinė, kairė, dešinė. Kaip šokant, tik sunkiau.",
     "Patarimas: kuprinė sveria daugiau nei Adriana. Beveik.",
-    "Patarimas: stūmikai - tavo geriausi draugai.",
-    "Patarimas: du kartus ta pati koja - ir labas, laiptelis."
+    "Patarimas: du kartus ta pati koja - ir labas, laiptelis.",
+    "Patarimas: kai mokytoja švilpia, knygos atšoka. Lipk tada greičiau!"
   ],
   "start": [
     "Pirmyn, Adriana! Iki skambučio 30 sekundžių!",
@@ -28,15 +28,6 @@
     "Mandarinas pietums!",
     "Kalėdos kvepia mandarinais."
   ],
-  "push": [
-    "{vardas} stumia iš apačios!",
-    "Hop! {vardas} padeda!",
-    "{vardas} - geriausias stūmikas."
-  ],
-  "cheer": [
-    "PIRMYN!",
-    "Adriana, gali!"
-  ],
   "run": [
     "{vardas} lekia per pertrauką!",
     "Nebėgiokit laiptais! (Bet {vardas} negirdi.)"
@@ -53,8 +44,8 @@
     "Duris ilgiau laikyti nebegalima!"
   ],
   "whistle": [
-    "FIIIT! Stūmikai, visu greičiu!",
-    "Švilpukas! Visi stumia stipriau!"
+    "FIIIT! Mesti draudžiama!",
+    "Mokytoja švilpia - knygos atšoka!"
   ],
   "floor": [
     "2 aukštas! Dar vienas!",
