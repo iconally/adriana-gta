@@ -154,6 +154,10 @@ async function applyRoster(promise) {
 $('p-folder').onchange = (e) => applyRoster(loadRosterFromFiles(e.target.files));
 $('p-files').onchange = (e) => applyRoster(loadRosterFromFiles(e.target.files));
 $('p-demo').onclick = () => applyRoster(loadDemoRoster());
+// Demo klasė naršyklėje galėjo likti sena (pvz. 26 vaikai) - visada įkeliam naujausią.
+if (host.roster.demo || host.roster.className === 'Demo') {
+  loadDemoRoster().then((r) => { host.setRoster(r); renderClass(); }).catch(() => {});
+}
 $('p-newroom').onclick = () => {
   if (!confirm('Sukurti naują kambario kodą? Visi telefonai turės prisijungti iš naujo.')) return;
   localStorage.setItem(ROOM_KEY, randomRoom());

@@ -26,7 +26,9 @@ export async function loadRosterFromFiles(fileList) {
 export async function loadDemoRoster() {
   const res = await fetch('demo/klase-demo.json', { cache: 'no-store' });
   if (!res.ok) throw new Error('Nepavyko įkelti demo klasės.');
-  return buildRoster(await res.json(), async () => null);
+  const roster = await buildRoster(await res.json(), async () => null);
+  roster.demo = true;
+  return roster;
 }
 
 async function buildRoster(data, loadImage) {
