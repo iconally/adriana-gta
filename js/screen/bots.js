@@ -47,10 +47,15 @@ export class Bots {
       if (!p.bot) continue;
       p.lastSeen = Date.now();
       if (phase !== 'play' && phase !== 'lobby') continue;
+      // scena gali pati pasakyti, ką virtualus vaikas turi paspausti dabar (pvz. jo eilė perduoti)
+      const forced = phase === 'play' && host.botPick ? host.botPick(p) : null;
+      if (forced) { host.onPress({ pid: p.pid, a: forced }); continue; }
       if (Math.random() > (phase === 'lobby' ? 0.03 : 0.12)) continue;
       const role = host.roleOf(p.pid);
       if (!role) continue;
       const b = role.buttons[Math.floor(Math.random() * role.buttons.length)];
+      // scena gali padaryti virtualius vaikus protingesnius (pvz. neperduoti, kai mokytoja žiūri)
+      if (host.botFilter && !host.botFilter(p, b.id)) continue;
       host.onPress({ pid: p.pid, a: b.id });
     }
   }

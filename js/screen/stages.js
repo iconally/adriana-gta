@@ -111,47 +111,60 @@ export const STAGES = {
     nr: 3,
     title: 'Kai mokytoja nusisuka',
     mission: 'PERDUOK ATVIRUKĄ',
-    // Pirmiausia perdavėjai (jų suolai atviruko kelyje), tada sumaišytos kitos grupės:
-    // 6 perdavėjai, 4 klausinėtojai, 4 uolūs mokiniai, 3 triukšmadariai.
+    // Visi vaikai turi mygtuką „Perduoti“, skiriasi tik antrasis.
+    // Atvirukas keliauja atsitiktine tvarka (be pasikartojimų), paskutinė gauna mokytoja.
     slots: [
-      'perdavejas', 'klausinetojas', 'uolus', 'perdavejas', 'triuksmadarys',
-      'perdavejas', 'uolus', 'klausinetojas', 'perdavejas', 'uolus',
-      'triuksmadarys', 'perdavejas', 'klausinetojas', 'uolus', 'perdavejas',
-      'triuksmadarys', 'klausinetojas',
+      'smalsuolis', 'uolus', 'ciaudulys', 'penalas', 'mieguistas', 'ranka',
+      'smalsuolis', 'uolus', 'ciaudulys', 'penalas', 'mieguistas', 'ranka',
+      'smalsuolis', 'uolus', 'ciaudulys', 'penalas', 'mieguistas',
     ],
     fallback: 'uolus',
     teacherRole: 'lenta',
     roles: {
-      perdavejas: {
-        name: 'Perdavėjas', emoji: '✉️', desc: 'Tavo suolas atviruko kelyje! Kai atvirukas pas tave - perduok greičiau. Jei mokytoja atsisuka - paslėpk po knyga!',
+      smalsuolis: {
+        name: 'Smalsuolis', emoji: '🙋', desc: 'Kai atvirukas pas tave (matysi ekrane ir telefone) - spausk PERDUOTI, kol mokytoja rašo lentoje! Klausimas mokytojai - ji iškart atsisuks (pavojinga!).',
         buttons: [
-          { id: 'perduoti', label: 'Perduoti', emoji: '✉️', cd: 1500, ok: 'Skrenda!' },
-          { id: 'slepti', label: 'Paslėpti po knyga', emoji: '📖', cd: 2500, ok: 'Paslėpta!' },
-        ],
-      },
-      klausinetojas: {
-        name: 'Klausinėtojas', emoji: '🙋', desc: 'Užduok mokytojai klausimą - ji iškart atsisuks! (Adrianai pavojinga...)',
-        buttons: [
-          { id: 'klausti', label: 'Klausti mokytojos', emoji: '🙋', cd: 6000, ok: 'Mokytoja!' },
-          { id: 'ranka', label: 'Kelti ranką', emoji: '✋', cd: 1500, ok: 'Aš! Aš!' },
+          { id: 'perduoti', label: 'Perduoti', emoji: '✉️', cd: 1200, ok: 'Skrenda!' },
+          { id: 'klausti', label: 'Paklausti mokytojos', emoji: '🙋', cd: 6000, ok: 'Mokytoja!' },
         ],
       },
       uolus: {
-        name: 'Uolus mokinys', emoji: '✍️', desc: 'Rašyk uoliai - mokytoja ilgiau rašys lentoje ir neatsisuks.',
+        name: 'Uolus mokinys', emoji: '✍️', desc: 'Kai atvirukas pas tave (matysi ekrane ir telefone) - spausk PERDUOTI, kol mokytoja rašo lentoje! Rašyk uoliai - mokytoja ilgiau rašys lentoje.',
         buttons: [
+          { id: 'perduoti', label: 'Perduoti', emoji: '✉️', cd: 1200, ok: 'Skrenda!' },
           { id: 'rasyti', label: 'Rašyti uoliai', emoji: '✍️', cd: 1500, ok: 'Rašau!' },
-          { id: 'ziovauti', label: 'Žiovauti', emoji: '🥱', cd: 2000, ok: 'Aaa...' },
         ],
       },
-      triuksmadarys: {
-        name: 'Triukšmadarys', emoji: '🤧', desc: 'Klasėje per tylu. Čiaudėk arba numesk penalą!',
+      ciaudulys: {
+        name: 'Čiaudulys', emoji: '🤧', desc: 'Kai atvirukas pas tave (matysi ekrane ir telefone) - spausk PERDUOTI, kol mokytoja rašo lentoje!',
         buttons: [
+          { id: 'perduoti', label: 'Perduoti', emoji: '✉️', cd: 1200, ok: 'Skrenda!' },
           { id: 'ciaudeti', label: 'Čiaudėti', emoji: '🤧', cd: 1500, ok: 'APČIHI!' },
+        ],
+      },
+      penalas: {
+        name: 'Penalo mėtytojas', emoji: '✏️', desc: 'Kai atvirukas pas tave (matysi ekrane ir telefone) - spausk PERDUOTI, kol mokytoja rašo lentoje!',
+        buttons: [
+          { id: 'perduoti', label: 'Perduoti', emoji: '✉️', cd: 1200, ok: 'Skrenda!' },
           { id: 'penalas', label: 'Numesti penalą', emoji: '✏️', cd: 2000, ok: 'Bum!' },
         ],
       },
+      mieguistas: {
+        name: 'Mieguistas', emoji: '🥱', desc: 'Kai atvirukas pas tave (matysi ekrane ir telefone) - spausk PERDUOTI, kol mokytoja rašo lentoje!',
+        buttons: [
+          { id: 'perduoti', label: 'Perduoti', emoji: '✉️', cd: 1200, ok: 'Skrenda!' },
+          { id: 'ziovauti', label: 'Žiovauti', emoji: '🥱', cd: 2000, ok: 'Aaa...' },
+        ],
+      },
+      ranka: {
+        name: 'Viską žinantis', emoji: '✋', desc: 'Kai atvirukas pas tave (matysi ekrane ir telefone) - spausk PERDUOTI, kol mokytoja rašo lentoje!',
+        buttons: [
+          { id: 'perduoti', label: 'Perduoti', emoji: '✉️', cd: 1200, ok: 'Skrenda!' },
+          { id: 'ranka', label: 'Kelti ranką', emoji: '✋', cd: 1500, ok: 'Aš! Aš!' },
+        ],
+      },
       lenta: {
-        name: 'Mokytoja prie lentos', emoji: '👀', desc: 'Jūs rašote lentoje. Atsisukite ir pagaukite, kas perdavinėja atviruką! Arba rašykite toliau.',
+        name: 'Mokytoja prie lentos', emoji: '👀', desc: 'Jūs rašote lentoje. Atsisukite ir pagaukite, kas perdavinėja atviruką! Arba rašykite toliau. Atvirukas galiausiai atkeliaus pas jus.',
         buttons: [
           { id: 'atsisukti', label: 'Atsisukti!', emoji: '👀', cd: 5000, ok: 'Kas čia vyksta?' },
           { id: 'rasyti', label: 'Rašyti toliau', emoji: '✏️', cd: 3000, ok: 'Rašau...' },

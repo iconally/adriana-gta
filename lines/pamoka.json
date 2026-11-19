@@ -1,9 +1,9 @@
 {
   "intro": [
-    "Patarimas: kai mokytoja sako „Hmm?“ - sustok!",
-    "Patarimas: perdavėjai gali paslėpti atviruką po knyga.",
-    "Patarimas: klausinėtojai - pavojingiausi žmonės klasėje.",
-    "Patarimas: uolūs mokiniai laiko mokytoją prie lentos."
+    "Patarimas: kai mokytoja sako „Hmm?“ - niekas neperduoda!",
+    "Patarimas: atvirukas keliauja per VISĄ klasę. Žiūrėk, ar ne pas tave!",
+    "Patarimas: smalsuoliai - pavojingiausi žmonės klasėje.",
+    "Patarimas: jei kas užsižiopsojo, Adriana gali padėti (→)."
   ],
   "start": [
     "Atvirukas keliauja! Mokytoja neturi pamatyti.",
@@ -17,12 +17,8 @@
   ],
   "caught": [
     "PAGAVO! Kas čia per atvirukas?!",
-    "{vardas}, ką ten perdavinėji?",
+    "PAGAVO: {vardas}!",
     "Pertraukos metu, vaikai!"
-  ],
-  "hide": [
-    "{vardas} paslėpė atviruką po knyga!",
-    "Nieko nematyti... {vardas} skaito knygą."
   ],
   "pass": [
     "{vardas} perduoda!",
@@ -69,5 +65,13 @@
   "fail": [
     "Skambutis! Atvirukas liks pertraukai.",
     "Beveik... mokytoja buvo per budri."
+  ],
+  "help": [
+    "Adriana padeda perduoti!",
+    "{vardas} užsižiopsojo - Adriana padeda!"
+  ],
+  "your_turn": [
+    "{vardas} turi atviruką!",
+    "Eilė: {vardas}!"
   ]
 }

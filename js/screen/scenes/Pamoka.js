@@ -1,34 +1,32 @@
 // 3 etapas: Kai mokytoja nusisuka.
 //
-// Klasė slapta perduoda kalėdinį atviruką per suolus nuo Adrianos iki mokytojos stalo.
-// Kol Adriana laiko → (arba TARPĄ), atvirukas keliauja; paleidus - sustoja.
+// Klasė slapta perduoda kalėdinį atviruką mokytojai. Atvirukas keliauja per visus
+// prisijungusius vaikus atsitiktine tvarka (be pasikartojimų), paskutinė jį gauna mokytoja.
+// Pas ką atvirukas - tas vaikas paryškintas ekrane ir gauna žinutę telefone; jis spaudžia
+// „Perduoti“. Adriana pradeda (→ arba TARPAS) ir gali padėti, jei kas užsižiopsojo.
 // Mokytoja rašo lentoje, kartais sustoja („Hmm?“) ir atsisuka. Jei tada atvirukas
-// juda - PAGAVO, atvirukas grįžta 2 suolus atgal. Laiko 40 s.
-// Klasiokai sėdi suoluose:
-//  - perdavėjai (6): jų suolai atviruko kelyje - perduoti greičiau, paslėpti po knyga;
-//  - klausinėtojai (4): klausti (mokytoja iškart atsisuka!), kelti ranką;
-//  - uolūs mokiniai (4): rašyti uoliai (mokytoja ilgiau rašo), žiovauti;
-//  - triukšmadariai (3): čiaudėti, numesti penalą (fonas);
+// skrenda - PAGAVO, atvirukas grįžta vienu vaiku atgal. Laiko 60 s.
+// Kiekvienas vaikas turi „Perduoti“ ir vieną savo mygtuką:
+//  - paklausti mokytojos (ji iškart atsisuka!), rašyti uoliai (ilgiau rašo),
+//    čiaudėti, numesti penalą, žiovauti, kelti ranką (fonas);
 //  - mokytoja: atsisukti (bando pagauti), rašyti toliau.
 
 import { headText, bodyText, banner, subtitle, missionCard, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { BOARD } from '../art-class.js';
-import { isBoy, GIRL_COLORS, BOY_COLORS } from '../../common.js';
+import { isBoy, GIRL_COLORS, BOY_COLORS, shuffle } from '../../common.js';
 
 const STAGE = STAGES.pamoka;
-const TIME_LIMIT = 40;
-const CARD_SPEED = 0.75; // suolų per sekundę, kol Adriana laiko
-const BOOST = 0.45; // perdavėjo „Perduoti“
-const HIDE_MS = 3000;
-const CAUGHT_BACK = 2;
+const TIME_LIMIT = 60;
+const CAUGHT_BACK = 1;
 const FREEZE_MS = 1200;
-const WRITE = [3.0, 5.0]; // kiek sekundžių rašo lentoje
+const HELP_MS = 3000; // tiek palaukus Adriana gali perduoti už užsižiopsojusį
+const WRITE = [3.5, 6.0]; // kiek sekundžių rašo lentoje
 const WARN = 0.8; // „Hmm?“ prieš atsisukant
-const FACE = [1.4, 2.2]; // kiek žiūri į klasę
-const CALM_MS = 1500; // ką tik pradėjusios rašyti mokytojos klausimais neatsuksi
-const DILIGENT_ADD = 0.8; // uolus mokinys prailgina rašymą
+const FACE = [1.2, 2.0]; // kiek žiūri į klasę
+const CALM_MS = 1500; // ką tik pradėjusios rašyti mokytojos neatsuksi
+const DILIGENT_ADD = 0.8;
 const DILIGENT_MAX = 2.4;
 const QUESTION_GAP = 9000;
 
@@ -38,20 +36,19 @@ const ROWS = {
   M: { y: 690, s: 0.66 },
   F: { y: 862, s: 0.78 },
 };
-// Atviruko kelias: Adrianos suolas, 6 perdavėjų suolai, mokytojos stalas.
-const PATH_SEATS = [['M', 190], ['F', 347], ['M', 504], ['F', 661], ['M', 819], ['F', 976], ['M', 1133]];
-const TEACHER_DESK = { x: 1300, y: 902 };
-const CARD_END = { x: 1290, y: 760 };
-// Kitos vietos (kiti vaikai): pirmiau arčiau esančios.
-const OTHER_SEATS = [
-  ['M', 347], ['M', 661], ['M', 976], ['F', 190], ['F', 504], ['F', 819],
+const ADRIANA_SEAT = ['M', 190];
+// Vaikų vietos: pirmiau arčiau esančios.
+const SEATS = [
+  ['F', 347], ['F', 661], ['M', 504], ['M', 819], ['F', 504], ['F', 819], ['M', 347], ['M', 661],
+  ['F', 190], ['F', 976], ['M', 976], ['M', 1133],
   ['B', 150], ['B', 330], ['B', 510], ['B', 690], ['B', 870], ['B', 1050],
 ];
+const TEACHER_DESK = { x: 1300, y: 902 };
+const CARD_END = { x: 1290, y: 760 };
 const TEACHER = { x: 1610, y: 884, s: 1.15 };
 const BOARD_LINES = ['KALĖDŲ PAMOKA', '2 + 2 = 4', 'Linksmų Kalėdų!'];
 
 const rand = (a, b) => a + Math.random() * (b - a);
-const pick = (list) => list[Math.floor(Math.random() * list.length)];
 function tintOf(name) {
   let h = 0;
   for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
@@ -69,31 +66,30 @@ export class PamokaScene extends Phaser.Scene {
     A.host.setPhase('intro', STAGE);
 
     // Phaser naudoja tą patį scenos objektą, todėl visą būseną nustatom iš naujo.
-    this.c = 0; // atviruko vieta kelyje (0 - Adriana, 7 - mokytojos stalas)
-    this.boost = 0;
-    this.hiddenUntil = 0;
-    this.hiddenBy = null;
+    this.seq = []; // atviruko kelias: Adriana, vaikai atsitiktine tvarka, mokytoja
+    this.idx = 0; // pas ką dabar atvirukas
+    this.flight = null; // { from, to, t, dur }
+    this.holderSince = 0;
     this.freezeUntil = 0;
     this.caught = 0;
+    this.caughtWho = new Map();
     this.questions = 0;
-    this.hides = 0;
-    this.passes = 0;
+    this.helps = 0;
     this.lastQuestion = -99999;
     this.lastDiligent = 0;
-    this.lastNode = 0;
     this.timeLeft = TIME_LIMIT;
     this.elapsed = 0;
     this.lastTick = 99;
     this.timerDanger = undefined;
     this.saidTen = false;
-    this.saidNear = false;
     this.lastSub = 0;
     this.stats = new Map();
     this.seats = new Map(); // pid -> sėdintis vaikas
-    this.pathKids = new Array(PATH_SEATS.length).fill(null); // kelio suolas -> vaikas
     this.autoplay = !!this.autoplay;
+    this.autoT = 0;
     this.boardChars = 0;
     this.boardT = 0;
+    this.botWait = 0;
 
     this.add.image(960, 540, 'class_room').setDepth(-100);
     this.add.image(BOARD.x + BOARD.w / 2, BOARD.y + BOARD.h / 2, 'chalkboard').setDepth(-90);
@@ -101,13 +97,12 @@ export class PamokaScene extends Phaser.Scene {
       align: 'left', strokeThickness: 0, lineSpacing: 14, fontStyle: 'bold',
     }).setOrigin(0, 0).setDepth(-89);
 
-    this.nodes = PATH_SEATS.map(([r, x]) => ({ x, y: ROWS[r].y - 16 * ROWS[r].s, s: ROWS[r].s }));
-    this.nodes.push({ ...CARD_END, s: 1 });
     this.makeDesks();
     this.placeKids();
     this.makeTeacher();
-    this.makeCard();
     this.makeHud();
+    this.buildSeq();
+    this.makeCard();
     this.teacherWrite();
 
     this.tribune = new Tribune(this, A.host, { y: 1006, maxSize: 64 });
@@ -116,21 +111,34 @@ export class PamokaScene extends Phaser.Scene {
       mission: STAGE.mission,
       title: STAGE.title,
       tip: A.lines.pick('pamoka', 'intro'),
-      controls: 'Adriana: laikyk → arba TARPĄ - atvirukas keliauja. Paleisk, kai mokytoja atsisuka!',
+      controls: 'Visi: kai atvirukas pas tave - PERDUOTI, kol mokytoja rašo.   Adriana: → arba TARPAS',
     });
     this.card.setDepth(1900); // virš suolų ir HUD
 
     const kb = this.input.keyboard;
-    this.keys = kb.addKeys({ right: 'RIGHT', d: 'D', space: 'SPACE' });
     kb.on('keydown-ENTER', () => this.onEnter());
-    kb.on('keydown-SPACE', () => { if (this.mode === 'intro') this.onEnter(); });
+    kb.on('keydown-SPACE', () => (this.mode === 'intro' ? this.onEnter() : this.adrianaPass()));
+    kb.on('keydown-RIGHT', () => this.adrianaPass());
+    kb.on('keydown-D', () => this.adrianaPass());
     kb.on('keydown-R', () => this.scene.restart());
 
     const offs = [
       A.host.on('press', (e) => this.onPress(e)),
       A.host.on('join', (p) => this.onLateJoin(p)),
     ];
-    this.events.once('shutdown', () => offs.forEach((f) => f()));
+    // Virtualūs vaikai dažniausiai perduoda tik tada, kai mokytoja rašo (kartais suklysta).
+    A.host.botFilter = (p, btn) => btn !== 'perduoti'
+      || (this.seq[this.idx]?.pid === p.pid && (this.teacher.state === 'writing' || Math.random() < 0.1));
+    // Virtualus vaikas, pas kurį atvirukas, perduoda po 0,8-2 s, kai mokytoja rašo.
+    A.host.botPick = (p) => {
+      const h = this.seq[this.idx];
+      if (!h || h.pid !== p.pid || this.flight || this.teacher.state !== 'writing') return null;
+      if (!this.botWait) this.botWait = rand(800, 2000);
+      if (this.time.now - this.holderSince < this.botWait) return null;
+      this.botWait = 0;
+      return 'perduoti';
+    };
+    this.events.once('shutdown', () => { offs.forEach((f) => f()); A.host.botFilter = null; A.host.botPick = null; });
   }
 
   // ---------------- valdymas ----------------
@@ -162,26 +170,34 @@ export class PamokaScene extends Phaser.Scene {
     this.mode = 'play';
     this.A.host.setPhase('play', STAGE);
     this.teacherWrite();
+    this.holderSince = this.time.now;
+    this.highlightHolder();
     this.sub(this.A.lines.pick('pamoka', 'start'), C.yellow);
   }
 
-  holding() {
-    if (this.autoplay) return this.teacher.state === 'writing' && this.time.now - this.teacher.since > 250;
-    return this.keys.right.isDown || this.keys.d.isDown || this.keys.space.isDown;
+  // Adriana: perduoda, kai atvirukas pas ją, arba padeda užsižiopsojusiam.
+  adrianaPass() {
+    if (this.mode !== 'play' || this.flight) return;
+    const h = this.seq[this.idx];
+    if (!h || h.type === 'teacher') return;
+    if (h.type === 'adriana') { this.pass('Adriana'); return; }
+    if (this.time.now - this.holderSince >= HELP_MS) {
+      this.helps += 1;
+      this.maybeSub(this.A.lines.pick('pamoka', 'help', { vardas: h.name }), C.teal, 0);
+      this.pass('Adriana');
+    }
   }
 
   // ---------------- klasė ----------------
   makeDesks() {
-    this.deskImgs = [];
     const desk = (r, x) => {
       const row = ROWS[r];
-      const d = this.add.image(x, row.y, 'desk').setOrigin(0.5, 0.1).setScale(row.s * 1.1).setDepth(row.y + 1);
-      this.deskImgs.push(d);
+      this.add.image(x, row.y, 'desk').setOrigin(0.5, 0.1).setScale(row.s * 1.1).setDepth(row.y + 1);
     };
-    for (const [r, x] of [...PATH_SEATS, ...OTHER_SEATS]) desk(r, x);
+    for (const [r, x] of [ADRIANA_SEAT, ...SEATS]) desk(r, x);
     this.add.image(TEACHER_DESK.x, TEACHER_DESK.y, 'teacher_desk').setOrigin(0.5, 1).setDepth(TEACHER_DESK.y);
-    // Adriana prie pirmo kelio suolo
-    const [r, x] = PATH_SEATS[0];
+    // Adriana
+    const [r, x] = ADRIANA_SEAT;
     const row = ROWS[r];
     const box = this.add.container(x, row.y).setScale(row.s * 1.1).setDepth(row.y);
     const body = this.add.image(0, 70, 'adr_run2').setOrigin(0.5, 1);
@@ -189,65 +205,60 @@ export class PamokaScene extends Phaser.Scene {
     const head = this.add.image(4, -130, face ? 'adr_face' : 'adr_head').setOrigin(0.5, face ? 0.5 : 0.56);
     if (face) head.setDisplaySize(124, 124);
     box.add([body, head]);
-    this.adr = { box, head };
-  }
-
-  seatPos(r, x) {
-    const row = ROWS[r];
-    return { x, y: row.y, s: row.s };
+    this.adr = { box, x, y: row.y, s: row.s * 1.1, name: 'Adriana' };
   }
 
   makeSeatedKid(player, r, x) {
-    const p = this.seatPos(r, x);
-    const box = this.add.container(p.x, p.y).setScale(p.s).setDepth(p.y);
+    const row = ROWS[r];
+    const box = this.add.container(x, row.y).setScale(row.s).setDepth(row.y);
     const body = this.add.image(0, 64, 'kid_body').setOrigin(0.5, 1).setTint(tintOf(player.name));
     const key = this.textures.exists(avatarKey(player.name)) ? avatarKey(player.name) : 'dot';
     const head = this.add.image(0, -110, key).setDisplaySize(96, 96);
     const tag = bodyText(this, 0, -180, player.name, 30, C.yellow);
     box.add([body, head, tag]);
-    return { box, body, head, tag, name: player.name, pid: player.pid, x: p.x, y: p.y, s: p.s };
+    return { box, body, head, tag, name: player.name, pid: player.pid, x, y: row.y, s: row.s };
   }
 
   placeKids() {
     const host = this.A.host;
-    host.playersWithRole('perdavejas').forEach((p, i) => {
-      if (i + 1 >= PATH_SEATS.length) return this.addOtherKid(p);
-      const [r, x] = PATH_SEATS[i + 1];
-      const v = this.makeSeatedKid(p, r, x);
-      v.path = i + 1;
-      this.pathKids[i + 1] = v;
-      this.seats.set(p.pid, v);
-      return v;
-    });
-    for (const role of ['klausinetojas', 'uolus', 'triuksmadarys']) {
-      host.playersWithRole(role).forEach((p) => this.addOtherKid(p));
+    for (const p of host.list()) {
+      if (!host.isTeacher(p.name)) this.addKid(p);
     }
-    // jei perdavėjų mažiau - laisvi kelio suolai lieka tušti (atvirukas slysta per juos)
   }
 
-  addOtherKid(player) {
-    if (this.seats.has(player.pid)) return;
+  addKid(player) {
+    if (this.seats.has(player.pid)) return null;
     const taken = new Set([...this.seats.values()].map((v) => `${v.x}:${v.y}`));
-    const free = OTHER_SEATS.find(([r, x]) => !taken.has(`${x}:${ROWS[r].y}`));
-    if (!free) return;
+    const free = SEATS.find(([r, x]) => !taken.has(`${x}:${ROWS[r].y}`));
+    if (!free) return null;
     const v = this.makeSeatedKid(player, free[0], free[1]);
     this.seats.set(player.pid, v);
+    return v;
   }
 
   onLateJoin(player) {
-    const role = this.A.host.roles[player.pid];
-    if (role === 'perdavejas') {
-      const i = this.pathKids.findIndex((k, j) => j > 0 && !k);
-      if (i > 0) {
-        const [r, x] = PATH_SEATS[i];
-        const v = this.makeSeatedKid(player, r, x);
-        v.path = i;
-        this.pathKids[i] = v;
-        this.seats.set(player.pid, v);
-        return;
-      }
-    }
-    if (role && role !== 'lenta') this.addOtherKid(player);
+    if (this.A.host.isTeacher(player.name)) return;
+    const v = this.addKid(player);
+    if (!v) return;
+    // vėliau atėjęs vaikas įterpiamas į dar nepraeitą kelio dalį (prieš mokytoją)
+    const at = this.idx + 1 + Math.floor(Math.random() * Math.max(1, this.seq.length - 1 - (this.idx + 1)));
+    this.seq.splice(Math.min(at, this.seq.length - 1), 0, { type: 'kid', ...this.kidPoint(v) });
+    this.updateHud();
+  }
+
+  kidPoint(v) {
+    return { pid: v.pid, name: v.name, v, x: v.x, y: v.y - 16 * v.s, s: v.s };
+  }
+
+  // Atsitiktinė tvarka be pasikartojimų: Adriana -> visi vaikai -> mokytoja.
+  buildSeq() {
+    const kids = shuffle([...this.seats.values()]).map((v) => ({ type: 'kid', ...this.kidPoint(v) }));
+    this.seq = [
+      { type: 'adriana', name: 'Adriana', x: this.adr.x, y: this.adr.y - 16 * ROWS.M.s, s: ROWS.M.s },
+      ...kids,
+      { type: 'teacher', name: this.teacherName, x: CARD_END.x, y: CARD_END.y, s: 1 },
+    ];
+    this.idx = 0;
   }
 
   // ---------------- mokytoja ----------------
@@ -291,7 +302,8 @@ export class PamokaScene extends Phaser.Scene {
     t.body.setTexture('teacher_back');
     t.face.setVisible(false);
     t.hair.setVisible(true).setX(0);
-    this.stateText.setText('Mokytoja rašo').setColor(C.green);
+    if (this.stateText) this.stateText.setText('Mokytoja rašo - perduok!').setColor(C.green);
+    if (this.seq) this.cueHolder();
   }
 
   teacherWarn(ms = WARN * 1000) {
@@ -302,14 +314,14 @@ export class PamokaScene extends Phaser.Scene {
     t.until = this.time.now + ms;
     t.hair.setX(-10);
     this.teacherSay(this.A.lines.pick('pamoka', 'warn'), C.yellow, ms);
-    this.stateText.setText('HMM?').setColor(C.orange);
+    this.stateText.setText('HMM? NEPERDUOK!').setColor(C.orange);
     this.tweens.add({ targets: this.stateText, scale: 1.25, yoyo: true, duration: 120 });
     this.A.sfx.pop();
+    this.cueHolder();
   }
 
   teacherFace() {
     const t = this.teacher;
-    this.boost = 0;
     t.state = 'facing';
     t.since = this.time.now;
     t.until = this.time.now + rand(FACE[0], FACE[1]) * 1000;
@@ -318,58 +330,123 @@ export class PamokaScene extends Phaser.Scene {
     t.hair.setVisible(false);
     this.stateText.setText('ŽIŪRI!').setColor(C.red);
     this.tweens.add({ targets: t.box, scaleX: TEACHER.s * 0.9, yoyo: true, duration: 90 });
+    this.cueHolder();
   }
 
   // ---------------- atvirukas ----------------
   makeCard() {
-    const n = this.nodes[0];
-    this.cardImg = this.add.image(n.x, n.y, 'xmas_card').setDepth(1200).setScale(0.8);
-    this.cover = this.add.image(n.x, n.y - 4, 'book').setDepth(1201).setScale(0.9).setTint(0x2de2e6).setVisible(false);
+    const h = this.seq[0];
+    this.cardImg = this.add.image(h.x, h.y, 'xmas_card').setDepth(1200).setScale(0.8 * h.s * 1.1);
+    this.ring = this.add.ellipse(h.x, h.y + 10, 160, 50, 0xffd23f, 0.35).setDepth(1150).setStrokeStyle(4, 0xffd23f);
+    this.tweens.add({ targets: this.ring, alpha: 0.15, yoyo: true, repeat: -1, duration: 400 });
+    this.holderTag = headText(this, h.x, h.y - 160, 'ADRIANA TURI ATVIRUKĄ! →', 30, C.yellow).setDepth(1550);
+    this.helpTag = bodyText(this, h.x, h.y - 205, 'Adriana, padėk! →', 22, C.teal).setDepth(1550).setVisible(false);
   }
 
-  cardXY(c) {
-    const i = Math.min(this.nodes.length - 2, Math.floor(c));
-    const f = Phaser.Math.Clamp(c - i, 0, 1);
-    const a = this.nodes[i];
-    const b = this.nodes[i + 1];
-    return {
-      x: a.x + (b.x - a.x) * f,
-      y: a.y + (b.y - a.y) * f - Math.sin(f * Math.PI) * 50,
-      s: (a.s + (b.s - a.s) * f) * 1.1,
-    };
+  holderPos(i) {
+    const h = this.seq[i];
+    return h ? { x: h.x, y: h.y, s: h.s * 1.1 } : { x: CARD_END.x, y: CARD_END.y, s: 1 };
   }
 
-  nodeKid() {
-    const i = Math.round(this.c);
-    return this.pathKids[i] || null;
+  highlightHolder() {
+    const h = this.seq[this.idx];
+    if (!h) return;
+    const p = this.holderPos(this.idx);
+    const last = h.type === 'teacher';
+    this.ring.setPosition(p.x, p.y + 12).setSize(170 * p.s, 54 * p.s).setVisible(!last);
+    this.holderTag.setPosition(p.x, p.y - 190 * h.s - 40).setText(h.type === 'adriana' ? 'ADRIANA TURI ATVIRUKĄ! →' : `${h.name.toUpperCase()} TURI ATVIRUKĄ!`).setVisible(!last);
+    this.helpTag.setVisible(false);
+    if (h.type === 'kid' && this.mode === 'play') {
+      this.cueHolder(true);
+      this.tweens.add({ targets: h.v.box, y: h.v.y - 12, yoyo: true, duration: 140 });
+      this.stat(h, 'gavo');
+    }
+  }
+
+  // Turėtojo telefone: ar dabar galima perduoti (žalia) ar laukti (raudona).
+  cueHolder(first = false) {
+    const h = this.seq[this.idx];
+    if (!h || h.type !== 'kid' || this.flight || this.mode !== 'play') return;
+    const st = this.teacher.state;
+    const host = this.A.host;
+    if (st === 'writing') host.cue(h.pid, first ? 'ATVIRUKAS PAS TAVE! DABAR - PERDUOK!' : 'DABAR - PERDUOK!', { tone: 'go', ms: 6000, buzz: first });
+    else if (st === 'warning') host.cue(h.pid, 'ATVIRUKAS PAS TAVE! HMM? PALAUK!', { tone: 'wait', ms: 6000, buzz: first });
+    else host.cue(h.pid, 'ATVIRUKAS PAS TAVE! MOKYTOJA ŽIŪRI - LAUK!', { tone: 'wait', ms: 6000, buzz: first });
+  }
+
+  // Perdavimas iš dabartinio į kitą (atvirukas skrenda lanku).
+  pass(byName) {
+    if (this.flight || this.mode !== 'play' || this.time.now < this.freezeUntil) return;
+    const from = this.idx;
+    const to = Math.min(this.idx + 1, this.seq.length - 1);
+    const a = this.holderPos(from);
+    const b = this.holderPos(to);
+    const dist = Math.hypot(b.x - a.x, b.y - a.y);
+    this.flight = { from, to, t: 0, dur: 0.35 + dist / 2500, by: byName, reaction: this.time.now - this.holderSince };
+    this.ring.setVisible(false);
+    this.holderTag.setVisible(false);
+    this.helpTag.setVisible(false);
+    this.A.sfx.throw();
+    // perduoti, kai mokytoja jau žiūri - iškart pagauna
+    if (this.teacher.state === 'facing') this.caughtNow();
+  }
+
+  landed() {
+    const f = this.flight;
+    this.flight = null;
+    this.idx = f.to;
+    this.holderSince = this.time.now;
+    const h = this.seq[f.from];
+    if (h && h.type === 'kid') {
+      const st = this.stat(h, 'perdavimai');
+      st.best = Math.min(st.best ?? 1e9, f.reaction);
+    }
+    this.A.sfx.pop();
+    if (this.idx >= this.seq.length - 1) { this.win(); return; }
+    const next = this.seq[this.idx];
+    if (Math.random() < 0.35) this.maybeSub(this.A.lines.pick('pamoka', 'your_turn', { vardas: next.name }), C.yellow, 3000);
+    this.highlightHolder();
   }
 
   caughtNow() {
+    const f = this.flight;
+    this.flight = null;
     this.caught += 1;
     this.freezeUntil = this.time.now + FREEZE_MS;
-    this.boost = 0;
-    const kid = this.nodeKid();
-    const who = kid ? kid.name : 'Adriana';
-    const from = this.cardXY(this.c);
-    const t = headText(this, from.x, from.y - 70, 'PAGAVO!', 80, C.red).setDepth(1600).setScale(0.4);
+    const who = this.seq[f ? f.from : this.idx];
+    const name = who ? who.name : 'Adriana';
+    this.caughtWho.set(name, (this.caughtWho.get(name) || 0) + 1);
+    const at = this.cardImg;
+    const t = headText(this, at.x, at.y - 70, 'PAGAVO!', 80, C.red).setDepth(1600).setScale(0.4);
     this.tweens.add({ targets: t, scale: 1, duration: 200, ease: 'Back.Out' });
     this.tweens.add({ targets: t, alpha: 0, y: t.y - 40, delay: 900, duration: 300, onComplete: () => t.destroy() });
     this.A.sfx.boo();
     this.cameras.main.shake(220, 0.006);
-    this.teacherSay(this.A.lines.pick('pamoka', 'caught', { vardas: who }), C.red, 1600);
-    this.maybeSub(this.A.lines.pick('pamoka', 'caught', { vardas: who }), C.red, 0);
-    const back = Math.max(0, Math.floor(this.c) - CAUGHT_BACK);
-    this.tweens.addCounter({
-      from: this.c, to: back, duration: 600, ease: 'Quad.InOut',
-      onUpdate: (tw) => { this.c = tw.getValue(); },
+    const line = this.A.lines.pick('pamoka', 'caught', { vardas: name });
+    this.teacherSay(line, C.red, 1600);
+    this.maybeSub(line, C.red, 0);
+    // atvirukas grįžta atgal
+    const back = Math.max(0, (f ? f.from : this.idx) - CAUGHT_BACK);
+    const p = this.holderPos(back);
+    this.tweens.add({
+      targets: this.cardImg, x: p.x, y: p.y, scale: 0.8 * p.s, duration: 600, ease: 'Quad.InOut',
+      onComplete: () => {
+        this.idx = back;
+        this.holderSince = this.time.now;
+        this.highlightHolder();
+      },
     });
+    this.ring.setVisible(false);
+    this.holderTag.setVisible(false);
   }
 
   // ---------------- klasiokų veiksmai ----------------
-  stat(player, key) {
-    const st = this.stats.get(player.pid) || { name: player.name, counts: {} };
+  stat(who, key) {
+    const id = who.pid || who.name;
+    const st = this.stats.get(id) || { name: who.name, counts: {} };
     st.counts[key] = (st.counts[key] || 0) + 1;
-    this.stats.set(player.pid, st);
+    this.stats.set(id, st);
+    return st;
   }
 
   kidBubble(v, text, color = C.white, size = 28) {
@@ -399,17 +476,16 @@ export class PamokaScene extends Phaser.Scene {
   }
 
   onPress({ player, action, role }) {
-    this.stat(player, action);
     this.tribune.bounce(player.pid);
     if (this.mode !== 'play' && this.mode !== 'end') return;
-    const v = this.seats.get(player.pid);
     if (role === 'lenta') return this.teacherAction(player, action);
+    this.stat(player, action);
+    const v = this.seats.get(player.pid);
     switch (action) {
-      case 'perduoti': return this.passCard(player, v);
-      case 'slepti': return this.hideCard(player, v);
+      case 'perduoti': return this.kidPass(player, v);
       case 'klausti': return this.ask(player, v);
-      case 'ranka': if (v) { this.tweens.add({ targets: v.box, y: v.y - 14, yoyo: true, duration: 140 }); this.kidBubble(v, 'Aš! Aš!', C.yellow); } return undefined;
       case 'rasyti': return this.diligent(player, v);
+      case 'ranka': if (v) { this.tweens.add({ targets: v.box, y: v.y - 14, yoyo: true, duration: 140 }); this.kidBubble(v, 'Aš! Aš!', C.yellow); } return undefined;
       case 'ziovauti': if (v) { this.kidBubble(v, 'Aaaa...', '#d9c8ff'); this.tweens.add({ targets: v.box, scaleY: v.s * 1.08, yoyo: true, duration: 400 }); } return undefined;
       case 'ciaudeti': return this.sneeze(player, v);
       case 'penalas': return this.dropCase(player, v);
@@ -417,37 +493,14 @@ export class PamokaScene extends Phaser.Scene {
     }
   }
 
-  // Ar atvirukas dabar prie šio perdavėjo suolo?
-  atKid(v) {
-    return v && v.path && Math.abs(this.c - v.path) < 0.55;
-  }
-
-  passCard(player, v) {
-    // perduoti galima tik kol mokytoja rašo (kitaip vaikas tik sukruta - „ne dabar“)
-    if (!this.atKid(v) || this.mode !== 'play' || this.time.now < this.freezeUntil || this.teacher.state !== 'writing') {
-      if (v) this.wiggle(v, 6);
+  kidPass(player, v) {
+    const h = this.seq[this.idx];
+    if (!h || h.pid !== player.pid || this.flight) {
+      if (v) this.wiggle(v, 5); // ne pas jį - tik sukruta
       return;
     }
-    this.boost = Math.max(this.boost, BOOST);
-    this.passes += 1;
-    this.stat(player, 'perdavimai');
-    this.hiddenUntil = 0;
-    this.wiggle(v, 14);
-    this.kidBubble(v, 'Op!', C.green);
-    if (Math.random() < 0.4) this.maybeSub(this.A.lines.pick('pamoka', 'pass', { vardas: player.name }), C.green, 3000);
-  }
-
-  hideCard(player, v) {
-    if (!this.atKid(v) || this.mode !== 'play') {
-      if (v) this.wiggle(v, 6);
-      return;
-    }
-    this.hiddenUntil = this.time.now + HIDE_MS;
-    this.hiddenBy = player.name;
-    this.hides += 1;
-    this.stat(player, 'slepe');
-    this.kidBubble(v, 'Ššš...', C.teal);
-    this.maybeSub(this.A.lines.pick('pamoka', 'hide', { vardas: player.name }), C.teal, 2500);
+    if (v) this.wiggle(v, 14);
+    this.pass(player.name);
   }
 
   ask(player, v) {
@@ -457,7 +510,7 @@ export class PamokaScene extends Phaser.Scene {
     }
     const now = this.time.now;
     const t = this.teacher;
-    if (now - this.lastQuestion < QUESTION_GAP || t.state !== 'writing' || now - t.since < CALM_MS) return;
+    if (this.mode !== 'play' || now - this.lastQuestion < QUESTION_GAP || t.state !== 'writing' || now - t.since < CALM_MS) return;
     this.lastQuestion = now;
     this.questions += 1;
     this.stat(player, 'klausimai');
@@ -502,7 +555,6 @@ export class PamokaScene extends Phaser.Scene {
     if (this.mode !== 'play') return;
     if (action === 'atsisukti') {
       if (this.teacher.state === 'writing' && this.time.now - this.teacher.since > CALM_MS) {
-        this.stat(player, 'atsisuko');
         this.maybeSub(this.A.lines.pick('pamoka', 'teacher_turn', { vardas: player.name }), C.orange, 1500);
         this.teacherWarn(450);
       }
@@ -517,34 +569,20 @@ export class PamokaScene extends Phaser.Scene {
     const D = 1800;
     headText(this, 40, 54, STAGE.mission, 46, C.yellow).setOrigin(0, 0.5).setDepth(D);
     this.caughtText = bodyText(this, 40, 112, 'Pagavo: 0', 26, '#f1e6ff').setOrigin(0, 0.5).setDepth(D);
-    this.timerText = headText(this, 960, 70, `0:${TIME_LIMIT}`, 92, C.white).setDepth(D);
-    // atviruko kelias (suolai)
-    const n = this.nodes.length;
+    this.timerText = headText(this, 960, 70, `1:00`, 92, C.white).setDepth(D);
     const w = 560;
-    this.dots = [];
-    for (let i = 0; i < n; i++) {
-      const x = 960 - w / 2 + (w * i) / (n - 1);
-      this.dots.push(this.add.circle(x, 140, i === n - 1 ? 13 : 9, 0x0b0418, 0.8).setStrokeStyle(3, 0xffd23f).setDepth(D));
-    }
-    this.add.rectangle(960, 140, w, 4, 0xffd23f, 0.5).setDepth(D - 1);
+    this.add.rectangle(960, 140, w + 8, 22, 0x000000, 0.6).setStrokeStyle(3, 0x14081f).setDepth(D);
+    this.barFill = this.add.rectangle(960 - w / 2, 140, 1, 12, 0xffd23f).setOrigin(0, 0.5).setDepth(D);
+    this.barW = w;
     this.cardIcon = this.add.image(960 - w / 2, 136, 'xmas_card').setScale(0.5).setDepth(D + 1);
-    this.dotsW = w;
-    this.stateText = headText(this, 960, 210, 'Mokytoja rašo', 40, C.green).setDepth(D);
-    // klavišo užuomina prie Adrianos
-    const n0 = this.nodes[0];
-    this.keyHint = this.add.container(n0.x + 150, n0.y - 20).setDepth(D);
-    const bgk = this.add.rectangle(0, 0, 90, 64, 0xff3ea5, 0.95).setStrokeStyle(5, 0xffd23f);
-    const tx = headText(this, 0, -2, '→', 46, C.white, { strokeThickness: 0 });
-    tx.setShadow(0, 0, 'rgba(0,0,0,0)');
-    const lab = bodyText(this, 0, 48, 'LAIKYK', 20, C.yellow);
-    this.keyHint.add([bgk, tx, lab]);
-    this.keyBg = bgk;
+    this.passText = bodyText(this, 960 + w / 2 + 20, 140, '', 24, '#f1e6ff').setOrigin(0, 0.5).setDepth(D);
+    this.stateText = headText(this, 960, 210, 'Mokytoja rašo - perduok!', 40, C.green).setDepth(D);
   }
 
   updateHud() {
     const t = Math.max(0, this.timeLeft);
     const s = Math.ceil(t);
-    this.timerText.setText(`0:${String(s).padStart(2, '0')}`);
+    this.timerText.setText(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`);
     const danger = t <= 10 && this.mode === 'play';
     if (danger !== this.timerDanger) {
       this.timerDanger = danger;
@@ -556,17 +594,21 @@ export class PamokaScene extends Phaser.Scene {
       this.tweens.add({ targets: this.timerText, scale: 1.18, yoyo: true, duration: 120 });
       if (!this.saidTen && s >= 9) { this.saidTen = true; this.maybeSub(this.A.lines.pick('pamoka', 'ten'), C.red, 0); }
     }
-    const f = this.c / (this.nodes.length - 1);
-    this.cardIcon.x = 960 - this.dotsW / 2 + this.dotsW * f;
-    this.dots.forEach((d, i) => d.setFillStyle(i <= this.c + 0.01 ? 0xffd23f : 0x0b0418, i <= this.c + 0.01 ? 1 : 0.8));
+    const total = Math.max(1, this.seq.length - 1);
+    const done = this.flight ? this.flight.from + this.flight.t : this.idx;
+    const f = Phaser.Math.Clamp(done / total, 0, 1);
+    this.barFill.setSize(Math.max(1, this.barW * f), 12);
+    this.cardIcon.x = 960 - this.barW / 2 + this.barW * f;
+    this.passText.setText(`${Math.min(this.idx, total)}/${total}`);
     this.caughtText.setText(`Pagavo: ${this.caught}`);
   }
 
   // ---------------- pabaiga ----------------
   win() {
     this.mode = 'end';
-    this.keyHint.setVisible(false);
-    // mokytoja atsisuka ir randa atviruką
+    this.ring.setVisible(false);
+    this.holderTag.setVisible(false);
+    this.helpTag.setVisible(false);
     this.time.delayedCall(500, () => {
       this.teacherFace();
       this.stateText.setText('AČIŪ!').setColor(C.yellow);
@@ -584,7 +626,9 @@ export class PamokaScene extends Phaser.Scene {
 
   fail() {
     this.mode = 'end';
-    this.keyHint.setVisible(false);
+    this.ring.setVisible(false);
+    this.holderTag.setVisible(false);
+    this.helpTag.setVisible(false);
     this.A.sfx.schoolBell();
     this.time.delayedCall(600, () => this.A.sfx.fail());
     this.bigBanner('PAMOKA BAIGĖSI', 'ATVIRUKAS - PO PAMOKŲ', { color: C.red, hold: 2600 });
@@ -599,18 +643,18 @@ export class PamokaScene extends Phaser.Scene {
     box.add(this.add.rectangle(0, 0, 1240, 600, 0x0b0418, 0.9).setStrokeStyle(6, ok ? 0xffd23f : 0xff4d5e));
     box.add(headText(this, 0, -235, ok ? 'ATVIRUKAS PAS MOKYTOJĄ!' : 'BEVEIK!', 72, ok ? C.yellow : C.orange));
     const all = [...this.stats.values()];
-    const best = (k) => all.map((x) => [x, x.counts[k] || 0]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1])[0];
-    const steps = this.nodes.length - 1;
+    const total = Math.max(1, this.seq.length - 1);
     const rows = [
-      [`Laikas: ${this.elapsed.toFixed(1).replace('.', ',')} s   ·   Atvirukas: ${Math.floor(this.c)}/${steps}   ·   Pagavo: ${this.caught} k.`, C.white],
-      [`Perdavimai: ${this.passes}   ·   Paslėpta: ${this.hides}   ·   Klausimai: ${this.questions}`, C.white],
+      [`Laikas: ${this.elapsed.toFixed(1).replace('.', ',')} s   ·   Perduota: ${Math.min(this.idx, total)}/${total}   ·   Pagavo: ${this.caught} k.`, C.white],
+      [`Klausimai mokytojai: ${this.questions}   ·   Adriana padėjo: ${this.helps} k.`, C.white],
     ];
-    const passer = best('perdavimai');
-    if (passer) rows.push([`Greičiausias perdavėjas: ${passer[0].name} (${passer[1]})`, C.green]);
+    const fastest = all.filter((x) => x.best != null).sort((a, b) => a.best - b.best)[0];
+    if (fastest) rows.push([`Greičiausias perdavėjas: ${fastest.name} (${(fastest.best / 1000).toFixed(1).replace('.', ',')} s)`, C.green]);
+    const caughtMost = [...this.caughtWho.entries()].sort((a, b) => b[1] - a[1])[0];
+    if (caughtMost) rows.push([`Mokytoja pagavo: ${caughtMost[0]}${caughtMost[1] > 1 ? ` (${caughtMost[1]} k.)` : ''}`, C.red]);
+    const best = (k) => all.map((x) => [x, x.counts[k] || 0]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1])[0];
     const asker = best('klausimai');
-    if (asker) rows.push([`Didžiausias smalsuolis: ${asker[0].name} (${asker[1]})`, C.orange]);
-    const writer = best('uolumas');
-    if (writer) rows.push([`Uoliausias mokinys: ${writer[0].name}`, C.teal]);
+    if (asker) rows.push([`Didžiausias smalsuolis: ${asker[0].name}`, C.orange]);
     const sneezer = best('ciaudeti');
     if (sneezer) rows.push([`Garsiausiai čiaudėjo: ${sneezer[0].name}`, C.white]);
     rows.slice(0, 6).forEach(([r, c], i) => box.add(bodyText(this, 0, -140 + i * 54, r, 30, c)));
@@ -634,6 +678,14 @@ export class PamokaScene extends Phaser.Scene {
       if (t.state === 'writing' && now >= t.until) this.teacherWarn();
       else if (t.state === 'warning' && now >= t.until) this.teacherFace();
       else if (t.state === 'facing' && now >= t.until) this.teacherWrite();
+      // automatinis žaidėjas (testams): perduoda, kai mokytoja rašo
+      if (this.autoplay && !this.flight && t.state === 'writing' && now - t.since > 250 && now > this.freezeUntil) {
+        this.autoT -= dt;
+        if (this.autoT <= 0) {
+          this.autoT = rand(0.4, 1.2);
+          this.pass('auto');
+        }
+      }
     }
 
     // lenta: kol rašo - atsiranda raidės
@@ -648,47 +700,32 @@ export class PamokaScene extends Phaser.Scene {
       }
     }
 
-    // atvirukas
-    const hidden = now < this.hiddenUntil && this.nodeKid() && Math.abs(this.c - Math.round(this.c)) < 0.55;
-    const frozen = now < this.freezeUntil;
-    const prev = this.c;
-    if (play && !hidden && !frozen) {
-      if (this.holding()) this.c += CARD_SPEED * dt;
-      if (this.boost > 0) {
-        const step = Math.min(this.boost, dt * 2.5);
-        this.c += step;
-        this.boost -= step;
-      }
-      this.c = Math.min(this.c, this.nodes.length - 1);
+    // atvirukas skrenda arba guli pas turėtoją
+    if (this.flight) {
+      const f = this.flight;
+      f.t = Math.min(1, f.t + dt / f.dur);
+      const a = this.holderPos(f.from);
+      const b = this.holderPos(f.to);
+      const x = a.x + (b.x - a.x) * f.t;
+      const y = a.y + (b.y - a.y) * f.t - Math.sin(f.t * Math.PI) * 140;
+      this.cardImg.setPosition(x, y).setScale(0.8 * (a.s + (b.s - a.s) * f.t)).setAngle(f.t * 360);
+      if (play && t.state === 'facing') this.caughtNow();
+      else if (f.t >= 1) { this.cardImg.setAngle(0); this.landed(); }
+    } else if (!this.tweens.isTweening(this.cardImg)) {
+      const p = this.holderPos(this.idx);
+      this.cardImg.setPosition(p.x, p.y + Math.sin(now / 200) * 3).setScale(0.8 * p.s);
     }
-    const moving = this.c - prev > 0.0005;
-    if (play && moving && t.state === 'facing') this.caughtNow();
 
-    const p = this.cardXY(this.c);
-    this.cardImg.setPosition(p.x, p.y).setScale(0.8 * p.s);
-    this.cardImg.angle = moving ? Math.sin(now / 50) * 10 : 0;
-    this.cover.setVisible(!!hidden).setPosition(p.x, p.y - 6).setScale(0.9 * p.s);
-    this.keyBg.setFillStyle(this.holding() && play ? 0x3ddc84 : 0xff3ea5, 0.95);
-
-    // perdavėjui telefone: „ATVIRUKAS PAS TAVE!“
-    const node = Math.round(this.c);
-    if (node !== this.lastNode) {
-      this.lastNode = node;
-      const kid = this.pathKids[node];
-      if (kid && play) {
-        this.A.host.cue(kid.pid, 'ATVIRUKAS PAS TAVE! Perduok arba paslėpk!');
-        this.tweens.add({ targets: kid.box, y: kid.y - 10, yoyo: true, duration: 140 });
-      }
-      if (node === this.nodes.length - 2 && !this.saidNear) {
-        this.saidNear = true;
-        this.maybeSub(this.A.lines.pick('pamoka', 'near'), C.yellow, 1000);
+    // jei turėtojas užsižiopsojo - Adriana gali padėti
+    const h = this.seq[this.idx];
+    if (play && !this.flight && h && h.type === 'kid') {
+      const waiting = now - this.holderSince >= HELP_MS;
+      if (waiting !== this.helpTag.visible) {
+        this.helpTag.setVisible(waiting).setPosition(h.x, h.y - 190 * h.s - 80);
       }
     }
 
     this.updateHud();
-    if (play) {
-      if (this.c >= this.nodes.length - 1) this.win();
-      else if (this.timeLeft <= 0) this.fail();
-    }
+    if (play && this.timeLeft <= 0) this.fail();
   }
 }

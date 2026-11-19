@@ -61,12 +61,13 @@ async function start() {
     const el = $('cue');
     el.textContent = d.text;
     el.hidden = false;
-    el.classList.remove('show');
+    el.classList.remove('show', 'go', 'wait');
+    if (d.tone) el.classList.add(d.tone); // go - žalia, wait - raudona
     void el.offsetWidth;
     el.classList.add('show');
-    if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+    if (d.buzz !== false && navigator.vibrate) navigator.vibrate([120, 60, 120]);
     clearTimeout(el._t);
-    el._t = setTimeout(() => { el.hidden = true; }, 3500);
+    el._t = setTimeout(() => { el.hidden = true; }, d.ms || 3500);
   });
   net.on('kick', (d) => {
     if (d.pid !== state.pid) return;

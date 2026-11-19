@@ -200,7 +200,7 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     }
     await screen.evaluate(() => { const s = window.AGTA.game.scene.getScene('Pamoka'); if (s.mode === 'play') s.timeLeft = 0.1; });
     await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Pamoka')?.mode === 'result', null, { timeout: 60000 });
-    const rp = await screen.evaluate(() => { const s = window.AGTA.game.scene.getScene('Pamoka'); return { c: +s.c.toFixed(1), caught: s.caught, questions: s.questions, hides: s.hides, elapsed: +s.elapsed.toFixed(1) }; });
+    const rp = await screen.evaluate(() => { const s = window.AGTA.game.scene.getScene('Pamoka'); return { passed: `${s.idx}/${s.seq.length - 1}`, caught: s.caught, questions: s.questions, helps: s.helps, elapsed: +s.elapsed.toFixed(1) }; });
     console.log(`Pamoka: ${JSON.stringify(rp)}`);
     await shot(screen, '19-pamoka-rezultatas');
     await screen.keyboard.press('Enter'); // -> žemėlapis

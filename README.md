@@ -78,7 +78,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 | ← → | Adriana bėga po kambarį (1 etapas) |
 | ↓ arba TARPAS | ieškoti soskės (1 etapas) |
 | ← → paeiliui | lipti laiptais (2 etapas); ta pati rodyklė du kartus - suklumpa |
-| laikyti → arba TARPĄ | atvirukas keliauja per suolus (3 etapas); paleisk, kai mokytoja sako „Hmm?“ |
+| → arba TARPAS | Adriana perduoda atviruką (3 etapas); jei kas užsižiopsojo 3 s - perduoda už jį |
 | TARPAS arba ↑ | Adrianos šuolis (autobusas) |
 | R | kartoti etapą |
 | ESC | į laukiamąjį |

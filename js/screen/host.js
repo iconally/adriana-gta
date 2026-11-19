@@ -281,8 +281,9 @@ export class Host extends EventBus {
   }
 
   // Asmeninis signalas vienam telefonui (pvz. "Tu Adrianos kelyje!").
-  cue(pid, text) {
-    this.net.send('cue', { pid, text });
+  // Žinutė vieno vaiko telefone. opts: { ms, tone: 'go'|'wait', buzz: false }
+  cue(pid, text, opts = {}) {
+    this.net.send('cue', { pid, text, ...opts });
   }
 
   roleOf(pid) {
