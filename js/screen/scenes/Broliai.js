@@ -8,11 +8,12 @@
 //  - prie jungiklio: išjungti šviesą (lieka šviesos ratas aplink Adrianą), girlianda;
 //  - mokytoja: vienas stebuklas (TV bokštas užsidega kaip eglė), durų skambutis.
 // Jei broliuko ašarų matuoklis prisipildo - verksmo priepuolis, Adriana sekundę užsikemša ausis.
+// Broliukai (2 metų) sėdi prie medinio traukinuko bėgių prieš didelį langą su TV bokštu.
 
 import { headText, bodyText, banner, subtitle, floatText, missionCard, C } from '../fx.js';
 import { Tribune } from '../tribune.js';
 import { STAGES } from '../stages.js';
-import { HOME_WINDOW } from '../art-home.js';
+import { HOME_WINDOW, TOWER } from '../art-home.js';
 
 const STAGE = STAGES.broliai;
 const FLOOR = 905; // Adrianos pėdų linija
@@ -20,9 +21,11 @@ const SPEED = 640;
 const TIME_LIMIT = 30;
 const SEARCH_TIME = 0.55;
 const STUN_TIME = 1.0;
-const PEN_X = 960;
-const PEN_HALF = 200; // kiek arti maniežo reikia būti, kad atiduotum soskę
-const BABY_Y = 832; // broliukų pėdos (rankutės ant manieže turėklo)
+const KIDS_X = 960; // broliukų vieta (prie traukinuko)
+const KIDS_HALF = 230; // kiek arti broliukų reikia būti, kad atiduotum soskę
+const BABY_Y = 884; // sėdinčių broliukų apačia
+const TRACK = { x: 960, y: 872, rx: 250, ry: 58 }; // medinių bėgių ovalas
+const TRAIN_SPEED = 0.55; // rad/s
 
 const TEARS_START = 30;
 const TEARS_RATE = 2.0; // per sekundę
@@ -50,11 +53,11 @@ const SPOTS = [
   { id: 'saldytuvas', tex: 'home_fridge', x: 1790, w: 210 },
 ];
 const BROTHERS = [
-  { x: 870, tint: 0x6fe6ff },
-  { x: 1050, tint: 0x7dff9b },
+  { x: 875, tex: 'baby_sit1', hair: 0x8a5a33 },
+  { x: 1045, tex: 'baby_sit2', hair: 0xe0b45c },
 ];
 const TOYS = ['🧸', '🦆', '🚂', '⚽', '🦖', '🪀', '🐰', '🚗'];
-const SWITCH = { x: 640, y: 560 };
+const SWITCH = { x: 500, y: 560 };
 const MONSTER_AT = [{ x: 420, y: 500 }, { x: 1520, y: 470 }];
 
 const rand = (a, b) => a + Math.random() * (b - a);
@@ -164,13 +167,13 @@ export class BroliaiScene extends Phaser.Scene {
   makeRoom() {
     const W = HOME_WINDOW;
     this.add.image(W.x + W.w / 2, W.y + W.h / 2, 'home_sky').setDisplaySize(W.w, W.h).setDepth(-120);
-    this.towerX = W.x + 120;
-    this.towerY = W.y + W.h;
+    this.towerX = W.x + TOWER.x;
+    this.towerY = W.y + TOWER.y + 6;
     this.add.image(this.towerX, this.towerY, 'tv_tower').setOrigin(0.5, 1).setDepth(-115);
     this.towerLights = this.add.container(0, 0).setDepth(-114).setVisible(false);
     // sniegas už lango
     this.add.particles(0, 0, 'flake', {
-      x: { min: W.x, max: W.x + W.w }, y: W.y - 10, lifespan: 4500,
+      x: { min: W.x, max: W.x + W.w }, y: W.y - 10, lifespan: 9000,
       speedY: { min: 40, max: 90 }, speedX: { min: -20, max: 10 }, scale: { min: 0.4, max: 1 },
       quantity: 1, frequency: 160,
     }).setDepth(-113);
@@ -194,18 +197,19 @@ export class BroliaiScene extends Phaser.Scene {
   }
 
   makeBrothers() {
-    this.add.image(PEN_X, FLOOR - 10, 'home_pen_back').setOrigin(0.5, 1).setDepth(150);
-    this.penFront = this.add.image(PEN_X, FLOOR - 10, 'home_pen_front').setOrigin(0.5, 1).setDepth(180);
+    this.makeTrain();
     this.brothers = BROTHERS.map((b, i) => {
-      const body = this.add.image(b.x, BABY_Y, 'baby_body').setOrigin(0.5, 1).setTint(b.tint).setDepth(160);
-      const head = this.add.image(b.x, BABY_Y - 168, 'baby_sad').setDepth(165).setScale(i ? 0.94 : 1);
-      const y = 548;
+      const body = this.add.image(b.x, BABY_Y, b.tex).setOrigin(0.5, 1).setDepth(160);
+      const head = this.add.image(0, 0, 'baby_sad');
+      const hair = this.add.image(0, 0, 'baby_hair').setTint(b.hair);
+      const hb = this.add.container(b.x, BABY_Y - 162, [head, hair]).setDepth(165).setScale(i ? 0.94 : 1);
+      const y = 628;
       const bg = this.add.rectangle(b.x, y, 140, 22, 0x0b0418, 0.85).setStrokeStyle(4, 0x14081f).setDepth(190);
       const fill = this.add.rectangle(b.x - 66, y, 1, 12, 0x6fd3ff).setOrigin(0, 0.5).setDepth(191);
       const drop = this.add.image(b.x - 88, y, 'tear').setDepth(192).setScale(1.2);
       const calm = bodyText(this, b.x, y, 'Ramus 😴', 24, C.green).setDepth(192).setVisible(false);
       return {
-        ...b, i, body, head, bg, fill, drop, calm,
+        ...b, i, body, head, hb, bg, fill, drop, calm,
         tears: TEARS_START + i * 8, isCalm: false, scaredUntil: 0, tearT: 0, crying: false, face: 'baby_sad',
       };
     });
@@ -213,7 +217,7 @@ export class BroliaiScene extends Phaser.Scene {
 
   // ---------------- Adriana ----------------
   makeAdriana() {
-    const box = this.add.container(PEN_X - 420, FLOOR).setDepth(300);
+    const box = this.add.container(KIDS_X - 420, FLOOR).setDepth(300);
     this.adrBody = this.add.image(0, 0, 'adr_run1').setOrigin(0.5, 1);
     const hasFace = this.textures.exists('adr_face');
     this.adrHead = this.add.image(4, -196, hasFace ? 'adr_face' : 'adr_head').setOrigin(0.5, hasFace ? 0.5 : 0.56);
@@ -274,7 +278,7 @@ export class BroliaiScene extends Phaser.Scene {
     this.carrying -= 1;
     const p = this.add.image(this.adr.x, this.adr.y - 300, 'soske').setDepth(330).setScale(0.8);
     this.tweens.add({
-      targets: p, x: b.x, y: b.head.y + 30, duration: 320, ease: 'Quad.Out',
+      targets: p, x: b.x, y: b.hb.y + 30, duration: 320, ease: 'Quad.Out',
       onComplete: () => {
         p.destroy();
         this.giving = false;
@@ -288,7 +292,7 @@ export class BroliaiScene extends Phaser.Scene {
         this.soskeIcons[this.delivered - 1].clearTint().setAlpha(1);
         this.tweens.add({ targets: this.soskeIcons[this.delivered - 1], scale: 1.3, yoyo: true, duration: 160 });
         this.A.sfx.plus();
-        floatText(this, b.x, b.head.y - 80, '😴', { size: 60, rise: 50 });
+        floatText(this, b.x, b.hb.y - 80, '😴', { size: 60, rise: 50 });
         this.maybeSub(this.A.lines.pick('broliai', 'give'), C.green, 0);
         if (this.delivered >= 2 && this.mode === 'play') this.win();
       },
@@ -303,7 +307,7 @@ export class BroliaiScene extends Phaser.Scene {
     this.searchSpot = null;
     this.A.sfx.cry();
     this.cameras.main.shake(320, 0.008);
-    const t = headText(this, b.x, b.head.y - 120, 'WAAAAH!', 70, C.red).setDepth(560).setScale(0.4);
+    const t = headText(this, b.x, b.hb.y - 120, 'WAAAAH!', 70, C.red).setDepth(560).setScale(0.4);
     this.tweens.add({ targets: t, scale: 1.1, duration: 200, ease: 'Back.Out' });
     this.tweens.add({ targets: t, alpha: 0, y: t.y - 40, delay: 700, duration: 400, onComplete: () => t.destroy() });
     floatText(this, this.adr.x, this.adr.y - 330, '🙉', { size: 56, rise: 40 });
@@ -367,7 +371,7 @@ export class BroliaiScene extends Phaser.Scene {
     const g = this.add.graphics().setDepth(520);
     g.lineStyle(4, 0x14081f, 1);
     const COLORS = [0xff3ea5, 0xffd23f, 0x2de2e6, 0x3ddc84, 0xff9a3c];
-    const hooks = [[450, 700], [1220, 1550, 1880]];
+    const hooks = [[430, 590], [1370, 1620, 1880]];
     let k = 0;
     for (const xs of hooks) {
       for (let h = 0; h < xs.length - 1; h++) {
@@ -450,10 +454,11 @@ export class BroliaiScene extends Phaser.Scene {
     this.lastToy = now;
     this.stat(player, 'zaislai');
     const target = this.crying().sort((p, q) => q.tears - p.tears)[0] || pick(this.brothers);
-    const x = Phaser.Math.Clamp(target.x + rand(-60, 60), PEN_X - 180, PEN_X + 180);
-    const t = this.add.text(x, -60, pick(TOYS), { fontSize: '56px' }).setOrigin(0.5).setDepth(172);
+    const x = Phaser.Math.Clamp(target.x + rand(-100, 100), KIDS_X - 220, KIDS_X + 220);
+    const ly = rand(866, 905);
+    const t = this.add.text(x, -60, pick(TOYS), { fontSize: '56px' }).setOrigin(0.5, 1).setDepth(ly > TRACK.y ? 172 : 158);
     this.tweens.add({
-      targets: t, y: 852, angle: rand(-30, 30), duration: 650, ease: 'Bounce.Out',
+      targets: t, y: ly, angle: rand(-30, 30), duration: 650, ease: 'Bounce.Out',
       onComplete: () => {
         this.addTears(target, -TOY);
         this.A.sfx.pop();
@@ -476,7 +481,7 @@ export class BroliaiScene extends Phaser.Scene {
       const t = bodyText(this, sx + i * 40, 200, n, 46, C.teal).setDepth(530).setAlpha(0);
       this.tweens.add({ targets: t, alpha: 1, duration: 200, delay: i * 120 });
       this.tweens.add({
-        targets: t, x: PEN_X + rand(-140, 140), y: 640, delay: i * 120, duration: 1100, ease: 'Sine.InOut',
+        targets: t, x: KIDS_X + rand(-140, 140), y: 700, delay: i * 120, duration: 1100, ease: 'Sine.InOut',
         onComplete: () => t.destroy(),
       });
     });
@@ -504,7 +509,7 @@ export class BroliaiScene extends Phaser.Scene {
     for (const b of this.crying()) {
       b.scaredUntil = now + 900;
       this.addTears(b, SCARE);
-      this.tweens.add({ targets: b.head, y: b.head.y - 24, yoyo: true, duration: 120 });
+      this.tweens.add({ targets: b.hb, y: BABY_Y - 186, yoyo: true, duration: 120 });
     }
     this.maybeSub(this.A.lines.pick('broliai', 'scare', { vardas: player.name }), C.red, 3000);
   }
@@ -518,13 +523,13 @@ export class BroliaiScene extends Phaser.Scene {
     this.lastHowl = now;
     this.A.sfx.howl();
     const W = HOME_WINDOW;
-    const t = headText(this, W.x + W.w / 2 + rand(-60, 60), W.y + 80, 'AUUU! 🐺', 54, C.white).setDepth(560).setAlpha(0);
+    const t = headText(this, W.x + 400 + rand(-40, 40), W.y + 140, 'AUUU! 🐺', 54, C.white).setDepth(560).setAlpha(0);
     this.tweens.add({ targets: t, alpha: 1, y: t.y - 30, duration: 300 });
     this.tweens.add({ targets: t, alpha: 0, delay: 900, duration: 300, onComplete: () => t.destroy() });
-    this.label(t.x, W.y + 150, player.name, C.white, 22);
+    this.label(t.x, W.y + 210, player.name, C.white, 22);
     for (const b of this.crying()) {
       this.addTears(b, HOWL);
-      this.tweens.add({ targets: b.head, angle: -14, yoyo: true, duration: 260, onComplete: () => b.head.setAngle(0) });
+      this.tweens.add({ targets: b.hb, angle: -14, yoyo: true, duration: 260, onComplete: () => b.hb.setAngle(0) });
     }
     if (Math.random() < 0.3) this.maybeSub(this.A.lines.pick('broliai', 'howl'), C.white, 4000);
   }
@@ -536,7 +541,7 @@ export class BroliaiScene extends Phaser.Scene {
     this.tweens.add({ targets: t, angle: { from: -6, to: 6 }, yoyo: true, repeat: 3, duration: 90 });
     this.tweens.add({ targets: t, alpha: 0, delay: 1100, duration: 300, onComplete: () => t.destroy() });
     t.setX(Math.max(t.width / 2 + 20, 150));
-    this.label(t.x, 590, player.name, C.white, 24);
+    this.label(t.x, 630, player.name, C.white, 24);
     for (const b of this.crying()) this.addTears(b, BELL);
     this.maybeSub(this.A.lines.pick('broliai', 'doorbell'), C.orange, 2000);
   }
@@ -553,7 +558,7 @@ export class BroliaiScene extends Phaser.Scene {
     this.lightTower();
     for (const b of this.crying()) this.addTears(b, -MIRACLE);
     const W = HOME_WINDOW;
-    floatText(this, W.x + W.w / 2, W.y + W.h + 70, '✨ STEBUKLAS ✨', { color: C.yellow, size: 48, rise: 40, ms: 2200 }).setDepth(860);
+    floatText(this, W.x + W.w / 2, W.y + 80, '✨ STEBUKLAS ✨', { color: C.yellow, size: 48, rise: 40, ms: 2200 }).setDepth(860);
     this.maybeSub(this.A.lines.pick('broliai', 'miracle', { vardas: player.name }), C.yellow, 0);
   }
 
@@ -563,24 +568,52 @@ export class BroliaiScene extends Phaser.Scene {
     box.removeAll(true);
     box.setVisible(true);
     const x = this.towerX;
-    const top = this.towerY - 296;
+    const top = this.towerY - TOWER.h;
     const COLORS = [0xff3ea5, 0xffd23f, 0x2de2e6, 0x3ddc84, 0xffffff];
-    box.add(this.add.circle(x, top + 150, 120, 0xffd23f, 0.12));
-    for (let row = 0; row < 11; row++) {
-      const y = top + 30 + row * 25;
-      const half = 8 + row * 7;
-      for (let k = 0; k <= 3; k++) {
-        const px = x - half + (2 * half * k) / 3;
-        const dot = this.add.circle(px, y, 4, COLORS[(row + k) % COLORS.length]);
+    box.add(this.add.ellipse(x, top + TOWER.h * 0.6, 220, TOWER.h * 0.9, 0xffd23f, 0.1));
+    const rows = 18;
+    for (let row = 0; row < rows; row++) {
+      const y = top + 14 + row * ((TOWER.h - 40) / (rows - 1));
+      const half = 5 + row * 5;
+      const n = 3 + Math.floor(row / 3);
+      for (let k = 0; k <= n; k++) {
+        const dot = this.add.circle(x - half + (2 * half * k) / n, y, 4, COLORS[(row + k) % COLORS.length]);
         box.add(dot);
         this.tweens.add({ targets: dot, alpha: 0.3, yoyo: true, repeat: -1, duration: 260 + ((row * 3 + k) % 5) * 90 });
       }
     }
-    const star = this.add.star(x, top + 4, 5, 8, 18, 0xffd23f).setStrokeStyle(3, 0x14081f);
+    const star = this.add.star(x, top - 4, 5, 9, 20, 0xffd23f).setStrokeStyle(3, 0x14081f);
     box.add(star);
     this.tweens.add({ targets: star, angle: 360, repeat: -1, duration: 4000 });
     box.setAlpha(0);
     this.tweens.add({ targets: box, alpha: 1, duration: 500 });
+  }
+
+  // Mediniai bėgiai ovalu ir traukinukas, kuris važinėja aplink broliukus.
+  makeTrain() {
+    const T = TRACK;
+    const g = this.add.graphics().setDepth(95);
+    g.lineStyle(34, 0x14081f, 1).strokeEllipse(T.x, T.y, T.rx * 2, T.ry * 2);
+    g.lineStyle(26, 0xd9a35b, 1).strokeEllipse(T.x, T.y, T.rx * 2, T.ry * 2);
+    g.lineStyle(3, 0x8a5a33, 0.9);
+    g.strokeEllipse(T.x, T.y, T.rx * 2 - 12, T.ry * 2 - 12);
+    g.strokeEllipse(T.x, T.y, T.rx * 2 + 12, T.ry * 2 + 12);
+    this.trainT = 0;
+    this.train = ['train_engine', 'train_car', 'train_car'].map((k) => this.add.image(0, 0, k).setOrigin(0.5, 0.9));
+    this.placeTrain();
+  }
+
+  placeTrain() {
+    const T = TRACK;
+    this.train.forEach((img, k) => {
+      const a = this.trainT - k * 0.42;
+      const sin = Math.sin(a);
+      img.setPosition(T.x + T.rx * Math.cos(a), T.y + T.ry * sin + 6);
+      const dx = -Math.sin(a); // judėjimo kryptis pagal x
+      const sc = 0.62 + 0.14 * sin;
+      img.setScale(dx < 0 ? -sc : sc, sc);
+      img.setDepth(sin > 0 ? 170 : 150);
+    });
   }
 
   // ---------------- HUD ----------------
@@ -661,7 +694,7 @@ export class BroliaiScene extends Phaser.Scene {
 
   // Automatinis žaidėjas (testams ir repeticijai be klaviatūros).
   autoMove() {
-    if (this.carrying > 0 || this.giving) return PEN_X;
+    if (this.carrying > 0 || this.giving) return KIDS_X;
     const left = this.spots.filter((s) => !s.searched);
     if (!left.length) return this.adr.x;
     const s = left.sort((a, b) => Math.abs(a.x - this.adr.x) - Math.abs(b.x - this.adr.x))[0];
@@ -724,7 +757,7 @@ export class BroliaiScene extends Phaser.Scene {
     });
 
     // atiduoti soskę
-    if (play && this.carrying > 0 && !this.giving && this.stunT <= 0 && Math.abs(this.adr.x - PEN_X) < PEN_HALF) this.giveSoske();
+    if (play && this.carrying > 0 && !this.giving && this.stunT <= 0 && Math.abs(this.adr.x - KIDS_X) < KIDS_HALF) this.giveSoske();
 
     // užuomina "↓" virš slėptuvės
     const spot = play && this.searchT <= 0 ? this.spotAt(this.adr.x) : null;
@@ -742,14 +775,14 @@ export class BroliaiScene extends Phaser.Scene {
       else if (b.tears >= 55) face = 'baby_cry';
       if (face !== b.face) { b.face = face; b.head.setTexture(face); }
       const crying = face === 'baby_cry';
-      b.head.x = b.x + (crying ? Math.sin(now / 45 + b.i) * 4 : 0);
+      b.hb.x = b.x + (crying ? Math.sin(now / 45 + b.i) * 4 : 0);
       b.body.y = BABY_Y + (crying ? Math.abs(Math.sin(now / 120 + b.i)) * -8 : 0);
       if (crying && this.mode !== 'result') {
         b.tearT -= dt;
         if (b.tearT <= 0) {
           b.tearT = 0.16;
           for (const side of [-1, 1]) {
-            const d = this.add.image(b.head.x + side * 32, b.head.y + 12, 'tear').setDepth(175);
+            const d = this.add.image(b.hb.x + side * 32, b.hb.y + 12, 'tear').setDepth(175);
             this.tweens.add({ targets: d, x: d.x + side * rand(30, 70), y: d.y + rand(90, 140), alpha: 0, duration: 600, ease: 'Quad.In', onComplete: () => d.destroy() });
           }
         }
@@ -761,6 +794,10 @@ export class BroliaiScene extends Phaser.Scene {
         if (col !== b.col) { b.col = col; b.fill.setFillStyle(col); }
       }
     }
+
+    // traukinukas
+    this.trainT += TRAIN_SPEED * dt;
+    this.placeTrain();
 
     // tamsa
     if (this.dark.on && now > this.dark.until) this.lightsOn();

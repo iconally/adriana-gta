@@ -133,13 +133,14 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/sc
 | bus, bus_door | 760×320, 92×196 | langų ir durų vietos - `art.js` |
 | snowball, splat, star, star_off | 40, 120, 54, 54 | smulkmenos |
 | adr_duck | 150×200 | Adriana pritūpusi (ieško, išsisuka) |
-| home_room | 1920×1080 | 1 etapo kambarys; lango vieta permatoma (`HOME_WINDOW` - `art-home.js`) |
-| home_sky, tv_tower | 400×320, 110×300 | vaizdas pro langą ir TV bokštas |
+| home_room | 1920×1080 | 1 etapo kambarys; langas iki grindų permatomas (`HOME_WINDOW` - `art-home.js`) |
+| home_sky, tv_tower | 560×690, 150×430 | vaizdas pro langą (kalva) ir Vilniaus TV bokštas (`TOWER`) |
 | home_sofa, home_toybox, home_basket | 340×220, 170×160, 140×140 | slėptuvės |
 | home_xtree, home_shelf, home_fridge | 250×410, 210×370, 210×430 | slėptuvės |
-| home_pen_back, home_pen_front | 440×200 | maniežas (galas ir priekis) |
-| baby_body | 130×130 | broliuko kūnas (baltas, spalvinamas kode) |
-| baby_sad, baby_cry, baby_scared, baby_calm | 140×140 | broliuko galva |
+| baby_sit1, baby_sit2 | 170×130 | sėdintys broliukai (kūnas be galvos) |
+| baby_sad, baby_cry, baby_scared, baby_calm | 140×140 | broliuko galva be plaukų |
+| baby_hair | 140×140 | plaukai (balti, spalvinami kode) |
+| train_engine, train_car | 96×70, 76×60 | medinis traukinukas (bėgiai piešiami kode) |
 | soske, tear, home_monster | 80×80, 18×24, 420×460 | soskė, ašara, pabaisos šešėlis |
 
 ## Struktūra

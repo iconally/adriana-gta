@@ -35,7 +35,10 @@ function seeded(seed) {
 }
 
 // Lango anga kambario paveikslėlyje (ją naudoja ir scena).
-export const HOME_WINDOW = { x: 760, y: 130, w: 400, h: 320 };
+// Langas iki grindų (balkono durys).
+export const HOME_WINDOW = { x: 680, y: 110, w: 560, h: 690 };
+// TV bokšto vieta lango vaizde (kalvos viršūnė) ir jo aukštis.
+export const TOWER = { x: 160, y: 450, h: 430 };
 
 export function generateHomeArt(scene) {
   const W = HOME_WINDOW;
@@ -94,69 +97,135 @@ export function generateHomeArt(scene) {
     shape(c, (x) => x.arc(0, 0, 320, 0, Math.PI * 2), '#1aa3b8', 0);
     shape(c, (x) => x.arc(0, 0, 240, 0, Math.PI * 2), '#2de2e6', 0);
     c.restore();
-    // lango rėmas ir palangė
-    shape(c, (x) => rr(x, W.x - 26, W.y - 26, W.w + 52, W.h + 52, 12), '#f1e6ff', 6);
+    // lango rėmas (langas iki grindų)
+    shape(c, (x) => rr(x, W.x - 26, W.y - 26, W.w + 52, W.h + 40, 12), '#f1e6ff', 6);
     c.globalCompositeOperation = 'destination-out';
     c.fillRect(W.x, W.y, W.w, W.h);
     c.globalCompositeOperation = 'source-over';
     c.lineWidth = 6; c.strokeStyle = OUT; c.strokeRect(W.x, W.y, W.w, W.h);
-    // rėmo skersinis - dešinėje, kad neuždengtų TV bokšto
-    c.fillStyle = '#f1e6ff'; c.fillRect(W.x + 274, W.y, 12, W.h);
-    c.strokeRect(W.x + 274, W.y, 12, W.h);
-    shape(c, (x) => rr(x, W.x - 50, W.y + W.h + 18, W.w + 100, 26, 8), '#f1e6ff', 6);
-    // užuolaidos
+    // durų skersinis - dešinėje, kad neuždengtų TV bokšto
+    c.fillStyle = '#f1e6ff'; c.fillRect(W.x + 380, W.y, 14, W.h);
+    c.strokeRect(W.x + 380, W.y, 14, W.h);
+    shape(c, (x) => rr(x, W.x + 360, W.y + 330, 10, 50, 5), '#ffd23f', 4);
+    // užuolaidos iki grindų
     const curtain = (x0, dir) => {
+      const bottom = W.y + W.h + 6;
       shape(c, (x) => {
         x.moveTo(x0, W.y - 40);
         x.lineTo(x0 + dir * 120, W.y - 40);
-        x.quadraticCurveTo(x0 + dir * 70, W.y + 200, x0 + dir * 110, W.y + W.h + 70);
-        x.lineTo(x0, W.y + W.h + 70);
+        x.quadraticCurveTo(x0 + dir * 60, W.y + 320, x0 + dir * 104, bottom);
+        x.lineTo(x0, bottom);
         x.closePath();
       }, '#ff3ea5', 6);
       c.strokeStyle = 'rgba(20,8,31,.35)'; c.lineWidth = 4;
       for (const k of [30, 60, 90]) {
-        c.beginPath(); c.moveTo(x0 + dir * k, W.y - 30); c.quadraticCurveTo(x0 + dir * (k * 0.6), W.y + 200, x0 + dir * (k * 0.9), W.y + W.h + 60); c.stroke();
+        c.beginPath(); c.moveTo(x0 + dir * k, W.y - 30); c.quadraticCurveTo(x0 + dir * (k * 0.55), W.y + 320, x0 + dir * (k * 0.9), bottom - 6); c.stroke();
       }
+      shape(c, (x) => rr(x, Math.min(x0, x0 + dir * 70) - 4, W.y + 380, 78, 16, 8), '#ffd23f', 4);
     };
     curtain(W.x - 70, 1);
     curtain(W.x + W.w + 70, -1);
     shape(c, (x) => rr(x, W.x - 110, W.y - 52, W.w + 220, 16, 8), '#ffd23f', 5);
   });
 
-  // ---------- vaizdas pro langą (be TV bokšto) ----------
+  // ---------- vaizdas pro langą: dangus ir miškinga kalva (bokštas atskirai) ----------
   tex(scene, 'home_sky', W.w, W.h, (c, w, h) => {
     const g = c.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, '#1d1450');
-    g.addColorStop(0.55, '#7a2f8f');
-    g.addColorStop(1, '#ff8a5b');
+    g.addColorStop(0, '#140c3c');
+    g.addColorStop(0.45, '#4a2389');
+    g.addColorStop(0.75, '#c2457f');
+    g.addColorStop(1, '#ff9a6b');
     c.fillStyle = g;
     c.fillRect(0, 0, w, h);
     const rnd = seeded(3);
     c.fillStyle = '#ffffff';
-    for (let i = 0; i < 40; i++) { c.globalAlpha = 0.3 + rnd() * 0.6; c.fillRect(rnd() * w, rnd() * h * 0.5, 2, 2); }
+    for (let i = 0; i < 70; i++) { c.globalAlpha = 0.3 + rnd() * 0.6; c.fillRect(rnd() * w, rnd() * h * 0.55, 2, 2); }
     c.globalAlpha = 1;
-    // daugiabučiai su šviečiančiais langais
-    for (const [bx, bw, bh] of [[0, 90, 80], [80, 70, 120], [250, 80, 95], [320, 90, 70]]) {
-      c.fillStyle = '#1b1238'; c.fillRect(bx, h - bh, bw, bh);
-      c.fillStyle = '#fff3a8';
-      for (let y = h - bh + 12; y < h - 10; y += 20) {
-        for (let x = bx + 8; x < bx + bw - 10; x += 16) if (rnd() < 0.45) c.fillRect(x, y, 7, 9);
-      }
-      c.fillStyle = '#eef3ff'; c.fillRect(bx, h - bh - 5, bw, 6);
+    // mėnulis
+    shape(c, (x) => x.arc(w - 70, 90, 30, 0, Math.PI * 2), '#fff3c4', 0);
+    c.fillStyle = '#140c3c'; c.beginPath(); c.arc(w - 58, 82, 26, 0, Math.PI * 2); c.fill();
+    // tolimos kalvos
+    const hill = (pts, col) => {
+      c.fillStyle = col;
+      c.beginPath();
+      c.moveTo(0, h);
+      for (const [x, y] of pts) c.lineTo(x, y);
+      c.lineTo(w, h);
+      c.closePath();
+      c.fill();
+    };
+    hill([[0, 600], [120, 585], [300, 610], [460, 590], [w, 605]], '#3a2a6e');
+    // kalva su TV bokštu (viršūnė ties TOWER.x, TOWER.y)
+    const tx = TOWER.x;
+    const ty = TOWER.y;
+    const hillY = (x) => (x < tx
+      ? ty + (650 - ty) * ((tx - x) / tx) ** 1.7
+      : ty + (660 - ty) * ((x - tx) / (w - tx)) ** 1.7);
+    c.fillStyle = '#eef3ff';
+    c.beginPath();
+    c.moveTo(0, h);
+    for (let x = 0; x <= w; x += 8) c.lineTo(x, hillY(x));
+    c.lineTo(w, h);
+    c.closePath();
+    c.fill();
+    c.lineWidth = 4; c.strokeStyle = OUT;
+    c.beginPath();
+    for (let x = 0; x <= w; x += 8) c.lineTo(x, hillY(x));
+    c.stroke();
+    // eglaitės ant kalvos (su sniegu)
+    const pine = (x, y, k) => {
+      c.fillStyle = '#163d33';
+      c.beginPath(); c.moveTo(x, y - 34 * k); c.lineTo(x + 13 * k, y); c.lineTo(x - 13 * k, y); c.closePath(); c.fill();
+      c.fillStyle = '#ffffff';
+      c.beginPath(); c.moveTo(x, y - 34 * k); c.lineTo(x + 5 * k, y - 22 * k); c.lineTo(x - 5 * k, y - 22 * k); c.closePath(); c.fill();
+    };
+    const trees = [];
+    for (let i = 0; i < 60; i++) {
+      const x = rnd() * w;
+      if (Math.abs(x - tx) < 75) continue;
+      trees.push([x, hillY(x) + 16 + rnd() * 90, 0.7 + rnd() * 0.6]);
     }
+    trees.sort((p1, p2) => p1[1] - p2[1]).forEach(([x, y, k]) => pine(x, y, k));
   });
 
-  // ---------- TV bokštas ----------
-  tex(scene, 'tv_tower', 110, 300, (c) => {
-    const x = 55;
-    c.fillStyle = '#cfc8ec'; c.strokeStyle = OUT; c.lineWidth = 4;
-    c.beginPath(); c.moveTo(x - 30, 300); c.lineTo(x - 8, 210); c.lineTo(x + 8, 210); c.lineTo(x + 30, 300); c.closePath(); c.fill(); c.stroke();
-    c.beginPath(); c.moveTo(x - 9, 214); c.lineTo(x - 6, 92); c.lineTo(x + 6, 92); c.lineTo(x + 9, 214); c.closePath(); c.fill(); c.stroke();
-    shape(c, (p) => p.ellipse(x, 98, 34, 12, 0, 0, Math.PI * 2), '#e9e4ff', 4);
-    shape(c, (p) => rr(p, x - 22, 72, 44, 22, 6), '#cfc8ec', 4);
-    c.lineWidth = 5; c.beginPath(); c.moveTo(x, 72); c.lineTo(x, 8); c.stroke();
-    c.lineWidth = 3; c.strokeStyle = '#ff3a6a'; c.beginPath(); c.moveTo(x, 40); c.lineTo(x, 8); c.stroke();
-    c.fillStyle = '#ff3a6a'; c.beginPath(); c.arc(x, 8, 5, 0, Math.PI * 2); c.fill();
+  // ---------- Vilniaus TV bokštas: platus pagrindas, plonas kamienas,
+  // "lėkštė" per vidurį, viršuje raudonai baltas stiebas ----------
+  tex(scene, 'tv_tower', 150, TOWER.h, (c, w, h) => {
+    const x = w / 2;
+    const conc = '#dcd7f0';
+    c.lineWidth = 4; c.strokeStyle = OUT;
+    // stiebas su raudonai baltomis juostomis
+    const mastTop = 6;
+    const mastBottom = Math.round(h * 0.4);
+    for (let y = mastTop; y < mastBottom; y += 18) {
+      c.fillStyle = Math.floor((y - mastTop) / 18) % 2 ? '#ffffff' : '#ff3a5a';
+      c.fillRect(x - 3, y, 6, Math.min(18, mastBottom - y));
+    }
+    c.strokeRect(x - 3, mastTop, 6, mastBottom - mastTop);
+    for (const y of [0.13, 0.25, 0.35].map((k) => Math.round(h * k))) { c.fillStyle = conc; c.fillRect(x - 9, y, 18, 4); c.strokeRect(x - 9, y, 18, 4); }
+    c.fillStyle = '#ff3a5a'; c.beginPath(); c.arc(x, mastTop, 5, 0, Math.PI * 2); c.fill();
+    // betoninis kamienas: nuo pagrindo siaurėja į viršų
+    c.fillStyle = conc;
+    c.beginPath();
+    c.moveTo(x - 7, mastBottom);
+    c.lineTo(x + 7, mastBottom);
+    c.lineTo(x + 11, h - 100);
+    c.quadraticCurveTo(x + 16, h - 26, x + 56, h - 6);
+    c.lineTo(x - 56, h - 6);
+    c.quadraticCurveTo(x - 16, h - 26, x - 11, h - 100);
+    c.closePath();
+    c.fill(); c.stroke();
+    // pagrindo pastatas
+    shape(c, (p) => rr(p, x - 70, h - 18, 140, 16, 5), '#b9b2d8', 4);
+    // apžvalgos aikštelė ("lėkštė") per vidurį
+    const py = h - Math.round(h * 0.5);
+    shape(c, (p) => { p.moveTo(x - 10, py + 26); p.lineTo(x - 44, py + 10); p.lineTo(x + 44, py + 10); p.lineTo(x + 10, py + 26); p.closePath(); }, conc, 4);
+    shape(c, (p) => rr(p, x - 46, py - 14, 92, 26, 6), conc, 4);
+    c.fillStyle = '#2a3d6e'; c.fillRect(x - 42, py - 7, 84, 12);
+    c.fillStyle = '#fff3a8';
+    for (let k = -38; k <= 34; k += 9) c.fillRect(x + k, py - 4, 5, 6);
+    shape(c, (p) => rr(p, x - 50, py - 20, 100, 8, 4), '#f1eeff', 4);
+    shape(c, (p) => rr(p, x - 20, py - 34, 40, 14, 4), conc, 4);
   });
 
   // ---------- baldai (slėptuvės) ----------
@@ -256,36 +325,64 @@ export function generateHomeArt(scene) {
     shape(c, (x) => rr(x, 90, 50, 30, 22, 4), '#3ddc84', 3);
   });
 
-  // ---------- maniežas (galinė ir priekinė dalys) ----------
-  const pen = (key, front) => tex(scene, key, 440, 200, (c) => {
-    if (!front) {
-      shape(c, (x) => rr(x, 14, 150, 412, 40, 10), '#2de2e6', 5);
+  // ---------- broliukai (2 metų), sėdi ant grindų ----------
+  const sit = (key, sweater, stripe) => tex(scene, key, 170, 130, (c) => {
+    // kojos į šonus
+    for (const [hx, fx] of [[66, 22], [104, 148]]) {
+      c.lineWidth = 34; c.strokeStyle = OUT;
+      c.beginPath(); c.moveTo(hx, 100); c.lineTo(fx, 112); c.stroke();
+      c.lineWidth = 24; c.strokeStyle = '#3b4a8a';
+      c.beginPath(); c.moveTo(hx, 100); c.lineTo(fx, 112); c.stroke();
+      shape(c, (x) => x.ellipse(fx, 112, 15, 13, 0, 0, Math.PI * 2), '#ffffff', 5);
     }
-    c.lineWidth = front ? 10 : 8;
-    for (let x = 30; x <= 410; x += front ? 38 : 34) {
-      c.strokeStyle = OUT; c.lineWidth = front ? 12 : 10;
-      c.beginPath(); c.moveTo(x, 30); c.lineTo(x, 182); c.stroke();
-      c.strokeStyle = front ? '#ffffff' : '#d9d2ee'; c.lineWidth = front ? 6 : 5;
-      c.beginPath(); c.moveTo(x, 30); c.lineTo(x, 182); c.stroke();
+    // megztinis
+    shape(c, (x) => rr(x, 44, 22, 82, 92, 32), sweater);
+    c.fillStyle = stripe; c.fillRect(48, 64, 74, 10);
+    // rankutės laiko traukinuko vagonėlį
+    for (const [sx, ex] of [[52, 58], [118, 112]]) {
+      c.lineWidth = 20; c.strokeStyle = OUT;
+      c.beginPath(); c.moveTo(sx, 40); c.lineTo(sx - (sx < 85 ? 10 : -10), 70); c.lineTo(ex, 92); c.stroke();
+      c.lineWidth = 11; c.strokeStyle = sweater;
+      c.beginPath(); c.moveTo(sx, 40); c.lineTo(sx - (sx < 85 ? 10 : -10), 70); c.lineTo(ex, 92); c.stroke();
     }
-    shape(c, (x) => rr(x, 6, 16, 428, 26, 13), front ? '#ffd23f' : '#ffb03a', 5);
-    if (front) shape(c, (x) => rr(x, 6, 172, 428, 22, 10), '#ffd23f', 5);
+    shape(c, (x) => rr(x, 62, 84, 46, 26, 6), '#ffd23f', 4);
+    c.fillStyle = OUT; c.beginPath(); c.arc(72, 112, 5, 0, Math.PI * 2); c.arc(98, 112, 5, 0, Math.PI * 2); c.fill();
+    shape(c, (x) => x.arc(58, 92, 8, 0, Math.PI * 2), '#f5c9a6', 4);
+    shape(c, (x) => x.arc(112, 92, 8, 0, Math.PI * 2), '#f5c9a6', 4);
   });
-  pen('home_pen_back', false);
-  pen('home_pen_front', true);
+  sit('baby_sit1', '#2de2e6', '#1a8fb8');
+  sit('baby_sit2', '#3ddc84', '#ffd23f');
 
-  // ---------- broliukai ----------
-  tex(scene, 'baby_body', 130, 130, (c) => {
-    // rankutės iškeltos ant manieže turėklo
-    for (const [sx, ex] of [[40, 14], [90, 116]]) {
-      c.lineWidth = 22; c.strokeStyle = OUT;
-      c.beginPath(); c.moveTo(sx, 40); c.lineTo(ex, 8); c.stroke();
-      c.lineWidth = 13; c.strokeStyle = '#ffffff';
-      c.beginPath(); c.moveTo(sx, 40); c.lineTo(ex, 8); c.stroke();
-      shape(c, (x) => x.arc(ex, 8, 9, 0, Math.PI * 2), '#f5c9a6', 4);
-    }
-    shape(c, (x) => rr(x, 28, 26, 74, 100, 30), '#ffffff');
-    shape(c, (x) => x.arc(65, 76, 9, 0, Math.PI * 2), '#ffd23f', 3);
+  // plaukai (balti, spalvinami kode)
+  tex(scene, 'baby_hair', 140, 140, (c) => {
+    shape(c, (x) => {
+      x.moveTo(20, 66);
+      x.quadraticCurveTo(18, 16, 70, 14);
+      x.quadraticCurveTo(122, 16, 120, 66);
+      x.quadraticCurveTo(108, 46, 96, 50);
+      x.quadraticCurveTo(86, 38, 74, 48);
+      x.quadraticCurveTo(62, 36, 50, 48);
+      x.quadraticCurveTo(36, 40, 20, 66);
+      x.closePath();
+    }, '#ffffff', 5);
+    c.lineWidth = 5; c.strokeStyle = OUT;
+    c.beginPath(); c.moveTo(70, 14); c.quadraticCurveTo(80, 0, 92, 6); c.stroke();
+  });
+
+  // ---------- medinis traukinukas ----------
+  tex(scene, 'train_engine', 96, 70, (c) => {
+    shape(c, (x) => rr(x, 6, 26, 84, 30, 6), '#e2333a', 5);
+    shape(c, (x) => rr(x, 54, 4, 34, 30, 5), '#ffd23f', 5);
+    c.fillStyle = '#9fd8ff'; c.fillRect(62, 11, 18, 12);
+    shape(c, (x) => rr(x, 16, 8, 14, 20, 3), '#3b3b5c', 4);
+    shape(c, (x) => rr(x, 12, 2, 22, 8, 3), '#3b3b5c', 4);
+    for (const wx of [24, 50, 76]) shape(c, (x) => x.arc(wx, 58, 9, 0, Math.PI * 2), '#2a1a12', 4);
+  });
+  tex(scene, 'train_car', 76, 60, (c) => {
+    shape(c, (x) => rr(x, 4, 22, 68, 24, 6), '#2f6bff', 5);
+    shape(c, (x) => rr(x, 12, 6, 20, 18, 3), '#ffd23f', 4);
+    shape(c, (x) => rr(x, 38, 4, 22, 20, 3), '#3ddc84', 4);
+    for (const wx of [20, 56]) shape(c, (x) => x.arc(wx, 48, 9, 0, Math.PI * 2), '#2a1a12', 4);
   });
 
   const babyHead = (key, mood) => tex(scene, key, 140, 140, (c) => {
@@ -293,7 +390,6 @@ export function generateHomeArt(scene) {
     shape(c, (x) => x.arc(18, 80, 12, 0, Math.PI * 2), '#f5c9a6', 5);
     shape(c, (x) => x.arc(122, 80, 12, 0, Math.PI * 2), '#f5c9a6', 5);
     shape(c, (x) => x.arc(70, 76, 52, 0, Math.PI * 2), '#f5c9a6');
-    shape(c, (x) => { x.moveTo(62, 30); x.quadraticCurveTo(54, 8, 80, 6); x.quadraticCurveTo(68, 16, 80, 30); x.closePath(); }, '#8a5a33', 4);
     c.fillStyle = 'rgba(255,90,140,.45)';
     c.beginPath(); c.arc(36, 96, 10, 0, Math.PI * 2); c.fill();
     c.beginPath(); c.arc(104, 96, 10, 0, Math.PI * 2); c.fill();
