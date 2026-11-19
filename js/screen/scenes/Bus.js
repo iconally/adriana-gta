@@ -12,7 +12,7 @@ import { cityBackdrop, headText, bodyText, banner, subtitle, floatText, missionC
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { BUS_WINDOWS, BUS_DOOR, BUS_H } from '../art.js';
-import { shuffle } from '../../common.js';
+import { shuffle, isBoy, GIRL_COLORS, BOY_COLORS } from '../../common.js';
 
 const STAGE = STAGES.autobusas;
 const GROUND = 862; // Adrianos pėdų linija
@@ -48,7 +48,6 @@ const YARD = {
   ciuozejas: { xs: [1260, 1330, 1400], prop: 1330 },
   laukiantis: { xs: [1600, 1670, 1740, 1810], prop: 1705 },
 };
-const KID_TINTS = [0xff6fb5, 0x6fe6ff, 0xffd166, 0xa98bff, 0x7dff9b, 0xff9a6b];
 const DRIVER_WIN = { x: 704, y: 116, size: 50 }; // autobuso priekinis langas (vairuotoja)
 const BUILD_PER_STAGE = 3;
 const WRECK_HP = 12;
@@ -63,7 +62,8 @@ function weighted(list) {
 function tintOf(name) {
   let h = 0;
   for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return KID_TINTS[h % KID_TINTS.length];
+  const colors = isBoy(name) ? BOY_COLORS : GIRL_COLORS;
+  return colors[h % colors.length];
 }
 
 export class BusScene extends Phaser.Scene {

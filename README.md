@@ -101,7 +101,11 @@ Ekrano nuotraukos išsaugomos `shots/` aplanke.
 ## Logotipas ir žemėlapis
 
 - `assets/logo.svg` - logotipas (tekstas paverstas kontūrais iš šrifto Anton, SIL Open Font License).
-- `assets/map.svg` - stilizuotas žiemos Vilniaus žemėlapis be užrašų. Taškų vietos, pavadinimai ir ikonos - `js/screen/stages.js` (`ROUTE`).
+- `assets/map.svg` - tikras Vilniaus žemėlapis iš OpenStreetMap duomenų (gatvės, Neris, parkai), senamiestis išdidintas. Užrašai ir taškai piešiami žaidime.
+- `assets/map-layout.json` - taškų vietos ekrane, pavadinimai ir orientyrai. Žaidimas jas paima vietoj `ROUTE.pos` iš `js/screen/stages.js`.
+- Abu failai sugeneruojami iš naujo: `python3 tools/make_map_osm.py tools/vilnius.json` (taškų koordinatės - failo viršuje). `tools/vilnius.json` (OSM duomenys) į GitHub nekeliamas.
+- Namų ir mokyklos taškai - tik apytiksliai rajonai (svetainė vieša).
+- Žemėlapio duomenys: © OpenStreetMap contributors (ODbL) - užrašas rodomas ekrano kampe.
 - Norint žemėlapį pakeisti AI sugeneruotu paveikslėliu: įdėk `assets/map.png` (1920×1080) ir `assets/manifest.json` įrašyk `"map": "assets/map.png"`.
 - Žemėlapyje etapai, kurie dar nesukurti, praleidžiami automatiškai. Pulte **Maršrutas iš naujo** grąžina žymą į pradžią.
 

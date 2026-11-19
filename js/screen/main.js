@@ -12,6 +12,7 @@ import { LobbyScene } from './scenes/Lobby.js';
 import { BusScene } from './scenes/Bus.js';
 import { MapScene } from './scenes/Map.js';
 import { VERSION } from '../version.js';
+import { Bots } from './bots.js';
 
 const $ = (id) => document.getElementById(id);
 const ROOM_KEY = 'agta.room';
@@ -50,7 +51,8 @@ function go(key) {
   game.scene.start(key);
 }
 
-window.AGTA = { net, host, lines, sfx, room, joinUrl, game, go, STAGES };
+const bots = new Bots(host);
+window.AGTA = { net, host, lines, sfx, room, joinUrl, game, go, STAGES, bots };
 
 // ---------------- garsas ----------------
 const unlock = () => {
@@ -104,7 +106,7 @@ function renderPlayers() {
     const kid = host.kid(p.name);
     li.innerHTML = `<img alt=""><span></span><button title="Atjungti">✕</button>`;
     li.querySelector('img').src = kid?.avatar || '';
-    li.querySelector('span').textContent = `${p.name}${host.isTeacher(p.name) ? ' (mokytoja)' : ''}${host.isOnline(p) ? '' : ' (neaktyvus)'}`;
+    li.querySelector('span').textContent = `${p.name}${host.isTeacher(p.name) ? ' (mokytoja)' : ''}${p.bot ? ' 🤖' : ''}${host.isOnline(p) ? '' : ' (neaktyvus)'}`;
     li.querySelector('button').onclick = () => {
       if (confirm(`Atjungti ${p.name}?`)) host.kick(p.pid);
     };
@@ -160,6 +162,17 @@ $('p-clear').onclick = () => {
   localStorage.removeItem(ROOM_KEY);
   location.reload();
 };
+
+function renderBots() {
+  const n = bots.count;
+  $('p-bots').textContent = n ? `Virtualių vaikų: ${n} (spaudo mygtukus patys)` : 'Virtualių vaikų nėra';
+}
+$('p-bots-add').onclick = () => {
+  if (!host.roster.kids.length) { alert('Pirma įkelk klasę (arba demo klasę).'); return; }
+  bots.fill();
+};
+$('p-bots-del').onclick = () => bots.clear();
+host.on('players', renderBots);
 
 host.on('players', renderPlayers);
 host.on('roster', renderClass);

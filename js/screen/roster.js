@@ -6,7 +6,7 @@
 //   jonas.png ...   - vaikų avatarai (failų vardai nurodyti klase.json)
 //   adriana.png     - Adrianos galva (nebūtina)
 
-import { normMD } from '../common.js';
+import { normMD, isBoy } from '../common.js';
 
 const AVATAR_SIZE = 128;
 
@@ -77,6 +77,7 @@ function fileToAvatar(file) {
 }
 
 const PALETTE = ['#ff3ea5', '#2de2e6', '#ffb000', '#8a5cff', '#3ddc84', '#ff6b3d', '#4da3ff', '#ff5c8a'];
+const BOY_PALETTE = ['#2de2e6', '#ffb000', '#8a5cff', '#3ddc84', '#ff6b3d', '#4da3ff'];
 
 export function placeholderAvatar(name) {
   const c = document.createElement('canvas');
@@ -84,7 +85,8 @@ export function placeholderAvatar(name) {
   const ctx = c.getContext('2d');
   let h = 0;
   for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const color = PALETTE[h % PALETTE.length];
+  const pal = isBoy(name) ? BOY_PALETTE : PALETTE;
+  const color = pal[h % pal.length];
   const r = AVATAR_SIZE / 2;
   ctx.fillStyle = '#14081f';
   ctx.beginPath(); ctx.arc(r, r, r - 2, 0, Math.PI * 2); ctx.fill();

@@ -1,0 +1,117 @@
+{
+ "route": {
+  "broliai": {
+   "pos": [
+    1016,
+    183
+   ],
+   "place": "Namai"
+  },
+  "laiptai": {
+   "pos": [
+    331,
+    256
+   ],
+   "place": "Mokykla"
+  },
+  "autobusas": {
+   "pos": [
+    725,
+    219
+   ],
+   "place": "Stotelė prie Akropolio"
+  },
+  "podiumas": {
+   "pos": [
+    464,
+    644
+   ],
+   "place": "Vingio estrada"
+  },
+  "pianinas": {
+   "pos": [
+    1407,
+    796
+   ],
+   "place": "Filharmonija"
+  },
+  "kinu": {
+   "pos": [
+    1297,
+    715
+   ],
+   "place": "Konfucijaus institutas"
+  },
+  "tenisas": {
+   "pos": [
+    1755,
+    475
+   ],
+   "place": "Kalnų parkas"
+  },
+  "robotas": {
+   "pos": [
+    863,
+    392
+   ],
+   "place": "Baltasis tiltas"
+  },
+  "finalas": {
+   "pos": [
+    1325,
+    582
+   ],
+   "place": "Katedros aikštė"
+  },
+  "pamoka": {
+   "pos": [
+    426,
+    331
+   ],
+   "place": "Klasė"
+  }
+ },
+ "landmarks": [
+  {
+   "id": "tv",
+   "label": "TV bokštas",
+   "pos": [
+    165,
+    507
+   ]
+  },
+  {
+   "id": "pilis",
+   "label": "Gedimino pilis",
+   "pos": [
+    1523,
+    531
+   ]
+  },
+  {
+   "id": "stotis",
+   "label": "Stotis",
+   "pos": [
+    1116,
+    857
+   ]
+  },
+  {
+   "id": "dangorazdziai",
+   "label": "Dangoraižiai",
+   "pos": [
+    884,
+    347
+   ]
+  },
+  {
+   "id": "ozas",
+   "label": "Ozas",
+   "pos": [
+    936,
+    198
+   ]
+  }
+ ],
+ "attribution": "© OpenStreetMap contributors"
+}

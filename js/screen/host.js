@@ -47,7 +47,7 @@ export class Host extends EventBus {
   }
 
   save() {
-    const players = [...this.players.values()].map(({ pid, name, token, joinedAt }) => ({ pid, name, token, joinedAt }));
+    const players = [...this.players.values()].filter((p) => !p.bot).map(({ pid, name, token, joinedAt }) => ({ pid, name, token, joinedAt }));
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify({ room: this.room, roster: this.roster, players, done: [...this.done] }));
     } catch (e) { console.warn('[host] save', e); }
@@ -151,6 +151,30 @@ export class Host extends EventBus {
     p.lastSeen = Date.now();
     if (!this.roles[pid]) this.assignOne(p);
     this.net.send('claimed', { pid, ok: true, token: p.token, name: p.name, avatar: this.avatarOf(p.name) });
+    this.emit('players');
+    this.syncSoon();
+  }
+
+  // ---------- virtualūs vaikai testavimui ----------
+  addBot(kid) {
+    if (this.playerByName(kid.name)) return null;
+    const p = {
+      pid: `bot-${uid(6)}`, name: kid.name, token: uid(8), joinedAt: Date.now(), lastSeen: Date.now(), lastPress: 0, bot: true,
+    };
+    this.players.set(p.pid, p);
+    this.assignOne(p);
+    this.emit('join', p);
+    this.emit('players');
+    this.syncSoon();
+    return p;
+  }
+
+  removeBots() {
+    for (const p of [...this.players.values()]) {
+      if (!p.bot) continue;
+      this.players.delete(p.pid);
+      delete this.roles[p.pid];
+    }
     this.emit('players');
     this.syncSoon();
   }

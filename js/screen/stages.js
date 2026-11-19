@@ -96,16 +96,16 @@ export const STAGES = {
 // Visas dienos maršrutas žemėlapyje. "scene" - Phaser scena; null - dar kuriama
 // (žemėlapyje toks etapas praleidžiamas). "pos" - taško vieta žemėlapyje (1920x1080).
 export const ROUTE = [
-  { id: 'broliai', nr: 1, title: 'Soskė broliukams', mission: 'NURAMINK BROLIUKUS', place: 'Namai', icon: '🏠', pos: [250, 800], scene: null },
-  { id: 'laiptai', nr: 2, title: 'Laiptai su kuprine', mission: 'UŽLIPK Į MOKYKLĄ', place: 'Mokykla', icon: '🎒', pos: [470, 690], scene: null },
-  { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', icon: '✏️', pos: [650, 790], scene: null },
-  { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė', icon: '🚌', pos: [850, 680], scene: 'Bus' },
-  { id: 'podiumas', nr: 5, title: 'Podiumas', mission: 'NENUGRIŪK PODIUME', place: 'Modelių būrelis', icon: '👗', pos: [1050, 790], scene: null },
-  { id: 'pianinas', nr: 6, title: 'Pianinas', mission: 'SUGROK KALĖDAS', place: 'Muzikos būrelis', icon: '🎹', pos: [1270, 690], scene: null },
-  { id: 'kinu', nr: 7, title: 'Kinų kalba', mission: 'KINŲ KALBOS IŠŠŪKIS', place: 'Kinų kalba', icon: '🐼', pos: [1500, 790], scene: null },
-  { id: 'tenisas', nr: 8, title: 'Tenisas', mission: 'ATMUŠK KAMUOLIUKUS', place: 'Teniso kortas', icon: '🎾', pos: [1690, 640], scene: null },
-  { id: 'robotas', nr: 9, title: 'Dovanų robotas', mission: 'UŽPROGRAMUOK ROBOTĄ', place: 'Programavimas', icon: '🤖', pos: [1520, 470], scene: null },
-  { id: 'finalas', nr: 10, title: 'Finalas: eglė', mission: 'UŽDEK EGLĘ', place: 'Katedra', icon: '🎄', pos: [1180, 380], scene: null },
+  { id: 'broliai', nr: 1, title: 'Soskė broliukams', mission: 'NURAMINK BROLIUKUS', place: 'Namai', icon: '🏠', pos: [1161, 176], scene: null },
+  { id: 'laiptai', nr: 2, title: 'Laiptai su kuprine', mission: 'UŽLIPK Į MOKYKLĄ', place: 'Mokykla', icon: '🎒', pos: [363, 258], scene: null },
+  { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', icon: '✏️', pos: [458, 333], scene: null },
+  { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė prie Akropolio', icon: '🚌', pos: [844, 216], scene: 'Bus' },
+  { id: 'podiumas', nr: 5, title: 'Podiumas', mission: 'NENUGRIŪK PODIUME', place: 'Vingio estrada', icon: '👗', pos: [526, 646], scene: null },
+  { id: 'pianinas', nr: 6, title: 'Pianinas', mission: 'SUGROK KALĖDAS', place: 'Filharmonija', icon: '🎹', pos: [1465, 796], scene: null },
+  { id: 'kinu', nr: 7, title: 'Kinų kalba', mission: 'KINŲ KALBOS IŠŠŪKIS', place: 'Konfucijaus institutas', icon: '🐼', pos: [1382, 713], scene: null },
+  { id: 'tenisas', nr: 8, title: 'Tenisas', mission: 'ATMUŠK KAMUOLIUKUS', place: 'Kalnų parkas', icon: '🎾', pos: [1759, 491], scene: null },
+  { id: 'robotas', nr: 9, title: 'Dovanų robotas', mission: 'UŽPROGRAMUOK ROBOTĄ', place: 'Baltasis tiltas', icon: '🤖', pos: [1011, 409], scene: null },
+  { id: 'finalas', nr: 10, title: 'Finalas: eglė', mission: 'UŽDEK EGLĘ', place: 'Katedros aikštė', icon: '🎄', pos: [1403, 590], scene: null },
 ];
 
 export const STAGE_ORDER = ROUTE.filter((r) => r.scene).map((r) => r.id);

@@ -1,5 +1,6 @@
 import { generateArt } from '../art.js';
 import { loadAllAvatars } from '../tribune.js';
+import { ROUTE } from '../stages.js';
 
 // Įkelia tikrus paveikslėlius iš assets/manifest.json (jei yra),
 // o trūkstamus nupiešia kodu.
@@ -8,6 +9,7 @@ export class BootScene extends Phaser.Scene {
 
   preload() {
     this.load.json('manifest', 'assets/manifest.json');
+    this.load.json('mapLayout', 'assets/map-layout.json');
   }
 
   create() {
@@ -23,6 +25,14 @@ export class BootScene extends Phaser.Scene {
   }
 
   finish() {
+    // Tikro žemėlapio taškų vietos ir pavadinimai (tools/make_map_osm.py).
+    const lay = this.cache.json.get('mapLayout');
+    if (lay && lay.route) {
+      for (const r of ROUTE) {
+        const v = lay.route[r.id];
+        if (v) { r.pos = v.pos; r.place = v.place; }
+      }
+    }
     generateArt(this);
     loadAllAvatars(this, window.AGTA.host);
     this.scene.start('Lobby');

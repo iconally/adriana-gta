@@ -33,6 +33,16 @@ export function mdFrom(month, day) {
   return `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+// Lietuviški berniukų vardai baigiasi -s (Jonas, Matas, Herkus...).
+export function isBoy(name) {
+  const first = String(name || '').trim().split(/\s+/)[0].toLowerCase();
+  return first.endsWith('s');
+}
+
+// Drabužių spalvos: berniukams be rožinės.
+export const GIRL_COLORS = [0xff6fb5, 0x6fe6ff, 0xffd166, 0xa98bff, 0x7dff9b, 0xff9a6b];
+export const BOY_COLORS = [0x4da3ff, 0x6fe6ff, 0x7dff9b, 0xffd166, 0xff9a6b, 0x8a7dff];
+
 export function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {

@@ -6,6 +6,15 @@ import { Tribune } from '../tribune.js';
 import { LOBBY, ROUTE } from '../stages.js';
 
 const LAST = ROUTE.length - 1;
+// Orientyrų piktogramų ribos žemėlapyje (žr. tools/make_map_osm.py): viršus, apačia, x poslinkis, pusė pločio.
+const ICON_BOX = {
+  tv: [-96, 28, 0, 26], pilis: [-62, 32, 0, 30], stotis: [-24, 20, 0, 26], dangorazdziai: [-94, 0, 14, 48], ozas: [-40, 12, 0, 20],
+};
+const radOf = (i) => (i === LAST ? 44 : 34);
+const overlap = (a, b) => Math.max(0, Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0))
+  * Math.max(0, Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0));
+const PANEL_W = 620;
+const PANEL_H = 196;
 const tOf = (i) => i / LAST;
 
 export class MapScene extends Phaser.Scene {
@@ -17,12 +26,15 @@ export class MapScene extends Phaser.Scene {
     A.host.setPhase('lobby', LOBBY);
 
     this.add.image(960, 540, 'map').setDisplaySize(1920, 1080).setDepth(-100);
+    this.layout = this.cache.json.get('mapLayout') || null;
+    this.drawLandmarks();
     snow(this, 500);
 
     this.curve = new Phaser.Curves.Spline(ROUTE.map((r) => new Phaser.Math.Vector2(r.pos[0], r.pos[1])));
     this.samples = this.curve.getPoints(LAST * 40);
     this.routeGfx = this.add.graphics().setDepth(10);
     this.points = ROUTE.map((r, i) => this.makePoint(r, i));
+    this.placeLabels();
 
     const next = this.nextIndex();
     this.at = next === -1 ? LAST : Math.max(0, next - 1);
@@ -144,7 +156,7 @@ export class MapScene extends Phaser.Scene {
   makePoint(r, i) {
     const box = this.add.container(r.pos[0], r.pos[1]).setDepth(20);
     const big = i === LAST;
-    const rad = big ? 44 : 34;
+    const rad = radOf(i);
     const ring = this.add.circle(0, 0, rad + 10, 0xff3ea5, 0.35).setVisible(false);
     const disc = this.add.circle(0, 0, rad, 0xffffff).setStrokeStyle(6, 0x14081f);
     const icon = this.add.text(0, 2, r.icon, { fontSize: `${big ? 44 : 34}px` }).setOrigin(0.5);
@@ -158,7 +170,7 @@ export class MapScene extends Phaser.Scene {
     }).setOrigin(0.5).setVisible(false);
     const label = bodyText(this, 0, rad + 24, r.place, 22, C.white);
     box.add([ring, disc, icon, badge, nr, check, tick, label]);
-    return { box, ring, check, tick, disc };
+    return { box, ring, check, tick, disc, label };
   }
 
   refreshPoints(current = -1) {
@@ -196,6 +208,7 @@ export class MapScene extends Phaser.Scene {
     const tag = headText(this, 0, -169, 'JŪS ESATE ČIA', 30, C.yellow, { strokeThickness: 0 });
     tag.setShadow(0, 0, 'rgba(0,0,0,0)');
     inner.add([g, head, tagBg, tag]);
+    this.markerTag = [tagBg, tag];
     box.add(inner);
     this.tweens.add({ targets: inner, y: -10, yoyo: true, repeat: -1, duration: 650, ease: 'Sine.InOut' });
     this.marker = box;
@@ -204,26 +217,97 @@ export class MapScene extends Phaser.Scene {
   placeMarker(t) {
     const p = this.curve.getPoint(Phaser.Math.Clamp(t, 0, 1));
     this.marker.setPosition(p.x, p.y - 30);
+    // Prie viršutinio krašto užrašas "JŪS ESATE ČIA" eina į šoną, kad neišlįstų už ekrano.
+    const side = p.y < 240 ? (p.x > 960 ? -1 : 1) : 0;
+    const tx = side * 182;
+    const ty = side ? -86 : -168;
+    this.markerTag[0].setPosition(tx, ty);
+    this.markerTag[1].setPosition(tx, ty - 1);
+  }
+
+  // Taško užrašas dedamas po tašku, šone arba virš jo - kur mažiausiai užlipa ant kitų.
+  placeLabels() {
+    const obst = ROUTE.map((r, i) => {
+      const k = radOf(i) + 6;
+      return { x0: r.pos[0] - k, y0: r.pos[1] - k, x1: r.pos[0] + k, y1: r.pos[1] + k };
+    }).concat(this.landmarkBoxes);
+    ROUTE.forEach((r, i) => {
+      const { label } = this.points[i];
+      const rad = radOf(i);
+      const w = label.width;
+      const h = label.height;
+      const cands = [[0, rad + 24, 0], [rad + 12 + w / 2, 6, 40], [-(rad + 12 + w / 2), 6, 40], [0, -(rad + 34), 80]];
+      let best = null;
+      for (const [dx, dy, pen] of cands) {
+        const cx = r.pos[0] + dx;
+        const cy = r.pos[1] + dy;
+        const b = { x0: cx - w / 2 - 4, y0: cy - h / 2, x1: cx + w / 2 + 4, y1: cy + h / 2 };
+        let cost = pen;
+        for (const o of obst) cost += overlap(b, o);
+        if (b.x0 < 8 || b.x1 > 1912 || b.y0 < 8 || b.y1 > 945) cost += 1e5;
+        if (!best || cost < best.cost) best = { cost, dx, dy, b };
+      }
+      label.setPosition(best.dx, best.dy);
+      obst.push(best.b);
+    });
+  }
+
+  drawLandmarks() {
+    this.landmarkBoxes = [];
+    const lay = this.layout;
+    if (!lay) return;
+    for (const l of lay.landmarks || []) {
+      const [top, bottom, dx, hw] = ICON_BOX[l.id] || [-40, 20, 0, 26];
+      const x = l.pos[0] + dx;
+      this.landmarkBoxes.push({ x0: x - hw, y0: l.pos[1] + top, x1: x + hw, y1: l.pos[1] + bottom });
+      const opts = [l.pos[1] + bottom + 18, l.pos[1] + top - 16];
+      const near = (y) => Math.min(...ROUTE.map((r) => Math.hypot(r.pos[0] - x, r.pos[1] + 30 - y)));
+      const y = near(opts[0]) >= near(opts[1]) || near(opts[0]) > 110 ? opts[0] : opts[1];
+      const t = bodyText(this, x, y, l.label, 18, '#d9c8ff').setAlpha(0.9).setDepth(5);
+      this.landmarkBoxes.push({ x0: x - t.width / 2, y0: y - t.height / 2, x1: x + t.width / 2, y1: y + t.height / 2 });
+    }
+    if (lay.attribution) {
+      this.add.text(1910, 1074, lay.attribution, {
+        fontFamily: 'Rubik, Arial, sans-serif', fontSize: '13px', color: '#cbbbe6',
+      }).setOrigin(1, 1).setAlpha(0.7).setDepth(700);
+    }
+  }
+
+  // Kortelė dedama į tą kampą, kuriame mažiausiai maršruto taškų ir orientyrų.
+  panelSpot() {
+    const cands = [[40, 40], [1920 - 40 - PANEL_W, 40], [40, 890 - PANEL_H], [1920 - 40 - PANEL_W, 890 - PANEL_H]];
+    const obst = ROUTE.map((r) => ({ x: r.pos[0], y: r.pos[1] + 20, r: 75 }));
+    for (const l of (this.layout && this.layout.landmarks) || []) obst.push({ x: l.pos[0], y: l.pos[1] - 20, r: 55 });
+    const hits = ([x, y]) => obst.filter((o) => {
+      const dx = Math.max(x - o.x, 0, o.x - (x + PANEL_W));
+      const dy = Math.max(y - o.y, 0, o.y - (y + PANEL_H));
+      return dx * dx + dy * dy < o.r * o.r;
+    }).length;
+    let best = cands[0];
+    for (const c of cands) if (hits(c) < hits(best)) best = c;
+    return best;
   }
 
   makePanel() {
-    const x = 40;
-    const y = 40;
+    const [x, y] = this.panelSpot();
     const box = this.add.container(x, y).setDepth(60);
-    const bg = this.add.rectangle(0, 0, 700, 236, 0x0b0418, 0.85).setOrigin(0).setStrokeStyle(5, 0xff3ea5);
-    this.panelKicker = headText(this, 28, 44, '', 32, C.teal, { strokeThickness: 0 }).setOrigin(0, 0.5);
-    this.panelTitle = headText(this, 28, 104, '', 58, C.yellow).setOrigin(0, 0.5);
-    this.panelDesc = bodyText(this, 28, 160, '', 26, C.white, { align: 'left', wordWrap: { width: 650 } }).setOrigin(0, 0.5);
-    this.panelAction = headText(this, 28, 206, '', 32, C.white, { strokeThickness: 0 }).setOrigin(0, 0.5);
+    const bg = this.add.rectangle(0, 0, PANEL_W, PANEL_H, 0x0b0418, 0.88).setOrigin(0).setStrokeStyle(5, 0xff3ea5);
+    this.panelKicker = headText(this, 26, 38, '', 28, C.teal, { strokeThickness: 0 }).setOrigin(0, 0.5);
+    this.panelTitle = headText(this, 26, 90, '', 52, C.yellow).setOrigin(0, 0.5);
+    this.panelDesc = bodyText(this, 26, 138, '', 24, C.white, { align: 'left', wordWrap: { width: PANEL_W - 50 } }).setOrigin(0, 0.5);
+    this.panelAction = headText(this, 26, 172, '', 28, C.white, { strokeThickness: 0 }).setOrigin(0, 0.5);
     this.tweens.add({ targets: this.panelAction, alpha: 0.35, yoyo: true, repeat: -1, duration: 650 });
     box.add([bg, this.panelKicker, this.panelTitle, this.panelDesc, this.panelAction]);
   }
 
   showPanel(stage) {
     this.panelKicker.setText(`MISIJA ${stage.nr}  ·  ${stage.place.toUpperCase()}`);
+    const kmax = PANEL_W - 50;
+    this.panelKicker.setScale(this.panelKicker.width > kmax ? kmax / this.panelKicker.width : 1);
     this.panelTitle.setText(stage.mission);
     this.panelDesc.setText(stage.title);
-    const fit = this.panelTitle.width > 650 ? 650 / this.panelTitle.width : 1;
+    const max = PANEL_W - 50;
+    const fit = this.panelTitle.width > max ? max / this.panelTitle.width : 1;
     this.panelTitle.setScale(fit);
   }
 }
