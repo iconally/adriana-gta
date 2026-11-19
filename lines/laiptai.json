@@ -1,0 +1,84 @@
+{
+  "intro": [
+    "Patarimas: kairė, dešinė, kairė, dešinė. Kaip šokant, tik sunkiau.",
+    "Patarimas: kuprinė sveria daugiau nei Adriana. Beveik.",
+    "Patarimas: stūmikai - tavo geriausi draugai.",
+    "Patarimas: du kartus ta pati koja - ir labas, laiptelis."
+  ],
+  "start": [
+    "Pirmyn, Adriana! Iki skambučio 30 sekundžių!",
+    "Laiptai laukia. Kuprinė jau sunki.",
+    "3 aukštas. Atrodo arti. Neapsigauk."
+  ],
+  "stumble": [
+    "Oi! Ta pati koja!",
+    "Kairė, dešinė, Adriana!",
+    "Suklupo, bet stilingai."
+  ],
+  "book": [
+    "{vardas} įmetė knygą!",
+    "{vardas}: dar viena knyga!",
+    "Kuprinė sunkėja. Ačiū, {vardas}..."
+  ],
+  "full": [
+    "Kuprinė pilna! Knyga atšoko.",
+    "Daugiau netelpa!"
+  ],
+  "mandarin": [
+    "Mandarinas pietums!",
+    "Kalėdos kvepia mandarinais."
+  ],
+  "push": [
+    "{vardas} stumia iš apačios!",
+    "Hop! {vardas} padeda!",
+    "{vardas} - geriausias stūmikas."
+  ],
+  "cheer": [
+    "PIRMYN!",
+    "Adriana, gali!"
+  ],
+  "run": [
+    "{vardas} lekia per pertrauką!",
+    "Nebėgiokit laiptais! (Bet {vardas} negirdi.)"
+  ],
+  "slip": [
+    "{vardas} paslydo! Viskas gerai!",
+    "Oi! {vardas} išbandė laiptus kitaip."
+  ],
+  "draw": [
+    "{vardas} piešia ant lango.",
+    "Lango menas by {vardas}."
+  ],
+  "doors": [
+    "Mokytoja laiko duris: +1 s!",
+    "Durys dar atviros!"
+  ],
+  "doors_max": [
+    "Duris ilgiau laikyti nebegalima!"
+  ],
+  "whistle": [
+    "FIIIT! Stūmikai, visu greičiu!",
+    "Švilpukas! Visi stumia stipriau!"
+  ],
+  "floor": [
+    "2 aukštas! Dar vienas!",
+    "Pusė kelio!"
+  ],
+  "near": [
+    "Durys jau matosi!",
+    "Dar truputį!"
+  ],
+  "ten": [
+    "Liko 10 sekundžių!",
+    "Skambutis tuoj!"
+  ],
+  "success": [
+    "Spėjo! Prieš pat skambutį.",
+    "3 aukštas - įveiktas!",
+    "Kuprinė irgi užlipo. Su visomis knygomis."
+  ],
+  "fail": [
+    "Skambutis! Bet Adriana jau prie durų.",
+    "Pavėlavo... bet su geriausia kuprine mokykloje."
+  ]
+}

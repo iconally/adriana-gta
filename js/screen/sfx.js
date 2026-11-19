@@ -181,5 +181,10 @@ export const sfx = {
   lullaby() { [659, 587, 523].forEach((f, i) => tone(f, 0.28, { type: 'sine', vol: 0.1, delay: i * 0.22 })); },
   twinkle() { [1319, 1568, 1760, 2093].forEach((f, i) => tone(f, 0.12, { type: 'triangle', vol: 0.07, delay: i * 0.07 })); },
   miracle() { [523, 659, 784, 1046, 1319].forEach((f, i) => tone(f, 0.5, { type: 'sine', vol: 0.12, delay: i * 0.12 })); },
+  // 2 etapas: laiptai
+  step() { tone(220 + Math.random() * 40, 0.05, { type: 'triangle', vol: 0.12 }); noise(0.04, { vol: 0.08, freq: 700 }); },
+  thud() { tone(140, 0.16, { type: 'sine', vol: 0.25, slide: -60 }); noise(0.1, { vol: 0.18, freq: 400 }); },
+  whistle() { tone(2100, 0.5, { type: 'sine', vol: 0.12, slide: 120 }); tone(2300, 0.5, { type: 'sine', vol: 0.06, slide: 120 }); },
+  schoolBell() { for (let i = 0; i < 14; i++) tone(1250, 0.06, { type: 'square', vol: 0.07, delay: i * 0.07 }); },
   fail() { [392, 349, 311, 262].forEach((f, i) => tone(f, 0.25, { type: 'triangle', vol: 0.15, delay: i * 0.16 })); },
 };

@@ -67,7 +67,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 - Jei du vaikai tuo pačiu vardu, pridėk pavardės raidę.
 - Avataras - kvadratinis PNG ar JPG, bus apkarpytas į apskritimą. Jei avataro nėra, rodomos vardo raidės.
 - `adriana.png` - Adrianos galva, dedama ant bėgančio kūno.
-- Mokytojai pridėk `"mokytoja": true` - ji neužims vaikų vietų, o kiekviename etape gaus savo rolę (namuose - stebukladarė, autobuse - vairuotoja).
+- Mokytojai pridėk `"mokytoja": true` - ji neužims vaikų vietų, o kiekviename etape gaus savo rolę (namuose - stebukladarė, mokykloje - budėtoja, autobuse - vairuotoja).
 - Pulte spausk **Įkelti klasės aplanką**. Sąrašas išsaugomas tik šios naršyklės atmintyje. Po vakarėlio spausk **Ištrinti visus duomenis**.
 
 ## Vakarėlio metu
@@ -77,6 +77,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 | ENTER | laukiamasis → žemėlapis → misija → žemėlapis |
 | ← → | Adriana bėga po kambarį (1 etapas) |
 | ↓ arba TARPAS | ieškoti soskės (1 etapas) |
+| ← → paeiliui | lipti laiptais (2 etapas); ta pati rodyklė du kartus - suklumpa |
 | TARPAS arba ↑ | Adrianos šuolis (autobusas) |
 | R | kartoti etapą |
 | ESC | į laukiamąjį |
@@ -113,7 +114,7 @@ Ekrano nuotraukos išsaugomos `shots/` aplanke.
 
 ## Tikri paveikslėliai
 
-Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/screen/art-home.js`). Kai turėsit tikrus PNG, įdėkit juos į `assets/` ir įrašykit į `assets/manifest.json`:
+Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/screen/art-home.js`, 2 etapo - `js/screen/art-school.js`). Kai turėsit tikrus PNG, įdėkit juos į `assets/` ir įrašykit į `assets/manifest.json`:
 
 ```json
 { "images": { "bus": "assets/bus.png", "tree": "assets/tree.png" } }
@@ -143,6 +144,10 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/sc
 | train_engine, train_car | 96×70, 76×60 | medinis traukinukas (bėgiai piešiami kode) |
 | soske, tear, home_monster | 80×80, 18×24, 420×460 | soskė, ašara, pabaisos šešėlis |
 | toy_bear, toy_duck, toy_ball, toy_dino, toy_bunny, toy_car, toy_rattle, toy_blocks | apie 90×90 | ramintojų žaisliukai |
+| school_wall_tile | 160×160 | 2 etapo siena (kartojasi) |
+| school_window, school_door, school_board | 240×280, 260×330, 260×170 | aprasojęs langas, 3 aukšto durys, skelbimų lenta |
+| backpack_big | 120×150 | didelė kuprinė (didėja nuo knygų) |
+| book, mandarin | 70×54, 56×56 | knyga (balta, spalvinama kode), mandarinas |
 
 ## Struktūra
 

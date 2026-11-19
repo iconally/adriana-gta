@@ -144,6 +144,37 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     await screen.keyboard.press('Enter'); // -> žemėlapis
   }
 
+  // 2 etapas: laiptai
+  await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Map')?.ready?.id === 'laiptai', null, { timeout: 60000 });
+  await screen.keyboard.press('Enter'); // žemėlapis -> laiptai
+  await sleep(1500);
+  await shot(screen, '16-laiptai-ivadas');
+  await screen.keyboard.press('Enter');
+  await sleep(3200);
+  await screen.evaluate(() => { window.AGTA.game.scene.getScene('Laiptai').autoplay = true; });
+  {
+    const endL = Date.now() + 40000;
+    let shotL = false;
+    while (Date.now() < endL) {
+      const mode = await screen.evaluate(() => window.AGTA.game.scene.getScene('Laiptai')?.mode);
+      if (mode === 'result') break;
+      const batch = phones.filter(() => Math.random() < 0.35);
+      await Promise.all(batch.map(async (p) => {
+        const btns = p.page.locator('.act:not(.off)');
+        const n = await btns.count();
+        if (n) await btns.nth(Math.floor(Math.random() * n)).click({ timeout: 1000 }).catch(() => {});
+      }));
+      if (!shotL) { shotL = true; await shot(screen, '17-laiptai-zaidimas'); await shot(phones[4].page, 'tel-laiptai'); }
+      await sleep(400);
+    }
+    await screen.evaluate(() => { const s = window.AGTA.game.scene.getScene('Laiptai'); if (s.mode === 'play') s.timeLeft = 0.1; });
+    await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Laiptai')?.mode === 'result', null, { timeout: 60000 });
+    const rl = await screen.evaluate(() => { const s = window.AGTA.game.scene.getScene('Laiptai'); return { u: +s.ud.toFixed(1), books: s.books, pushes: s.pushes, stumbles: s.stumbles, elapsed: +s.elapsed.toFixed(1) }; });
+    console.log(`Laiptai: ${JSON.stringify(rl)}`);
+    await shot(screen, '18-laiptai-rezultatas');
+    await screen.keyboard.press('Enter'); // -> žemėlapis
+  }
+
   // 4 etapas: autobusas
   await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Map')?.ready?.id === 'autobusas', null, { timeout: 60000 });
   await shot(screen, '15-zemelapis');

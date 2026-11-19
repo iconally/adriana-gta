@@ -67,6 +67,60 @@ export const STAGES = {
       },
     },
   },
+  laiptai: {
+    id: 'laiptai',
+    nr: 2,
+    title: 'Laiptai su kuprine',
+    mission: 'UŽLIPK Į MOKYKLĄ',
+    // 5 stūmikai, 4 krovikai, 4 prie lango, 4 bėgikai - sumaišyta, kad
+    // ir su keliais vaikais būtų visko po truputį.
+    slots: [
+      'stumikas', 'krovikas', 'langas', 'begikas',
+      'stumikas', 'krovikas', 'langas', 'begikas',
+      'stumikas', 'krovikas', 'langas', 'begikas',
+      'stumikas', 'krovikas', 'langas', 'begikas',
+      'stumikas',
+    ],
+    fallback: 'stumikas',
+    teacherRole: 'budetoja',
+    roles: {
+      stumikas: {
+        name: 'Stūmikas', emoji: '💪', desc: 'Padėk Adrianai užlipti: pastumk ją iš apačios arba šauk „Pirmyn!“',
+        buttons: [
+          { id: 'stumti', label: 'Pastumti', emoji: '💪', cd: 2000, ok: 'Hop!' },
+          { id: 'pirmyn', label: 'Šaukti „Pirmyn!“', emoji: '📣', cd: 1500, ok: 'Pirmyn!' },
+        ],
+      },
+      krovikas: {
+        name: 'Kuprinės krovikas', emoji: '📚', desc: 'Adrianos kuprinė per lengva! Įmesk knygą - ji lips lėčiau. Arba mandariną - tiesiog juokui.',
+        buttons: [
+          { id: 'knyga', label: 'Įmesti knygą', emoji: '📕', cd: 3500, ok: 'Sunkiau!' },
+          { id: 'mandarinas', label: 'Įmesti mandariną', emoji: '🍊', cd: 1500, ok: 'Skanu!' },
+        ],
+      },
+      langas: {
+        name: 'Prie lango', emoji: '🪟', desc: 'Stovi prie aprasojusio lango. Piešk ant jo pirštu arba mojuok Adrianai!',
+        buttons: [
+          { id: 'piesti', label: 'Piešti ant lango', emoji: '✏️', cd: 1500, ok: 'Gražu!' },
+          { id: 'mojuoti', label: 'Mojuoti', emoji: '👋', cd: 1500, ok: 'Labas!' },
+        ],
+      },
+      begikas: {
+        name: 'Bėgikas per pertrauką', emoji: '🏃', desc: 'Pertrauka! Lėk laiptais žemyn pro Adrianą arba... paslysk.',
+        buttons: [
+          { id: 'begti', label: 'Nubėgti žemyn', emoji: '🏃', cd: 2000, ok: 'Vžžž!' },
+          { id: 'paslysti', label: 'Paslysti', emoji: '💫', cd: 2500, ok: 'Oi!' },
+        ],
+      },
+      budetoja: {
+        name: 'Budinti mokytoja', emoji: '🔔', desc: 'Jūs budite prie 3 aukšto durų. Palaikykite duris (+1 s) arba švilpkite - stūmikai stums stipriau!',
+        buttons: [
+          { id: 'duris', label: 'Laikyti duris', emoji: '🚪', cd: 2500, ok: '+1 s!' },
+          { id: 'svilpukas', label: 'Švilpukas', emoji: '📢', cd: 8000, ok: 'FIIIT!' },
+        ],
+      },
+    },
+  },
   autobusas: {
     id: 'autobusas',
     nr: 4,
@@ -145,7 +199,7 @@ export const STAGES = {
 // (žemėlapyje toks etapas praleidžiamas). "pos" - taško vieta žemėlapyje (1920x1080).
 export const ROUTE = [
   { id: 'broliai', nr: 1, title: 'Soskė broliukams', mission: 'NURAMINK BROLIUKUS', place: 'Namai', where: 'Namai', icon: '🏠', pos: [1016, 183], scene: 'Broliai' },
-  { id: 'laiptai', nr: 2, title: 'Laiptai su kuprine', mission: 'UŽLIPK Į MOKYKLĄ', place: 'Mokykla', where: 'Mokykla', icon: '🎒', pos: [331, 256], scene: null },
+  { id: 'laiptai', nr: 2, title: 'Laiptai su kuprine', mission: 'UŽLIPK Į MOKYKLĄ', place: 'Mokykla', where: 'Mokykla', icon: '🎒', pos: [331, 256], scene: 'Laiptai' },
   { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', where: 'Klasė', icon: '✏️', pos: [426, 331], scene: null },
   { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė', where: 'Stotelė prie Akropolio', icon: '🚌', pos: [725, 219], scene: 'Bus' },
   { id: 'podiumas', nr: 5, title: 'Podiumas', mission: 'NENUGRIŪK PODIUME', place: 'Mados šou', where: 'Vingio estrada', icon: '👗', pos: [464, 644], scene: null },
