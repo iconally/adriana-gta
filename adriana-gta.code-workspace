@@ -1,0 +1,31 @@
+{
+  "folders": [{ "path": "." }],
+  "settings": {
+    "liveServer.settings.port": 8765,
+    "liveServer.settings.ignoreFiles": ["tests/**", "shots/**", "node_modules/**"],
+    "editor.tabSize": 2,
+    "files.exclude": { "shots": true },
+    "search.exclude": { "vendor": true, "node_modules": true }
+  },
+  "extensions": {
+    "recommendations": ["ritwickdey.LiveServer"]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Paleisti serverį (8765)",
+        "type": "shell",
+        "command": "python3 -m http.server 8765",
+        "isBackground": true,
+        "problemMatcher": []
+      },
+      {
+        "label": "Testas: 26 virtualūs telefonai",
+        "type": "shell",
+        "command": "npm test",
+        "problemMatcher": []
+      }
+    ]
+  }
+}

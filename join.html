@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="lt">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#1a0b2e">
+  <title>GTA - prisijungimas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/join.css">
+  <script src="config.js"></script>
+  <script src="vendor/supabase.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="logo">GTA</div>
+    <div class="sub">Garsioji Talentingoji Adriana</div>
+    <span id="net" class="net" title="Ryšys"></span>
+  </header>
+
+  <main>
+    <section id="s-msg" class="screen">
+      <h1 id="msg-title">Jungiamės...</h1>
+      <p id="msg-text" class="hint"></p>
+      <button id="msg-btn" class="btn" hidden></button>
+    </section>
+
+    <section id="s-names" class="screen" hidden>
+      <h1>Kas tu?</h1>
+      <p class="hint">Pasirink savo vardą</p>
+      <div id="names" class="names"></div>
+    </section>
+
+    <section id="s-date" class="screen" hidden>
+      <h1 id="date-name"></h1>
+      <p class="hint">Kada tavo gimtadienis?</p>
+      <div class="date">
+        <select id="month" aria-label="Mėnuo"></select>
+        <select id="day" aria-label="Diena"></select>
+      </div>
+      <p id="date-err" class="err"></p>
+      <button id="date-ok" class="btn">Prisijungti</button>
+      <button id="date-back" class="link">← Čia ne aš</button>
+    </section>
+
+    <section id="s-wait" class="screen" hidden>
+      <img id="me-avatar" class="avatar" alt="">
+      <h1 id="me-name"></h1>
+      <p id="wait-text" class="hint">Žiūrėk į ekraną!</p>
+    </section>
+
+    <section id="s-role" class="screen" hidden>
+      <div class="me-mini"><img id="role-avatar" alt=""><span id="role-me"></span></div>
+      <div class="role-card">
+        <div id="role-emoji" class="role-emoji"></div>
+        <h2 id="role-name"></h2>
+        <p id="role-desc"></p>
+      </div>
+      <p id="role-state" class="state"></p>
+      <div id="buttons" class="buttons"></div>
+    </section>
+  </main>
+
+  <script type="module" src="js/phone/join.js"></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "join": [
+    "{vardas} prisijungė!",
+    "{vardas} atvyko į Vilnių!",
+    "Sveiki atvykę! {vardas} jau čia.",
+    "{vardas} jau čia. Respektas +1",
+    "{vardas} įlipo į žaidimą!",
+    "Žiūrėkit, {vardas} jau tribūnoje!"
+  ],
+  "lobby": [
+    "Patarimas: Adriana gali viską. Beveik.",
+    "Skambina Mama: ar suvalgei sriubą?",
+    "Vilnius FM: sninga, šalta, bet nuotaika karšta!",
+    "Kraunasi... kaip troleibusas į kalną.",
+    "Patarimas: telefone spausk \"Labas!\"",
+    "Mamos skambučiai ★★★"
+  ],
+  "labas": [
+    "Labas!",
+    "Sveiki!",
+    "Ei!",
+    "Linksmų!",
+    "Čia aš!",
+    "Valio!"
+  ]
+}

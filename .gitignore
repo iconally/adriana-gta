@@ -1,0 +1,8 @@
+# Klasės sąrašas su gimimo datomis ir avatarais - NIEKADA į GitHub
+klase/
+klase*.json
+!demo/klase-demo.json
+
+node_modules/
+shots/
+.DS_Store

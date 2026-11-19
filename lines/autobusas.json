@@ -1,0 +1,93 @@
+{
+  "intro": [
+    "Patarimas: autobusas niekada nelaukia. Niekada.",
+    "Patarimas: balos gilesnės, nei atrodo.",
+    "Patarimas: sniego senis - ne kliūtis. Bet vis tiek šok.",
+    "Patarimas: draugai stotelėje mėgsta stovėti ant kelio."
+  ],
+  "start": [
+    "Bėk, Adriana, bėk!",
+    "Autobusas jau stotelėje!",
+    "Kuprinė ant pečių - pirmyn!"
+  ],
+  "trip": [
+    "Oi! Slidu!",
+    "Ups! Bet stilingai.",
+    "Mama to nematė. Tikiuosi.",
+    "Sniegas pas Adrianą batuose. Vėl.",
+    "Kuprinė sako: lėčiau!"
+  ],
+  "trip_puddle": [
+    "Kas čia padėjo tą balą?!",
+    "Batai šlapi. Nuotaika - ne.",
+    "Pliumpt! Pliūškė."
+  ],
+  "trip_friend": [
+    "{vardas} užstojo kelią!",
+    "Ups... {vardas} stovėjo ant kelio!",
+    "{vardas} sako labas. Labai netikėtai."
+  ],
+  "snow": [
+    "{vardas} paleido gniūžtę!",
+    "{vardas} taiklus kaip snaiperis!",
+    "{vardas}: gniūžtė skrenda!"
+  ],
+  "snow_adriana": [
+    "{vardas} pataikė Adrianai į kepurę!",
+    "{vardas} rizikuoja: Adriana viską mato!",
+    "{vardas} taiklus. Gal net per daug."
+  ],
+  "wave": [
+    "{vardas} moja iš autobuso!",
+    "{vardas} jau sėdi autobuse. Gudru."
+  ],
+  "doors": [
+    "{vardas} laiko duris! +1 s",
+    "{vardas} - durų herojus! +1 s",
+    "{vardas} ir vairuotojas - geriausi draugai. +1 s"
+  ],
+  "doors_max": [
+    "Vairuotojas: daugiau laukti negaliu!",
+    "Vairuotojas: durys ne guminės!"
+  ],
+  "cheer_bek": [
+    "Bėk!",
+    "Greičiau!",
+    "Ad-ri-a-na!",
+    "Pirmyn!"
+  ],
+  "cheer_sok": [
+    "Šok!",
+    "Aukščiau!",
+    "Hop!",
+    "Skrisk!"
+  ],
+  "near": [
+    "Autobusas jau matosi!",
+    "Dar truputį!"
+  ],
+  "success": [
+    "Spėjo! Vairuotojas net nustebo.",
+    "Adriana įlipo paskutinė. Kaip visada."
+  ],
+  "fail": [
+    "Teks bėgti pėsčiomis. Gera mankšta!",
+    "Kitas autobusas - po 2 min. Tikriausiai."
+  ],
+  "snow_tree": [
+    "{vardas} pataikė į eglutę!",
+    "Eglutė gavo gniūžtę. Ačiū, kad ne Adriana."
+  ],
+  "snow_lamp": [
+    "{vardas} pataikė į žibintą!",
+    "Žibintas nustebo. {vardas} - ne."
+  ],
+  "snow_snowman": [
+    "{vardas} pataikė į sniego senį!",
+    "Sniego senis: kodėl visada aš?"
+  ],
+  "snow_stop": [
+    "{vardas} pataikė į stotelės ženklą!",
+    "Stotelė apsnigta. Kaltas {vardas}."
+  ]
+}
