@@ -30,7 +30,7 @@ export class BootScene extends Phaser.Scene {
     if (lay && lay.route) {
       for (const r of ROUTE) {
         const v = lay.route[r.id];
-        if (v) { r.pos = v.pos; r.place = v.place; }
+        if (v) { r.pos = v.pos; r.place = v.place; r.where = v.where || v.place; }
       }
     }
     generateArt(this);

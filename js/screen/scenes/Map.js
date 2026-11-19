@@ -301,11 +301,13 @@ export class MapScene extends Phaser.Scene {
   }
 
   showPanel(stage) {
-    this.panelKicker.setText(`MISIJA ${stage.nr}  ·  ${stage.place.toUpperCase()}`);
+    const where = stage.where || stage.place;
+    this.panelKicker.setText(`MISIJA ${stage.nr}  ·  ${where.toUpperCase()}`);
     const kmax = PANEL_W - 50;
     this.panelKicker.setScale(this.panelKicker.width > kmax ? kmax / this.panelKicker.width : 1);
     this.panelTitle.setText(stage.mission);
-    this.panelDesc.setText(stage.title);
+    // Jei tikra vieta jau pasako pavadinimą (Namai, Stotelė prie Akropolio), rodom etapo pavadinimą.
+    this.panelDesc.setText(where.toLowerCase().includes(stage.place.toLowerCase()) ? stage.title : stage.place);
     const max = PANEL_W - 50;
     const fit = this.panelTitle.width > max ? max / this.panelTitle.width : 1;
     this.panelTitle.setScale(fit);

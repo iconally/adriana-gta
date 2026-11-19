@@ -43,6 +43,12 @@ LANDMARKS = [
     ('dangorazdziai', 'Dangoraižiai', 54.6965, 25.2760),
     ('ozas', 'Ozas', 54.7133, 25.2790),
 ]
+# Pavadinimai žemėlapyje (tikra vieta lieka "where" ir rodoma misijos kortelėje).
+NAMES = {
+    'broliai': 'Namai', 'laiptai': 'Mokykla', 'pamoka': 'Klasė', 'autobusas': 'Stotelė',
+    'podiumas': 'Mados šou', 'pianinas': 'Piano koncertas', 'kinu': 'Kinų kalbos pamoka',
+    'tenisas': 'Teniso treniruotė', 'robotas': 'Programavimo būrelis', 'finalas': 'Kalėdinis klasės vakarėlis',
+}
 CENTER = (54.6857, 25.2876)  # Katedra
 KLASE_OFFSET = (95, 75)
 
@@ -326,15 +332,15 @@ for rid, label, lat, lon in ROUTE:
     if lat is None:
         continue
     x, y = P(lat, lon)
-    route[rid] = {'pos': [round(x), round(y)], 'place': label}
+    route[rid] = {'pos': [round(x), round(y)], 'place': NAMES[rid], 'where': label}
 sx, sy = route['laiptai']['pos']
-route['pamoka'] = {'pos': [sx + KLASE_OFFSET[0], sy + KLASE_OFFSET[1]], 'place': 'Klasė'}
+route['pamoka'] = {'pos': [sx + KLASE_OFFSET[0], sy + KLASE_OFFSET[1]], 'place': NAMES['pamoka'], 'where': 'Klasė'}
 landmarks = [{'id': k, 'label': lbl, 'pos': [round(lm_xy[k][0]), round(lm_xy[k][1])]} for k, lbl, _, _ in LANDMARKS]
 layout = {'route': route, 'landmarks': landmarks,
           'attribution': '© OpenStreetMap contributors'}
 (ROOT / 'assets' / 'map-layout.json').write_text(json.dumps(layout, ensure_ascii=False, indent=1), encoding='utf-8')
 print('map.svg', len(svg) // 1024, 'KB')
 for k, v in route.items():
-    print(f'  {k:10s} {v["pos"]}  {v["place"]}')
+    print(f'  {k:10s} {v["pos"]}  {v["place"]} ({v["where"]})')
 for l in landmarks:
     print(f'  * {l["label"]:14s} {l["pos"]}')

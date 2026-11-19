@@ -5,70 +5,80 @@
     1016,
     183
    ],
-   "place": "Namai"
+   "place": "Namai",
+   "where": "Namai"
   },
   "laiptai": {
    "pos": [
     331,
     256
    ],
-   "place": "Mokykla"
+   "place": "Mokykla",
+   "where": "Mokykla"
   },
   "autobusas": {
    "pos": [
     725,
     219
    ],
-   "place": "Stotelė prie Akropolio"
+   "place": "Stotelė",
+   "where": "Stotelė prie Akropolio"
   },
   "podiumas": {
    "pos": [
     464,
     644
    ],
-   "place": "Vingio estrada"
+   "place": "Mados šou",
+   "where": "Vingio estrada"
   },
   "pianinas": {
    "pos": [
     1407,
     796
    ],
-   "place": "Filharmonija"
+   "place": "Piano koncertas",
+   "where": "Filharmonija"
   },
   "kinu": {
    "pos": [
     1297,
     715
    ],
-   "place": "Konfucijaus institutas"
+   "place": "Kinų kalbos pamoka",
+   "where": "Konfucijaus institutas"
   },
   "tenisas": {
    "pos": [
     1755,
     475
    ],
-   "place": "Kalnų parkas"
+   "place": "Teniso treniruotė",
+   "where": "Kalnų parkas"
   },
   "robotas": {
    "pos": [
     863,
     392
    ],
-   "place": "Baltasis tiltas"
+   "place": "Programavimo būrelis",
+   "where": "Baltasis tiltas"
   },
   "finalas": {
    "pos": [
     1325,
     582
    ],
-   "place": "Katedros aikštė"
+   "place": "Kalėdinis klasės vakarėlis",
+   "where": "Katedros aikštė"
   },
   "pamoka": {
    "pos": [
     426,
     331
    ],
-   "place": "Klasė"
+   "place": "Klasė",
+   "where": "Klasė"
   }
  },
  "landmarks": [
