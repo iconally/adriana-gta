@@ -276,12 +276,12 @@ export class LaiptaiScene extends Phaser.Scene {
     // turėklas ant sienos
     const rail = this.add.graphics();
     const pts = [];
-    for (let u = -2; u <= lastU; u += 0.5) pts.push([xAt(u), yAt(u) - 120]);
+    for (let u = -2; u <= to - 2; u += 0.5) pts.push([xAt(u), yAt(Math.min(u, lastU)) - 120]);
     rail.lineStyle(14, 0x14081f, 1);
     rail.beginPath(); rail.moveTo(pts[0][0], pts[0][1]); for (const [x, y] of pts) rail.lineTo(x, y); rail.strokePath();
     rail.lineStyle(7, 0xffd23f, 1);
     rail.beginPath(); rail.moveTo(pts[0][0], pts[0][1]); for (const [x, y] of pts) rail.lineTo(x, y); rail.strokePath();
-    for (let u = -1; u < lastU; u += 2.5) {
+    for (let u = -1; u < to - 2; u += 2.5) {
       rail.fillStyle(0x14081f, 1).fillRect(xAt(u) - 4, yAt(u) - 120, 8, 26);
     }
     bg.add(rail);
@@ -338,6 +338,10 @@ export class LaiptaiScene extends Phaser.Scene {
     }
     g.fillStyle(0xe9e4ff, 1).fillRect(xAt(from), -6, xAt(0) - xAt(from), 14);
     g.lineStyle(4, 0x14081f, 1).strokeRect(xAt(from), -6, xAt(0) - xAt(from), 14);
+    // 3 aukšto koridoriaus grindys toliau už durų (kad mokytoja ir vaikai nekabotų ore)
+    g.fillStyle(0xe9e4ff, 1).fillRect(xAt(u0), y - 6, xAt(to) - xAt(u0), 14);
+    g.lineStyle(4, 0x14081f, 1).strokeRect(xAt(u0), y - 6, xAt(to) - xAt(u0), 14);
+    g.fillStyle(0x2b1d52, 1).fillRect(xAt(u0), y + 8, xAt(to) - xAt(u0), 10);
     this.L.stairs.add(g);
   }
 
