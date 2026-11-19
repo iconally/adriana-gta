@@ -203,7 +203,9 @@ export class PamokaScene extends Phaser.Scene {
     const [r, x] = ADRIANA_SEAT;
     const row = ROWS[r];
     const box = this.add.container(x, row.y).setScale(row.s * 1.1).setDepth(row.y);
-    const body = this.add.image(0, 70, 'adr_run2').setOrigin(0.5, 1);
+    // kuprinė stovi ant grindų prie suolo
+    this.add.image(x - 108, row.y + 84 * row.s * 1.1, 'backpack_big').setOrigin(0.5, 1).setScale(row.s * 0.7).setDepth(row.y + 2);
+    const body = this.add.image(0, 70, 'adr_sit').setOrigin(0.5, 1);
     const face = this.textures.exists('adr_face');
     const head = this.add.image(4, -130, face ? 'adr_face' : 'adr_head').setOrigin(0.5, face ? 0.5 : 0.56);
     if (face) head.setDisplaySize(124, 124);
@@ -289,7 +291,7 @@ export class PamokaScene extends Phaser.Scene {
   teacherSay(text, color = C.white, ms = 1300) {
     if (this.bubble) this.bubble.destroy();
     const t = this.teacher;
-    const b = bodyText(this, t.box.x - 110, t.box.y - 470, text, 30, color, { wordWrap: { width: 360 } }).setDepth(1500);
+    const b = bodyText(this, t.box.x - 110, t.box.y - 470, text, 30, color, { wordWrap: { width: 360 }, backgroundColor: 'rgba(20,8,31,.85)', padding: { x: 14, y: 8 } }).setDepth(1500);
     b.setScale(0.4);
     this.tweens.add({ targets: b, scale: 1, duration: 180, ease: 'Back.Out' });
     this.tweens.add({ targets: b, alpha: 0, delay: ms, duration: 250, onComplete: () => { if (this.bubble === b) this.bubble = null; b.destroy(); } });
@@ -616,19 +618,31 @@ export class PamokaScene extends Phaser.Scene {
     this.ring.setVisible(false);
     this.holderTag.setVisible(false);
     this.helpTag.setVisible(false);
+    this.hearts(CARD_END.x, CARD_END.y, 6, 0); // širdelės iškart nuo atviruko ant stalo
     this.time.delayedCall(500, () => {
       this.teacherFace();
       this.stateText.setText('AČIŪ!').setColor(C.yellow);
       this.teacherSay('AČIŪ! Linksmų Kalėdų!', C.yellow, 2600);
-      for (let i = 0; i < 8; i++) {
-        const h = bodyText(this, TEACHER.x + rand(-80, 80), TEACHER.y - 340 + rand(-40, 40), '❤', rand(30, 50), C.pink).setDepth(1500);
-        this.tweens.add({ targets: h, y: h.y - rand(80, 160), alpha: 0, delay: i * 90, duration: 1200, onComplete: () => h.destroy() });
-      }
+      // širdelės aplink mokytoją ir atviruką, kol rodomas rezultatas
+      this.time.addEvent({ delay: 160, repeat: 18, callback: () => {
+        if (Math.random() < 0.4) this.hearts(CARD_END.x + rand(-50, 50), CARD_END.y + rand(-10, 20), 1, 0);
+        else this.hearts(TEACHER.x + rand(-110, 110), TEACHER.y - rand(60, 300), 1, 0);
+      } });
     });
     this.A.sfx.win();
     this.bigBanner('MISIJA ĮVYKDYTA!', '+100 RESPEKTO', { color: C.yellow, hold: 2800 });
     this.time.delayedCall(1300, () => this.sub(this.A.lines.pick('pamoka', 'success'), C.yellow));
     this.time.delayedCall(3600, () => this.showResult(true));
+  }
+
+  // Širdelės kyla aukštyn virš reklamjuostės.
+  hearts(x, y, n, gap = 90) {
+    for (let i = 0; i < n; i++) {
+      const s = rand(0.7, 1.25);
+      const h = this.add.image(x + (n > 1 ? rand(-60, 60) : 0), y, 'heart').setDepth(1920).setScale(0.2).setAngle(rand(-15, 15));
+      this.tweens.add({ targets: h, scale: s, duration: 220, delay: i * gap, ease: 'Back.Out' });
+      this.tweens.add({ targets: h, y: y - rand(140, 260), x: h.x + rand(-40, 40), alpha: 0, delay: i * gap + 300, duration: 1500, ease: 'Sine.In', onComplete: () => h.destroy() });
+    }
   }
 
   showResult(ok) {

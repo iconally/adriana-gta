@@ -179,4 +179,40 @@ export function generateClassArt(scene) {
     shape(c, (x) => rr(x, 4, 4, 62, 22, 10), '#2de2e6', 4);
     c.lineWidth = 3; c.strokeStyle = OUT; c.beginPath(); c.moveTo(10, 15); c.lineTo(60, 15); c.stroke();
   });
+
+  // ---------- Adriana sėdi suole: iš priekio, abi rankos pakeltos (galva atskirai) ----------
+  tex(scene, 'adr_sit', 200, 200, (c) => {
+    const arm = (pts) => {
+      c.lineCap = 'round'; c.lineJoin = 'round';
+      c.lineWidth = 22; c.strokeStyle = OUT;
+      c.beginPath(); c.moveTo(pts[0], pts[1]); c.lineTo(pts[2], pts[3]); c.lineTo(pts[4], pts[5]); c.stroke();
+      c.lineWidth = 13; c.strokeStyle = '#ff3ea5';
+      c.beginPath(); c.moveTo(pts[0], pts[1]); c.lineTo(pts[2], pts[3]); c.lineTo(pts[4], pts[5]); c.stroke();
+      shape(c, (x) => x.arc(pts[4], pts[5], 11, 0, Math.PI * 2), '#2de2e6', 5);
+    };
+    arm([72, 82, 40, 64, 28, 34]);
+    arm([128, 82, 160, 64, 172, 34]);
+    // striukė
+    shape(c, (x) => rr(x, 64, 56, 72, 110, 22), '#ff3ea5');
+    c.fillStyle = '#ff7ac4'; c.fillRect(74, 70, 10, 80);
+    c.lineWidth = 4; c.strokeStyle = OUT; c.beginPath(); c.moveTo(100, 80); c.lineTo(100, 160); c.stroke();
+    // šalikas
+    shape(c, (x) => rr(x, 66, 56, 68, 20, 10), '#2de2e6', 5);
+    shape(c, (x) => rr(x, 110, 66, 16, 42, 6), '#2de2e6', 5);
+  });
+
+  // ---------- širdelė ----------
+  tex(scene, 'heart', 72, 66, (c) => {
+    const path = (x) => {
+      x.moveTo(36, 60);
+      x.bezierCurveTo(4, 38, 2, 14, 18, 8);
+      x.bezierCurveTo(28, 4, 34, 10, 36, 18);
+      x.bezierCurveTo(38, 10, 44, 4, 54, 8);
+      x.bezierCurveTo(70, 14, 68, 38, 36, 60);
+      x.closePath();
+    };
+    shape(c, path, '#ff3ea5', 5);
+    c.fillStyle = 'rgba(255,255,255,.75)';
+    c.beginPath(); c.ellipse(22, 20, 6, 4, -0.6, 0, Math.PI * 2); c.fill();
+  });
 }
