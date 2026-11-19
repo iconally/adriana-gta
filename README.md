@@ -146,6 +146,8 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/sc
 | toy_bear, toy_duck, toy_ball, toy_dino, toy_bunny, toy_car, toy_rattle, toy_blocks | apie 90×90 | ramintojų žaisliukai |
 | school_wall_tile | 160×160 | 2 etapo siena (kartojasi) |
 | school_window, school_door, school_board | 240×280, 260×330, 260×170 | aprasojęs langas, 3 aukšto durys, skelbimų lenta |
+| school_door_open | 260×330 | atidarytos durys į klasę (Adrianai užlipus) |
+| teacher_body | 150×250 | budinčios mokytojos kūnas be galvos (galva - jos avataras) |
 | backpack_big | 120×150 | didelė kuprinė (didėja nuo knygų) |
 | book, mandarin | 70×54, 56×56 | knyga (balta, spalvinama kode), mandarinas |
 | school_bell | 90×90 | mokyklos skambutis ("DZIN DZIN!") |

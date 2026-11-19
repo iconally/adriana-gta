@@ -29,13 +29,16 @@ const START_U = 0.3;
 const ANCHOR = { x: 620, y: 800 }; // Adrianos pėdos ekrane
 const ADR_S = 0.9;
 const KID_S = 0.78;
-const TIME_LIMIT = 30;
+const TIME_LIMIT = 40;
 const MAX_BONUS = 5;
 const BOOK_W = 0.14; // kiek viena knyga sulėtina (8 knygos - 2,1 karto lėčiau)
 const MAX_BOOKS = 8; // tiek knygų - ir kuprinė pilna
 const BOOK_KG = 2.5; // kiek sveria viena knyga
 const BOOK_GAP = 1500; // ms tarp knygų (visiems kartu)
-const BELLS_AT = [15, 5]; // kiek sekundžių likus skamba "dzin dzin"
+const BELLS_AT = [20, 5]; // kiek sekundžių likus skamba "dzin dzin"
+const STEP = 0.55; // kiek laiptelio užlipa per vieną paspaudimą (su tuščia kuprine)
+const FAST_MS = 125; // greičiau nei kas 125 ms (8 kartai per s) spaudžiant - žingsnis mažesnis
+const TEACHER_U = DOOR_U + 2.3; // budėtoja stovi šalia durų
 const WHISTLE_MS = 5000; // tiek laiko po švilpuko mesti negalima
 const STUMBLE_T = 0.4;
 const WINDOWS = [4, 9.5, 15.5, 21, 26.5, 34, 39.5, 45.5, 51, 56.5];
@@ -84,6 +87,7 @@ export class LaiptaiScene extends Phaser.Scene {
     this.u = START_U; // tikslas
     this.ud = START_U; // rodoma (sklandžiai)
     this.lastFoot = null;
+    this.lastStepAt = 0;
     this.stumbleT = 0;
     this.stumbles = 0;
     this.steps = 0;
@@ -195,7 +199,11 @@ export class LaiptaiScene extends Phaser.Scene {
     if (k === this.lastFoot) { this.stumble(); return; }
     this.lastFoot = k;
     this.steps += 1;
-    this.u = Math.min(GOAL_U + 0.3, this.u + 1 / this.factor());
+    // Labai greitas spaudymas daug nebepadeda: daugiausia ~8 pilni žingsniai per sekundę.
+    const now = performance.now(); // tikras laikas (ne kadro), kad matuotų kiekvieną paspaudimą
+    const pace = Phaser.Math.Clamp((now - (this.lastStepAt || 0)) / FAST_MS, 0.3, 1);
+    this.lastStepAt = now;
+    this.u = Math.min(GOAL_U + 0.3, this.u + (STEP * pace) / this.factor());
     this.A.sfx.step();
     this.adrBody.setTexture(k === 'L' ? 'adr_run1' : 'adr_run2');
     this.updateKeys();
@@ -263,6 +271,7 @@ export class LaiptaiScene extends Phaser.Scene {
     bg.add([warn, warnT]);
     this.door = this.add.image(xAt(DOOR_U), yAt(DOOR_U) + 4, 'school_door').setOrigin(0.5, 1);
     bg.add(this.door);
+    this.makeTeacher();
 
     // turėklas ant sienos
     const rail = this.add.graphics();
@@ -360,6 +369,27 @@ export class LaiptaiScene extends Phaser.Scene {
     return { x: this.adr.x - 40 * ADR_S, y: this.adr.y - 128 * ADR_S };
   }
 
+  // Budinti mokytoja stovi prie 3 aukšto durų - aukštesnė už vaikus.
+  makeTeacher() {
+    this.teacher = null;
+    const t = this.A.host.teachers()[0];
+    if (!t) return;
+    const x = xAt(TEACHER_U);
+    const y = yAt(GOAL_U);
+    const box = this.add.container(x, y).setScale(1.05);
+    const body = this.add.image(0, 0, 'teacher_body').setOrigin(0.5, 1);
+    const key = this.textures.exists(avatarKey(t.name)) ? avatarKey(t.name) : 'dot';
+    const head = this.add.image(0, -290, key).setDisplaySize(110, 110);
+    const tag = bodyText(this, 0, -372, t.name, 30, C.yellow);
+    box.add([body, head, tag]);
+    this.L.bg.add(box);
+    this.teacher = { box, head, name: t.name };
+    // jei avataras atsiras vėliau - pakeičiam
+    const onTex = (k) => { if (k === avatarKey(t.name) && head.active) head.setTexture(k).setDisplaySize(110, 110); };
+    this.textures.on('addtexture', onTex);
+    this.events.once('shutdown', () => this.textures.off('addtexture', onTex));
+  }
+
   // ---------------- klasiokai ----------------
   makeKid(player, u, layer = this.L.back) {
     const box = this.add.container(xAt(u), yAt(u)).setScale(KID_S);
@@ -422,7 +452,10 @@ export class LaiptaiScene extends Phaser.Scene {
       return;
     }
     if (book) this.lastBook = now;
-    const v = this.makeKid(player, this.ud + rand(3.2, 6.5));
+    // krovikas atsiranda laiptuose prieš Adrianą; prie pat durų - už jos (ne prieš duris)
+    let ku = Math.min(this.ud + rand(3.2, 6.5), DOOR_U - 2.2);
+    if (ku < this.ud + 1.5) ku = this.ud - rand(1.6, 3.2);
+    const v = this.makeKid(player, ku);
     this.tweens.add({ targets: v.box, angle: -12, yoyo: true, duration: 140 });
     this.fadeKid(v, 1800);
     const sx = v.box.x - 20;
@@ -561,6 +594,10 @@ export class LaiptaiScene extends Phaser.Scene {
     this.A.sfx.plus();
     floatText(this, 960, 200, '+1 s', { color: C.green, size: 54 });
     this.bonusText.setText(`Budėtoja laiko duris: +${this.bonus} s`);
+    if (this.teacher) {
+      this.tweens.add({ targets: this.teacher.box, angle: -8, yoyo: true, duration: 160 });
+      this.worldText(this.door.x, this.door.y - 360, '+1 s', C.green, 40);
+    }
     this.maybeSub(this.A.lines.pick('laiptai', 'doors'), C.green, 2000);
   }
 
@@ -568,7 +605,11 @@ export class LaiptaiScene extends Phaser.Scene {
     this.whistleUntil = this.time.now + WHISTLE_MS;
     this.A.sfx.whistle();
     this.whistleText.setVisible(true);
-    floatText(this, this.teacherHud ? 1700 : 960, 230, 'FIIIT!', { color: C.yellow, size: 44 });
+    const t = this.teacher;
+    if (t) {
+      this.tweens.add({ targets: t.box, y: t.box.y - 14, yoyo: true, repeat: 2, duration: 90 });
+      this.worldText(t.box.x - 40, t.box.y - 300, 'FIIIT!', C.yellow, 40);
+    }
     this.maybeSub(this.A.lines.pick('laiptai', 'whistle'), C.yellow, 1500);
   }
 
@@ -580,7 +621,7 @@ export class LaiptaiScene extends Phaser.Scene {
     this.weightText = bodyText(this, 94, 116, '', 28, '#f1e6ff').setOrigin(0, 0.5).setDepth(D);
     this.updateWeight();
 
-    this.timerText = headText(this, 960, 70, '0:30', 92, C.white).setDepth(D);
+    this.timerText = headText(this, 960, 70, `0:${TIME_LIMIT}`, 92, C.white).setDepth(D);
     this.bonusText = bodyText(this, 960, 182, '', 24, C.green).setDepth(D);
     this.whistleText = bodyText(this, 960, 250, 'FIIIT! Mokytoja švilpia - mesti negalima!', 28, C.yellow).setDepth(D).setVisible(false);
     const barW = 640;
@@ -594,16 +635,6 @@ export class LaiptaiScene extends Phaser.Scene {
     });
     const face = this.textures.exists('adr_face');
     this.barRunner = this.add.image(960 - barW / 2, face ? 140 : 128, face ? 'adr_face' : 'adr_head').setScale(face ? 0.36 : 0.28).setDepth(D + 3);
-
-    // budėtoja (mokytoja) dešiniame kampe
-    const t = this.A.host.teachers()[0];
-    if (t) {
-      const key = this.textures.exists(avatarKey(t.name)) ? avatarKey(t.name) : 'dot';
-      this.add.circle(1800, 92, 50, 0x0b0418, 0.85).setStrokeStyle(5, 0xffd23f).setDepth(D);
-      this.add.image(1800, 92, key).setDisplaySize(86, 86).setDepth(D + 1);
-      bodyText(this, 1800, 164, 'BUDĖTOJA', 20, C.yellow).setDepth(D);
-      this.teacherHud = true;
-    }
 
     // rodyklių užuominos po Adriana
     const key = (x, label) => {
@@ -666,11 +697,13 @@ export class LaiptaiScene extends Phaser.Scene {
     this.mode = 'end';
     this.hideKeys();
     this.A.sfx.win();
-    this.tweens.add({ targets: this.door, scaleX: 0.15, duration: 300 });
+    // durys atsidaro, Adriana įeina į šviesią klasę
+    this.door.setTexture('school_door_open');
     this.tweens.add({
       targets: this.adr, x: xAt(DOOR_U), duration: 600, ease: 'Sine.InOut',
-      onComplete: () => this.tweens.add({ targets: this.adr, alpha: 0, duration: 250 }),
+      onComplete: () => this.tweens.add({ targets: this.adr, alpha: 0, duration: 350 }),
     });
+    this.tweens.add({ targets: this.shadow, alpha: 0, delay: 600, duration: 350 });
     banner(this, 'MISIJA ĮVYKDYTA!', '+100 RESPEKTO', { color: C.yellow, hold: 2800 });
     this.time.delayedCall(900, () => this.A.sfx.dzin(false)); // skambutis - jau už durų
     this.time.delayedCall(1200, () => subtitle(this, this.A.lines.pick('laiptai', 'success'), { color: C.yellow }));

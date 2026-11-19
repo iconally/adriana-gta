@@ -94,6 +94,52 @@ export function generateSchoolArt(scene) {
     shape(c, (x) => rr(x, w / 2 + 10, 180, 12, 40, 5), '#ffd23f', 4);
   });
 
+  // ---------- atidarytos durys (su šviesa klasėje) ----------
+  tex(scene, 'school_door_open', 260, 330, (c, w, h) => {
+    shape(c, (x) => rr(x, 6, 6, w - 12, h - 6, 10), '#3a2a6e', 6);
+    const g = c.createLinearGradient(0, 20, 0, h);
+    g.addColorStop(0, '#fff3c4');
+    g.addColorStop(1, '#ffb45c');
+    c.fillStyle = g;
+    c.fillRect(22, 22, w - 44, h - 26);
+    // klasė viduje: lenta ir suolas
+    shape(c, (x) => rr(x, 60, 60, 140, 70, 6), '#1f5a4a', 5);
+    c.fillStyle = '#ffffff'; c.font = 'bold 22px Rubik, Arial, sans-serif'; c.textAlign = 'center';
+    c.fillText('2 + 2 = ?', 130, 102);
+    shape(c, (x) => rr(x, 70, 230, 120, 22, 5), '#b9783f', 5);
+    // atvertos durų varčios šonuose
+    shape(c, (x) => { x.moveTo(22, 22); x.lineTo(52, 40); x.lineTo(52, h - 20); x.lineTo(22, h - 4); x.closePath(); }, '#2de2e6', 5);
+    shape(c, (x) => { x.moveTo(w - 22, 22); x.lineTo(w - 52, 40); x.lineTo(w - 52, h - 20); x.lineTo(w - 22, h - 4); x.closePath(); }, '#2de2e6', 5);
+  });
+
+  // ---------- budinti mokytoja (kūnas be galvos, aukštesnė už vaikus) ----------
+  tex(scene, 'teacher_body', 150, 250, (c) => {
+    // kojos ir batai
+    for (const x0 of [56, 84]) {
+      c.lineWidth = 22; c.strokeStyle = OUT;
+      c.beginPath(); c.moveTo(x0 + 5, 180); c.lineTo(x0 + 5, 236); c.stroke();
+      c.lineWidth = 13; c.strokeStyle = '#3b3b5c';
+      c.beginPath(); c.moveTo(x0 + 5, 180); c.lineTo(x0 + 5, 236); c.stroke();
+      shape(c, (x) => rr(x, x0 - 6, 230, 28, 16, 6), '#14081f', 3);
+    }
+    // ilgas paltas / suknelė
+    shape(c, (x) => { x.moveTo(48, 14); x.lineTo(102, 14); x.lineTo(118, 196); x.lineTo(32, 196); x.closePath(); }, '#7d5cff');
+    c.fillStyle = '#5b3fd6'; c.fillRect(72, 18, 6, 176);
+    shape(c, (x) => rr(x, 42, 112, 66, 12, 5), '#ff3ea5', 4);
+    // rankos
+    for (const [sx, ex] of [[50, 30], [100, 120]]) {
+      c.lineWidth = 22; c.strokeStyle = OUT;
+      c.beginPath(); c.moveTo(sx, 26); c.lineTo(ex, 110); c.stroke();
+      c.lineWidth = 13; c.strokeStyle = '#7d5cff';
+      c.beginPath(); c.moveTo(sx, 26); c.lineTo(ex, 110); c.stroke();
+      shape(c, (x) => x.arc(ex, 114, 9, 0, Math.PI * 2), '#f5c9a6', 4);
+    }
+    // švilpukas ant virvelės
+    c.lineWidth = 3; c.strokeStyle = '#ffd23f';
+    c.beginPath(); c.moveTo(56, 12); c.lineTo(75, 60); c.lineTo(94, 12); c.stroke();
+    shape(c, (x) => rr(x, 66, 58, 22, 13, 5), '#ffd23f', 3);
+  });
+
   // ---------- didelė kuprinė (ant Adrianos nugaros) ----------
   tex(scene, 'backpack_big', 120, 150, (c) => {
     shape(c, (x) => rr(x, 10, 14, 100, 130, 26), '#ffd23f');
