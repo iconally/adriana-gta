@@ -1,0 +1,91 @@
+{
+  "intro": [
+    "Patarimas: soskė visada ten, kur ieškai paskutinėje vietoje.",
+    "Patarimas: šaldytuve būna ne tik pienas.",
+    "Patarimas: kai užgęsta šviesa - ieškok drąsiai, ratas šviečia aplink tave.",
+    "Patarimas: meškiukas ramina geriau už bet kokį dainavimą.",
+    "Patarimas: du broliukai - dvi soskės. Matematika paprasta."
+  ],
+  "start": [
+    "Broliukai pabudo! Soskių nėra!",
+    "WAAAH! Rytas prasidėjo.",
+    "Rytas. Du broliukai. Nulis soskių."
+  ],
+  "found": [
+    "Rasta! Soskė!",
+    "Štai ji! Soskė!",
+    "Soskė rasta - broliukai jau kvėpuoja ramiau."
+  ],
+  "junk": [
+    "🧦 Tik kojinė.",
+    "🧱 LEGO kaladėlė. Ai!",
+    "🍊 Mandarinas. Skanu, bet ne tai.",
+    "🍪 Sausainis... iš praėjusių Kalėdų.",
+    "📺 TV pultas! Mama jo ieškojo savaitę.",
+    "🦖 Dinozauras. Labas, dinozaure.",
+    "🧤 Viena pirštinė. Kur antra?!",
+    "🎀 Kaspinas nuo dovanos."
+  ],
+  "searched": [
+    "Čia jau ieškojai!",
+    "Ten tuščia, bėk kitur!"
+  ],
+  "give": [
+    "Vienas nurimo!",
+    "Ššš... veikia!",
+    "Soskė vietoje. Tyla."
+  ],
+  "scare": [
+    "{vardas} gąsdina broliukus!",
+    "BŪ! Čia buvo {vardas}!",
+    "{vardas} - baisiausias šešėlis rajone."
+  ],
+  "toy": [
+    "{vardas} meta žaisliuką!",
+    "{vardas} ramina broliukus.",
+    "{vardas} - geriausias auklės padėjėjas."
+  ],
+  "dark": [
+    "{vardas} išjungė šviesą!",
+    "Kas išjungė šviesą? {vardas}!",
+    "Tamsu! {vardas} vėl prie jungiklio."
+  ],
+  "lullaby": [
+    "♪ Lopšinė ♪",
+    "Ššš... lopšinė."
+  ],
+  "garland": [
+    "Kalėdos!",
+    "Mirga mirga!"
+  ],
+  "howl": [
+    "AUUUU! Kas ten už lango?",
+    "Vilkai mūsų kieme?!"
+  ],
+  "doorbell": [
+    "DING-DONG! Kas ten?",
+    "Kurjeris! Broliukai pabudo dar labiau."
+  ],
+  "miracle": [
+    "Stebuklas! TV bokštas - didžiausia eglė Vilniuje!",
+    "{vardas} uždegė TV bokštą!"
+  ],
+  "tantrum": [
+    "WAAAAAH!",
+    "Verksmas lygio: kaimynai girdi.",
+    "Ausys! Ausys!"
+  ],
+  "ten": [
+    "Liko 10 sekundžių!",
+    "Greičiau, Adriana!"
+  ],
+  "success": [
+    "Tyla. Tobula tyla.",
+    "Broliukai ramūs. Adriana - legenda.",
+    "Mama net nepabudo."
+  ],
+  "fail": [
+    "Broliukai vis dar verkia... bet autobusas nelaukia!",
+    "Na, bent jau rytas linksmas."
+  ]
+}

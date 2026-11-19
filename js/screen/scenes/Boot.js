@@ -1,4 +1,5 @@
 import { generateArt } from '../art.js';
+import { generateHomeArt } from '../art-home.js';
 import { loadAllAvatars } from '../tribune.js';
 import { ROUTE } from '../stages.js';
 
@@ -34,6 +35,7 @@ export class BootScene extends Phaser.Scene {
       }
     }
     generateArt(this);
+    generateHomeArt(this);
     loadAllAvatars(this, window.AGTA.host);
     this.scene.start('Lobby');
   }

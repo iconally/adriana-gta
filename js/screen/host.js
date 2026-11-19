@@ -284,9 +284,14 @@ export class Host extends EventBus {
     if (!p) return this.net.send('claimed', { pid, ok: false, err: 'rejoin' });
     p.lastSeen = Date.now();
     const role = this.roleOf(pid);
-    if (!role || !role.buttons.some((b) => b.id === a)) return;
+    const btn = role && role.buttons.find((b) => b.id === a);
+    if (!btn) return;
     const now = Date.now();
     if (now - p.lastPress < MIN_PRESS_GAP) return;
+    // Mygtuko pertrauka tikrinama ir čia (telefonas gali vėluoti, botai jos nežino).
+    p.btnAt = p.btnAt || {};
+    if (btn.cd && now - (p.btnAt[a] || 0) < btn.cd * 0.85) return;
+    p.btnAt[a] = now;
     p.lastPress = now;
     this.emit('press', { player: p, action: a, role: role.id });
   }

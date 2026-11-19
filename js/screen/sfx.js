@@ -71,5 +71,15 @@ export const sfx = {
     [523, 659, 784, 1046].forEach((f, i) => tone(f, 0.22, { type: 'square', vol: 0.12, delay: i * 0.11 }));
     tone(1046, 0.6, { type: 'triangle', vol: 0.15, delay: 0.44 });
   },
+  // 1 etapas: broliukai
+  cry() { tone(520, 0.5, { type: 'sawtooth', vol: 0.07, slide: 160 }); tone(680, 0.45, { type: 'sawtooth', vol: 0.06, slide: -220, delay: 0.42 }); },
+  boo() { tone(110, 0.45, { type: 'sawtooth', vol: 0.16, slide: -50 }); noise(0.3, { vol: 0.15, freq: 300 }); },
+  howl() { tone(380, 0.35, { type: 'sine', vol: 0.14, slide: 260 }); tone(640, 0.6, { type: 'sine', vol: 0.12, slide: -300, delay: 0.32 }); },
+  bell() { tone(988, 0.35, { type: 'sine', vol: 0.2 }); tone(784, 0.55, { type: 'sine', vol: 0.2, delay: 0.3 }); },
+  click() { tone(1800, 0.03, { type: 'square', vol: 0.12 }); noise(0.04, { vol: 0.1, freq: 3000 }); },
+  rustle() { noise(0.35, { vol: 0.12, freq: 1800 }); },
+  lullaby() { [659, 587, 523].forEach((f, i) => tone(f, 0.28, { type: 'sine', vol: 0.1, delay: i * 0.22 })); },
+  twinkle() { [1319, 1568, 1760, 2093].forEach((f, i) => tone(f, 0.12, { type: 'triangle', vol: 0.07, delay: i * 0.07 })); },
+  miracle() { [523, 659, 784, 1046, 1319].forEach((f, i) => tone(f, 0.5, { type: 'sine', vol: 0.12, delay: i * 0.12 })); },
   fail() { [392, 349, 311, 262].forEach((f, i) => tone(f, 0.25, { type: 'triangle', vol: 0.15, delay: i * 0.16 })); },
 };

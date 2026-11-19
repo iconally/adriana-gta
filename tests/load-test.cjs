@@ -103,9 +103,42 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
   await phones[1].page.waitForSelector('#s-role:not([hidden]), #s-wait:not([hidden])', { timeout: 10000 });
   console.log('Perkrautas telefonas grįžo be datos: OK');
 
-  // autobuso etapas (ekranas turi būti priekyje, kitaip naršyklė jį sulėtina)
+  // 1 etapas: broliukai (ekranas turi būti priekyje, kitaip naršyklė jį sulėtina)
   await screen.bringToFront();
   await screen.keyboard.press('Enter'); // laukiamasis -> žemėlapis
+  await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Map')?.ready?.id === 'broliai', null, { timeout: 60000 });
+  await shot(screen, '12-zemelapis-pradzia');
+  await screen.keyboard.press('Enter'); // žemėlapis -> broliukai
+  await sleep(1500);
+  await shot(screen, '13-broliai-ivadas');
+  await screen.keyboard.press('Enter');
+  await sleep(3200);
+  await screen.evaluate(() => { window.AGTA.game.scene.getScene('Broliai').autoplay = true; });
+  {
+    const endB = Date.now() + 40000;
+    let shotB = false;
+    while (Date.now() < endB) {
+      const mode = await screen.evaluate(() => window.AGTA.game.scene.getScene('Broliai')?.mode);
+      if (mode === 'result') break;
+      const batch = phones.filter(() => Math.random() < 0.35);
+      await Promise.all(batch.map(async (p) => {
+        const btns = p.page.locator('.act:not(.off)');
+        const n = await btns.count();
+        if (n) await btns.nth(Math.floor(Math.random() * n)).click({ timeout: 1000 }).catch(() => {});
+      }));
+      if (!shotB) { shotB = true; await shot(screen, '14-broliai-zaidimas'); await shot(phones[3].page, 'tel-broliai'); }
+      await sleep(400);
+    }
+    // jei per lėta aplinka - baigiam laiką
+    await screen.evaluate(() => { const s = window.AGTA.game.scene.getScene('Broliai'); if (s.mode === 'play') s.timeLeft = 0.1; });
+    await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Broliai')?.mode === 'result', null, { timeout: 60000 });
+    const rb = await screen.evaluate(() => { const s = window.AGTA.game.scene.getScene('Broliai'); return { delivered: s.delivered, tantrums: s.tantrums, elapsed: s.elapsed }; });
+    console.log(`Broliukai: ${JSON.stringify(rb)}`);
+    await shot(screen, '14-broliai-rezultatas');
+    await screen.keyboard.press('Enter'); // -> žemėlapis
+  }
+
+  // 4 etapas: autobusas
   await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Map')?.ready?.id === 'autobusas', null, { timeout: 60000 });
   await shot(screen, '15-zemelapis');
   await screen.keyboard.press('Enter'); // žemėlapis -> autobusas

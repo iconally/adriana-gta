@@ -19,6 +19,54 @@ export const LOBBY = {
 };
 
 export const STAGES = {
+  broliai: {
+    id: 'broliai',
+    nr: 1,
+    title: 'Soskė broliukams',
+    mission: 'NURAMINK BROLIUKUS',
+    // Klasiokų namuose nesimato - matosi tik jų veiksmai.
+    // Grupės sumaišytos, kad ir su keliais vaikais būtų visko po truputį:
+    // 8 ramintojai, 5 gąsdintojai, 4 prie šviesos jungiklio.
+    slots: [
+      'ramintojas', 'gasdintojas', 'sviesa',
+      'ramintojas', 'gasdintojas', 'ramintojas', 'sviesa',
+      'ramintojas', 'gasdintojas', 'ramintojas', 'sviesa',
+      'ramintojas', 'gasdintojas', 'ramintojas', 'sviesa',
+      'ramintojas', 'gasdintojas',
+    ],
+    fallback: 'ramintojas',
+    teacherRole: 'stebukladare',
+    roles: {
+      ramintojas: {
+        name: 'Ramintojas', emoji: '🧸', desc: 'Padėk Adrianai! Mesk broliukams žaisliuką arba dainuok lopšinę - jie verks mažiau.',
+        buttons: [
+          { id: 'zaislas', label: 'Duoti žaisliuką', emoji: '🧸', cd: 2500, ok: 'Pagavo!' },
+          { id: 'lopsine', label: 'Lopšinė', emoji: '🎵', cd: 1500, ok: '♪ ♫' },
+        ],
+      },
+      gasdintojas: {
+        name: 'Gąsdintojas', emoji: '👻', desc: 'Tu - šešėlis už kampo. Gąsdink broliukus, kad verktų dar garsiau!',
+        buttons: [
+          { id: 'bu', label: 'BŪ!', emoji: '👻', cd: 4000, ok: 'BŪ!' },
+          { id: 'kaukti', label: 'Kaukti kaip vilkas', emoji: '🐺', cd: 2000, ok: 'AUUU!' },
+        ],
+      },
+      sviesa: {
+        name: 'Šviesos jungiklis', emoji: '💡', desc: 'Tu prie jungiklio! Išjunk šviesą - Adrianai bus tamsu ieškoti. Arba įjunk kalėdinę girliandą.',
+        buttons: [
+          { id: 'isjungti', label: 'Išjungti šviesą', emoji: '🌑', cd: 6000, ok: 'Tamsu!' },
+          { id: 'girlianda', label: 'Girlianda', emoji: '✨', cd: 1500, ok: 'Mirga!' },
+        ],
+      },
+      stebukladare: {
+        name: 'Kalėdų stebukladarė', emoji: '🗼', desc: 'Jūs turite vieną stebuklą: uždekite TV bokštą kaip eglę ir broliukai nurims. Arba paskambinkite į duris...',
+        buttons: [
+          { id: 'stebuklas', label: 'Stebuklas (1 kartą)', emoji: '🎄', cd: 30000, ok: 'Bokštas šviečia!' },
+          { id: 'skambutis', label: 'Skambinti į duris', emoji: '🔔', cd: 5000, ok: 'DING-DONG!' },
+        ],
+      },
+    },
+  },
   autobusas: {
     id: 'autobusas',
     nr: 4,
@@ -96,7 +144,7 @@ export const STAGES = {
 // Visas dienos maršrutas žemėlapyje. "scene" - Phaser scena; null - dar kuriama
 // (žemėlapyje toks etapas praleidžiamas). "pos" - taško vieta žemėlapyje (1920x1080).
 export const ROUTE = [
-  { id: 'broliai', nr: 1, title: 'Soskė broliukams', mission: 'NURAMINK BROLIUKUS', place: 'Namai', where: 'Namai', icon: '🏠', pos: [1016, 183], scene: null },
+  { id: 'broliai', nr: 1, title: 'Soskė broliukams', mission: 'NURAMINK BROLIUKUS', place: 'Namai', where: 'Namai', icon: '🏠', pos: [1016, 183], scene: 'Broliai' },
   { id: 'laiptai', nr: 2, title: 'Laiptai su kuprine', mission: 'UŽLIPK Į MOKYKLĄ', place: 'Mokykla', where: 'Mokykla', icon: '🎒', pos: [331, 256], scene: null },
   { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', where: 'Klasė', icon: '✏️', pos: [426, 331], scene: null },
   { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė', where: 'Stotelė prie Akropolio', icon: '🚌', pos: [725, 219], scene: 'Bus' },

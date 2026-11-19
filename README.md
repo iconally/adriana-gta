@@ -67,7 +67,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 - Jei du vaikai tuo pačiu vardu, pridėk pavardės raidę.
 - Avataras - kvadratinis PNG ar JPG, bus apkarpytas į apskritimą. Jei avataro nėra, rodomos vardo raidės.
 - `adriana.png` - Adrianos galva, dedama ant bėgančio kūno.
-- Mokytojai pridėk `"mokytoja": true` - ji neužims vaikų vietų, o kiekviename etape gaus savo rolę (autobuse - vairuotoja).
+- Mokytojai pridėk `"mokytoja": true` - ji neužims vaikų vietų, o kiekviename etape gaus savo rolę (namuose - stebukladarė, autobuse - vairuotoja).
 - Pulte spausk **Įkelti klasės aplanką**. Sąrašas išsaugomas tik šios naršyklės atmintyje. Po vakarėlio spausk **Ištrinti visus duomenis**.
 
 ## Vakarėlio metu
@@ -75,7 +75,9 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 | Klavišas | Veiksmas |
 | --- | --- |
 | ENTER | laukiamasis → žemėlapis → misija → žemėlapis |
-| TARPAS arba ↑ | Adrianos šuolis |
+| ← → | Adriana bėga po kambarį (1 etapas) |
+| ↓ arba TARPAS | ieškoti soskės (1 etapas) |
+| TARPAS arba ↑ | Adrianos šuolis (autobusas) |
 | R | kartoti etapą |
 | ESC | į laukiamąjį |
 | H | vedėjo pultas |
@@ -111,7 +113,7 @@ Ekrano nuotraukos išsaugomos `shots/` aplanke.
 
 ## Tikri paveikslėliai
 
-Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`). Kai turėsit tikrus PNG, įdėkit juos į `assets/` ir įrašykit į `assets/manifest.json`:
+Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/screen/art-home.js`). Kai turėsit tikrus PNG, įdėkit juos į `assets/` ir įrašykit į `assets/manifest.json`:
 
 ```json
 { "images": { "bus": "assets/bus.png", "tree": "assets/tree.png" } }
@@ -130,6 +132,15 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`). Kai turėsit ti
 | tree, lamp, snowman, stop | 250×370, 100×390, 180×240, 140×330 | dekoracijos |
 | bus, bus_door | 760×320, 92×196 | langų ir durų vietos - `art.js` |
 | snowball, splat, star, star_off | 40, 120, 54, 54 | smulkmenos |
+| adr_duck | 150×200 | Adriana pritūpusi (ieško, išsisuka) |
+| home_room | 1920×1080 | 1 etapo kambarys; lango vieta permatoma (`HOME_WINDOW` - `art-home.js`) |
+| home_sky, tv_tower | 400×320, 110×300 | vaizdas pro langą ir TV bokštas |
+| home_sofa, home_toybox, home_basket | 340×220, 170×160, 140×140 | slėptuvės |
+| home_xtree, home_shelf, home_fridge | 250×410, 210×370, 210×430 | slėptuvės |
+| home_pen_back, home_pen_front | 440×200 | maniežas (galas ir priekis) |
+| baby_body | 130×130 | broliuko kūnas (baltas, spalvinamas kode) |
+| baby_sad, baby_cry, baby_scared, baby_calm | 140×140 | broliuko galva |
+| soske, tear, home_monster | 80×80, 18×24, 420×460 | soskė, ašara, pabaisos šešėlis |
 
 ## Struktūra
 
