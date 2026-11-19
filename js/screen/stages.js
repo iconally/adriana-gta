@@ -72,13 +72,13 @@ export const STAGES = {
     nr: 2,
     title: 'Laiptai su kuprine',
     mission: 'UŽLIPK Į MOKYKLĄ',
-    // 5 stūmikai, 4 krovikai, 4 prie lango, 4 bėgikai - sumaišyta, kad
+    // 5 stūmikai, 8 krovikai, 4 bėgikai - sumaišyta, kad
     // ir su keliais vaikais būtų visko po truputį.
     slots: [
-      'stumikas', 'krovikas', 'langas', 'begikas',
-      'stumikas', 'krovikas', 'langas', 'begikas',
-      'stumikas', 'krovikas', 'langas', 'begikas',
-      'stumikas', 'krovikas', 'langas', 'begikas',
+      'stumikas', 'krovikas', 'krovikas', 'begikas',
+      'stumikas', 'krovikas', 'krovikas', 'begikas',
+      'stumikas', 'krovikas', 'krovikas', 'begikas',
+      'stumikas', 'krovikas', 'krovikas', 'begikas',
       'stumikas',
     ],
     fallback: 'stumikas',
@@ -96,13 +96,6 @@ export const STAGES = {
         buttons: [
           { id: 'knyga', label: 'Įmesti knygą', emoji: '📕', cd: 3500, ok: 'Sunkiau!' },
           { id: 'mandarinas', label: 'Įmesti mandariną', emoji: '🍊', cd: 1500, ok: 'Skanu!' },
-        ],
-      },
-      langas: {
-        name: 'Prie lango', emoji: '🪟', desc: 'Stovi prie aprasojusio lango. Piešk ant jo pirštu arba mojuok Adrianai!',
-        buttons: [
-          { id: 'piesti', label: 'Piešti ant lango', emoji: '✏️', cd: 1500, ok: 'Gražu!' },
-          { id: 'mojuoti', label: 'Mojuoti', emoji: '👋', cd: 1500, ok: 'Labas!' },
         ],
       },
       begikas: {

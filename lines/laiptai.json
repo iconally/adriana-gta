@@ -45,10 +45,6 @@
     "{vardas} paslydo! Viskas gerai!",
     "Oi! {vardas} išbandė laiptus kitaip."
   ],
-  "draw": [
-    "{vardas} piešia ant lango.",
-    "Lango menas by {vardas}."
-  ],
   "doors": [
     "Mokytoja laiko duris: +1 s!",
     "Durys dar atviros!"

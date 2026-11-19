@@ -7,7 +7,6 @@
 //  - krovikai: įmeta knygą (kuprinė sunkėja) arba mandariną (juokui);
 //  - stūmikai: pastumia iš apačios (Adriana pajuda į priekį), šaukia „Pirmyn!“;
 //  - bėgikai per pertrauką: nubėga žemyn pro šalį, paslysta (fonas);
-//  - prie lango: piešia ant aprasojusio lango, moja (fonas);
 //  - mokytoja (budėtoja prie 3 aukšto durų): laiko duris (+1 s), švilpukas (stūmikai stumia 2x).
 
 import { headText, bodyText, banner, subtitle, floatText, missionCard, C } from '../fx.js';
@@ -109,8 +108,6 @@ export class LaiptaiScene extends Phaser.Scene {
     this.walkT = 0;
     this.autoT = 0;
     this.stats = new Map();
-    this.windowKids = new Map(); // pid -> { v, w }
-    this.windowTaken = new Set();
     this.autoplay = !!this.autoplay;
 
     this.wall = this.add.tileSprite(960, 540, 1920, 1080, 'school_wall_tile').setDepth(-60);
@@ -121,7 +118,6 @@ export class LaiptaiScene extends Phaser.Scene {
     this.makeWorld();
     this.makeAdriana();
     this.makeHud();
-    this.placeWindowKids();
     this.cam = { x: xAt(this.ud) - ANCHOR.x, y: yAt(this.ud) - ANCHOR.y };
     this.applyCam();
 
@@ -141,11 +137,8 @@ export class LaiptaiScene extends Phaser.Scene {
     for (const k of ['RIGHT', 'D']) kb.on(`keydown-${k}`, (e) => { if (!e.repeat) this.foot('R'); });
     kb.on('keydown-R', () => this.scene.restart());
 
-    const offs = [
-      A.host.on('press', (e) => this.onPress(e)),
-      A.host.on('join', (p) => this.onLateJoin(p)),
-    ];
-    this.events.once('shutdown', () => offs.forEach((f) => f()));
+    const off = A.host.on('press', (e) => this.onPress(e));
+    this.events.once('shutdown', off);
   }
 
   // ---------------- valdymas ----------------
@@ -374,40 +367,6 @@ export class LaiptaiScene extends Phaser.Scene {
     this.tweens.add({ targets: v.box, alpha: 0, delay, duration: 300, onComplete: () => v.box.destroy() });
   }
 
-  placeWindowKids() {
-    this.A.host.playersWithRole('langas').forEach((p, i) => this.addWindowKid(p, i));
-  }
-
-  addWindowKid(player, i) {
-    if (this.windowKids.has(player.pid)) return;
-    const w = this.windows[i] || this.freeWindowAhead(this.ud + 3);
-    if (!w) return;
-    this.windowTaken.add(w);
-    const v = this.makeKid(player, w.u + 0.6);
-    this.windowKids.set(player.pid, { v, w });
-  }
-
-  freeWindowAhead(minU) {
-    return this.windows.find((w) => w.u > minU && !this.windowTaken.has(w)) || null;
-  }
-
-  // Kai langas lieka toli už Adrianos, vaikas "persikelia" prie kito lango priekyje.
-  moveWindowKids() {
-    for (const k of this.windowKids.values()) {
-      if (k.w.u > this.ud - 9) continue;
-      const nw = this.freeWindowAhead(this.ud + 8);
-      if (!nw) continue;
-      this.windowTaken.delete(k.w);
-      this.windowTaken.add(nw);
-      k.w = nw;
-      this.setKidU(k.v, nw.u + 0.6);
-    }
-  }
-
-  onLateJoin(player) {
-    if (this.A.host.roles[player.pid] === 'langas') this.addWindowKid(player, 99);
-  }
-
   stat(player, key) {
     const st = this.stats.get(player.pid) || { name: player.name, counts: {} };
     st.counts[key] = (st.counts[key] || 0) + 1;
@@ -438,8 +397,6 @@ export class LaiptaiScene extends Phaser.Scene {
       case 'pirmyn': return this.cheer(player);
       case 'begti': return this.runDown(player, false);
       case 'paslysti': return this.runDown(player, true);
-      case 'piesti': return this.draw(player);
-      case 'mojuoti': return this.wave(player);
       case 'duris': return this.holdDoors(player);
       case 'svilpukas': return this.whistle(player);
       default: return undefined;
@@ -595,60 +552,6 @@ export class LaiptaiScene extends Phaser.Scene {
     this.maybeSub(this.A.lines.pick('laiptai', 'slip', { vardas: player.name }), C.white, 3500);
   }
 
-  kidWindow(player) {
-    const k = this.windowKids.get(player.pid);
-    if (k) return k;
-    // jei vaikas atėjo vėliau, nei buvo vietos - pridedam
-    this.addWindowKid(player, 99);
-    return this.windowKids.get(player.pid) || null;
-  }
-
-  draw(player) {
-    const k = this.kidWindow(player);
-    if (!k) return;
-    const { w } = k;
-    const x = w.x + rand(-70, 70);
-    const y = w.y + rand(-80, 50);
-    const g = this.add.graphics({ x, y });
-    g.lineStyle(6, 0xffffff, 0.95);
-    const kind = Math.floor(Math.random() * 5);
-    if (kind === 0) { // širdelė
-      g.beginPath(); g.moveTo(0, 18); g.lineTo(-20, -2); g.arc(-10, -8, 11, Math.PI * 0.8, Math.PI * 1.95); g.arc(10, -8, 11, Math.PI * 1.05, Math.PI * 0.2); g.lineTo(0, 18); g.strokePath();
-    } else if (kind === 1) { // snaigė
-      for (let a = 0; a < 3; a++) {
-        const ang = (a * Math.PI) / 3;
-        g.lineBetween(-Math.cos(ang) * 20, -Math.sin(ang) * 20, Math.cos(ang) * 20, Math.sin(ang) * 20);
-      }
-    } else if (kind === 2) { // šypsenėlė
-      g.strokeCircle(0, 0, 20);
-      g.fillStyle(0xffffff, 0.95).fillCircle(-7, -5, 3).fillCircle(7, -5, 3);
-      g.beginPath(); g.arc(0, 2, 10, 0.3, Math.PI - 0.3); g.strokePath();
-    } else if (kind === 3) { // žvaigždutė
-      g.beginPath();
-      for (let i = 0; i <= 5; i++) {
-        const a = -Math.PI / 2 + (i * 4 * Math.PI) / 5;
-        if (i === 0) g.moveTo(Math.cos(a) * 20, Math.sin(a) * 20); else g.lineTo(Math.cos(a) * 20, Math.sin(a) * 20);
-      }
-      g.strokePath();
-    } else { // eglutė
-      g.beginPath(); g.moveTo(0, -22); g.lineTo(16, 14); g.lineTo(-16, 14); g.closePath(); g.strokePath();
-      g.lineBetween(0, 14, 0, 22);
-    }
-    g.setScale(0.2);
-    this.L.bg.add(g);
-    this.tweens.add({ targets: g, scale: 1, duration: 220, ease: 'Back.Out' });
-    this.tweens.add({ targets: k.v.box, angle: { from: -6, to: 6 }, yoyo: true, repeat: 1, duration: 100, onComplete: () => k.v.box.setAngle(0) });
-    this.stat(player, 'piesiniai');
-    if (Math.random() < 0.2) this.maybeSub(this.A.lines.pick('laiptai', 'draw', { vardas: player.name }), C.teal, 5000);
-  }
-
-  wave(player) {
-    const k = this.kidWindow(player);
-    if (!k) return;
-    this.tweens.add({ targets: k.v.box, angle: { from: -10, to: 10 }, yoyo: true, repeat: 2, duration: 110, onComplete: () => k.v.box.setAngle(0) });
-    this.worldText(k.v.box.x, k.v.box.y - 230, '👋', C.white, 30);
-  }
-
   holdDoors(player) {
     this.tribune.bubble(player.pid, '🚪', C.green);
     if (this.mode !== 'play') return;
@@ -796,8 +699,6 @@ export class LaiptaiScene extends Phaser.Scene {
     if (loader) rows.push([`Sunkiausias krovikas: ${loader[0].name} (${loader[1]})`, C.orange]);
     const pusher = best('stumimai');
     if (pusher) rows.push([`Stipriausias stūmikas: ${pusher[0].name} (${pusher[1]})`, C.green]);
-    const artist = best('piesiniai');
-    if (artist) rows.push([`Lango menininkas: ${artist[0].name}`, C.teal]);
     if (this.bonus) rows.push([`Budėtoja laikė duris: +${this.bonus} s`, C.yellow]);
     rows.slice(0, 6).forEach(([r, c], i) => box.add(bodyText(this, 0, -140 + i * 54, r, 30, c)));
     const next = headText(this, 0, 240, 'ENTER - TOLIAU', 48, C.white);
@@ -870,7 +771,6 @@ export class LaiptaiScene extends Phaser.Scene {
     this.cam.x += (tx - this.cam.x) * Math.min(1, dt * 6);
     this.cam.y += (ty - this.cam.y) * Math.min(1, dt * 6);
     this.applyCam();
-    this.moveWindowKids();
 
     this.updateHud();
     if (play) {
