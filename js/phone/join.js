@@ -54,6 +54,18 @@ async function start() {
   });
   net.on('sync', onSync);
   net.on('claimed', onClaimed);
+  net.on('cue', (d) => {
+    if (d.pid !== state.pid) return;
+    const el = $('cue');
+    el.textContent = d.text;
+    el.hidden = false;
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    if (navigator.vibrate) navigator.vibrate([120, 60, 120]);
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.hidden = true; }, 3500);
+  });
   net.on('kick', (d) => {
     if (d.pid !== state.pid) return;
     forget();

@@ -1,7 +1,7 @@
 // Ekrano "šeimininkas": žaidėjai, vardų tikrinimas, rolės, paspaudimai.
 // Ekranas yra vienintelis tiesos šaltinis - telefonai tik siunčia norus.
 
-import { EventBus, uid } from '../common.js';
+import { EventBus, uid, shuffle } from '../common.js';
 import { LOBBY } from './stages.js';
 
 const STORE_KEY = 'agta.screen.v1';
@@ -188,7 +188,11 @@ export class Host extends EventBus {
   assignAll() {
     this.roles = {};
     const counts = {};
-    const players = this.list().sort(() => Math.random() - 0.5);
+    const players = shuffle(this.list());
+    if (this.stage.slots) {
+      players.forEach((p, i) => { this.roles[p.pid] = this.stage.slots[i] || this.stage.fallback; });
+      return;
+    }
     for (const p of players) {
       const id = this.pickRole(counts);
       this.roles[p.pid] = id;
@@ -199,6 +203,15 @@ export class Host extends EventBus {
   assignOne(player) {
     const counts = {};
     for (const id of Object.values(this.roles)) counts[id] = (counts[id] || 0) + 1;
+    if (this.stage.slots) {
+      const seen = {};
+      for (const id of this.stage.slots) {
+        seen[id] = (seen[id] || 0) + 1;
+        if ((counts[id] || 0) < seen[id]) { this.roles[player.pid] = id; return; }
+      }
+      this.roles[player.pid] = this.stage.fallback;
+      return;
+    }
     this.roles[player.pid] = this.pickRole(counts);
   }
 
@@ -211,6 +224,15 @@ export class Host extends EventBus {
       if (x <= 0) return id;
     }
     return entries[0][0];
+  }
+
+  playersWithRole(roleId) {
+    return this.list().filter((p) => this.roles[p.pid] === roleId);
+  }
+
+  // Asmeninis signalas vienam telefonui (pvz. "Tu Adrianos kelyje!").
+  cue(pid, text) {
+    this.net.send('cue', { pid, text });
   }
 
   roleOf(pid) {

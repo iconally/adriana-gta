@@ -24,24 +24,55 @@ export const STAGES = {
     nr: 4,
     title: 'Bėgimas iki autobuso',
     mission: 'SPĖK Į AUTOBUSĄ',
+    // Rolės dalijamos iš eilės: taip net maža klasė gauna visas grupes.
+    slots: [
+      'kelyje', 'lipdytojas', 'laukiantis', 'griovejas', 'ciuozejas', 'keleivis',
+      'kelyje', 'lipdytojas', 'laukiantis', 'griovejas', 'ciuozejas', 'keleivis',
+      'kelyje', 'lipdytojas', 'laukiantis', 'griovejas', 'ciuozejas',
+      'kelyje', 'laukiantis', 'kelyje', 'kelyje',
+    ],
+    fallback: 'keleivis',
     roles: {
-      sniegas: {
-        name: 'Gniūžčių mėtytojas', emoji: '❄️', desc: 'Mėtyk gniūžtes į medžius, žibintus ir sniego senį!', weight: 5,
-        buttons: [{ id: 'mesti', label: 'Mesti gniūžtę', emoji: '❄️', cd: 1500, ok: 'Skrenda!' }],
+      kelyje: {
+        name: 'Adrianos kelyje', emoji: '🧍', desc: 'Stovi ant šaligatvio. Kai ekrane pasirodysi, mesk gniūžtę arba pritūpk, kad Adriana lengviau peršoktų!',
+        buttons: [
+          { id: 'mesti', label: 'Mesti gniūžtę', emoji: '❄️', cd: 1500, ok: 'Skrenda!' },
+          { id: 'tupti', label: 'Pritūpti', emoji: '🙇', cd: 1500, ok: 'Pritūpei!' },
+        ],
+      },
+      lipdytojas: {
+        name: 'Sniego senio lipdytojas', emoji: '⛄', desc: 'Su draugais lipdykit sniego senį kieme!',
+        buttons: [
+          { id: 'lipdyti', label: 'Lipdyti', emoji: '⛄', cd: 900, ok: 'Auga!' },
+          { id: 'mojuoti', label: 'Mojuoti', emoji: '👋', cd: 1500, ok: 'Labas!' },
+        ],
+      },
+      griovejas: {
+        name: 'Sniego senio griovėjas', emoji: '🦶', desc: 'Jūsų sniego senis per gražus. Sugriaukit jį!',
+        buttons: [
+          { id: 'spirti', label: 'Spirti', emoji: '🦶', cd: 900, ok: 'Bum!' },
+          { id: 'juoktis', label: 'Juoktis', emoji: '😂', cd: 1500, ok: 'Cha cha!' },
+        ],
+      },
+      ciuozejas: {
+        name: 'Čiuožėjas', emoji: '⛸️', desc: 'Čiuožk ant ledo kieme. Atsargiai!',
+        buttons: [
+          { id: 'ciuozti', label: 'Čiuožti', emoji: '⛸️', cd: 1300, ok: 'Vžžž!' },
+          { id: 'griuti', label: 'Griūti', emoji: '💫', cd: 1800, ok: 'Ai!' },
+        ],
+      },
+      laukiantis: {
+        name: 'Laukia stotelėje', emoji: '🚏', desc: 'Sėdi stotelėje ir lauki Adrianos. Kai atvažiuos autobusas, įlipsit kartu!',
+        buttons: [
+          { id: 'laikrodis', label: 'Žiūrėti į laikrodį', emoji: '⌚', cd: 1500, ok: 'Tik-tak!' },
+          { id: 'skubek', label: 'Šaukti „Skubėk!“', emoji: '📣', cd: 1500, ok: 'Girdi!' },
+        ],
       },
       keleivis: {
-        name: 'Keleivis', emoji: '🚌', desc: 'Tu jau autobuse! Mojuok pro langą.', weight: 2,
-        buttons: [{ id: 'mojuoti', label: 'Mojuoti', emoji: '👋', cd: 2000, ok: 'Ieškok savęs lange!' }],
-      },
-      duris: {
-        name: 'Vairuotojo draugas', emoji: '🚪', desc: 'Palaikyk autobuso duris - Adriana gaus daugiau laiko!', weight: 2, max: 4,
-        buttons: [{ id: 'duris', label: 'Palaikyti duris', emoji: '🚪', cd: 1500, ok: 'Duris laikai!' }],
-      },
-      sirgalius: {
-        name: 'Sirgalius', emoji: '📣', desc: 'Palaikyk Adrianą šūksniais!', weight: 2,
+        name: 'Keleivis', emoji: '🚌', desc: 'Tu jau autobuse! Mojuok pro langą ir laikyk duris, kad Adriana spėtų.',
         buttons: [
-          { id: 'bek', label: 'Bėk!', emoji: '🏃', cd: 1200, ok: 'Girdi!' },
-          { id: 'sok', label: 'Šok!', emoji: '🦘', cd: 1200, ok: 'Girdi!' },
+          { id: 'mojuoti', label: 'Mojuoti', emoji: '👋', cd: 1800, ok: 'Ieškok savęs lange!' },
+          { id: 'duris', label: 'Laikyti duris', emoji: '🚪', cd: 1500, ok: 'Duris laikai!' },
         ],
       },
     },

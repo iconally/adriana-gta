@@ -205,6 +205,27 @@ export function generateArt(scene) {
   body('adr_run2', 'run2');
   body('adr_jump', 'jump');
 
+  // pritūpusi Adriana (išsisukinėja nuo gniūžčių)
+  tex(scene, 'adr_duck', 150, 200, (c) => {
+    shape(c, (x) => rr(x, 20, 84, 40, 58, 10), '#ffd23f');
+    for (const [hx, hy, kx, ky, fx, fy] of [[66, 140, 100, 152, 74, 186], [84, 140, 118, 160, 112, 186]]) {
+      c.lineWidth = 26; c.strokeStyle = OUT;
+      c.beginPath(); c.moveTo(hx, hy); c.lineTo(kx, ky); c.lineTo(fx, fy); c.stroke();
+      c.lineWidth = 16; c.strokeStyle = '#26306b';
+      c.beginPath(); c.moveTo(hx, hy); c.lineTo(kx, ky); c.lineTo(fx, fy); c.stroke();
+      shape(c, (x) => rr(x, fx - 14, fy - 10, 32, 18, 7), '#ffffff', 5);
+    }
+    shape(c, (x) => rr(x, 44, 68, 66, 80, 18), '#ff3ea5');
+    shape(c, (x) => rr(x, 46, 62, 60, 18, 9), '#2de2e6', 5);
+    for (const [sx, sy, ex, ey, hx, hy] of [[100, 84, 126, 108, 138, 92]]) {
+      c.lineWidth = 22; c.strokeStyle = OUT;
+      c.beginPath(); c.moveTo(sx, sy); c.lineTo(ex, ey); c.lineTo(hx, hy); c.stroke();
+      c.lineWidth = 13; c.strokeStyle = '#ff3ea5';
+      c.beginPath(); c.moveTo(sx, sy); c.lineTo(ex, ey); c.lineTo(hx, hy); c.stroke();
+      shape(c, (x) => x.arc(hx, hy, 10, 0, Math.PI * 2), '#2de2e6', 5);
+    }
+  });
+
   tex(scene, 'adr_head', 150, 150, (c) => {
     shape(c, (x) => { x.moveTo(30, 80); x.quadraticCurveTo(20, 140, 60, 142); x.lineTo(96, 142); x.quadraticCurveTo(132, 140, 122, 80); x.closePath(); }, '#5a3420');
     shape(c, (x) => x.arc(76, 84, 46, 0, Math.PI * 2), '#f5c9a6');

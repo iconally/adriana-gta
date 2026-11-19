@@ -3,7 +3,8 @@
     "Patarimas: autobusas niekada nelaukia. Niekada.",
     "Patarimas: balos gilesnės, nei atrodo.",
     "Patarimas: sniego senis - ne kliūtis. Bet vis tiek šok.",
-    "Patarimas: draugai stotelėje mėgsta stovėti ant kelio."
+    "Patarimas: draugai stotelėje mėgsta stovėti ant kelio.",
+    "Patarimas: jei skrenda gniūžtė - pritūpk (↓)."
   ],
   "start": [
     "Bėk, Adriana, bėk!",
@@ -32,11 +33,6 @@
     "{vardas} taiklus kaip snaiperis!",
     "{vardas}: gniūžtė skrenda!"
   ],
-  "snow_adriana": [
-    "{vardas} pataikė Adrianai į kepurę!",
-    "{vardas} rizikuoja: Adriana viską mato!",
-    "{vardas} taiklus. Gal net per daug."
-  ],
   "wave": [
     "{vardas} moja iš autobuso!",
     "{vardas} jau sėdi autobuse. Gudru."
@@ -49,18 +45,6 @@
   "doors_max": [
     "Vairuotojas: daugiau laukti negaliu!",
     "Vairuotojas: durys ne guminės!"
-  ],
-  "cheer_bek": [
-    "Bėk!",
-    "Greičiau!",
-    "Ad-ri-a-na!",
-    "Pirmyn!"
-  ],
-  "cheer_sok": [
-    "Šok!",
-    "Aukščiau!",
-    "Hop!",
-    "Skrisk!"
   ],
   "near": [
     "Autobusas jau matosi!",
@@ -89,5 +73,60 @@
   "snow_stop": [
     "{vardas} pataikė į stotelės ženklą!",
     "Stotelė apsnigta. Kaltas {vardas}."
+  ],
+  "ball_hit": [
+    "{vardas} pataikė Adrianai į kepurę!",
+    "Pliaukšt! {vardas} taiklus.",
+    "{vardas}: gniūžtė tiesiai į tikslą!"
+  ],
+  "ball_miss": [
+    "Adriana išsisuko!",
+    "Pro šalį! Adriana per greita.",
+    "Gniūžtė nuskrido į Užupį."
+  ],
+  "crouch": [
+    "{vardas} pritūpė - šok!",
+    "{vardas} padeda Adrianai!",
+    "{vardas} susigūžė kaip kamuoliukas."
+  ],
+  "in_path": [
+    "{vardas} stovi Adrianos kelyje!",
+    "Dėmesio: {vardas} ant šaligatvio!",
+    "{vardas} laukia su gniūžte..."
+  ],
+  "built": [
+    "Sniego senis pastatytas! Lipdytojai - čempionai.",
+    "Naujas Vilniaus gyventojas: sniego senis!"
+  ],
+  "destroyed": [
+    "Sniego senis sugriautas! Griovėjai džiaugiasi.",
+    "Kur dingo sniego senio galva?!"
+  ],
+  "rebuilt": [
+    "Sniego senis atsigavo. Stebuklas!",
+    "Sniego senis grįžo. Ir jis piktas."
+  ],
+  "skate_fall": [
+    "{vardas} griuvo ant ledo. Bet gražiai!",
+    "{vardas}: ledas slidus, patikrinta."
+  ],
+  "shout": [
+    "SKUBĖK!",
+    "GREIČIAU!",
+    "AUTOBUSAS!"
+  ],
+  "watch": [
+    "Vėluoji!",
+    "Jau 8:01!",
+    "Tik-tak!"
+  ],
+  "laugh": [
+    "CHA CHA!",
+    "CHI CHI!",
+    "LOL!"
+  ],
+  "board": [
+    "Laukiantys stotelėje lipa kartu!",
+    "Visi į autobusą!"
   ]
 }
