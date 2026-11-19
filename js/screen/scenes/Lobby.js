@@ -55,15 +55,16 @@ export class LobbyScene extends Phaser.Scene {
 
   updateCount() {
     const { host } = window.AGTA;
-    const total = host.roster.kids.length;
-    const n = host.list().length;
-    if (!total) {
+    const { kidsTotal: total, kidsIn: n, hasTeacher, teacherIn } = host.counts();
+    if (!host.roster.kids.length) {
       this.countText.setText('KLASĖ NEĮKELTA');
       this.infoText.setText('Spausk H ir įkelk klasės aplanką (arba demo klasę testui).');
       return;
     }
     this.countText.setText(`PRISIJUNGĖ: ${n} / ${total}`);
-    this.infoText.setText(n ? 'Telefone spausk "Labas!" - ekrane pamatysi save.' : 'Skenuok QR kodą telefonu!');
+    const tip = n ? 'Telefone spausk "Labas!" - ekrane pamatysi save.' : 'Skenuok QR kodą telefonu!';
+    const short = n ? 'Spausk "Labas!" telefone.' : 'Skenuok QR kodą!';
+    this.infoText.setText(hasTeacher ? `${teacherIn ? 'Mokytoja irgi čia ✓' : 'Mokytoja dar neprisijungė'}  ·  ${short}` : tip);
   }
 
   onPress({ player, action }) {

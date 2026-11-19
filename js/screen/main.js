@@ -93,14 +93,15 @@ net.onStatus((s) => {
 function renderClass() {
   const r = host.roster;
   $('p-class').textContent = r.kids.length
-    ? `${r.className ? `${r.className} klasė, ` : ''}${r.kids.length} vaikų${r.adriana ? ', yra Adrianos galva' : ''}`
+    ? `${r.className ? `${r.className} klasė, ` : ''}${host.counts().kidsTotal} vaikų${host.counts().hasTeacher ? ' + mokytoja' : ''}${r.adriana ? ', yra Adrianos galva' : ''}`
     : 'Sąrašas neįkeltas';
   $('p-problems').innerHTML = (r.problems || []).map((x) => `<div>⚠ ${x}</div>`).join('');
 }
 
 function renderPlayers() {
   const list = host.list();
-  $('p-count').textContent = `${list.length} / ${host.roster.kids.length}`;
+  const c = host.counts();
+  $('p-count').textContent = `${c.kidsIn} / ${c.kidsTotal}${c.teacherIn ? ' + mokytoja' : ''}`;
   $('p-players').innerHTML = '';
   for (const p of list) {
     const li = document.createElement('li');

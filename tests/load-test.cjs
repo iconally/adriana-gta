@@ -47,10 +47,11 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
   await screen.keyboard.press('h');
   const { room, kids } = await screen.evaluate(() => ({
     room: window.AGTA.room,
-    kids: window.AGTA.host.roster.kids.map((k) => ({ name: k.name, md: k.md })),
+    kids: window.AGTA.host.roster.kids.map((k) => ({ name: k.name, md: k.md, teacher: !!k.teacher })),
   }));
   const count = Math.min(N, kids.length);
-  console.log(`Kambarys ${room}, klasėje ${kids.length}, telefonų ${count}`);
+  const kidsOnly = kids.filter((k) => !k.teacher).length;
+  console.log(`Kambarys ${room}, klasėje ${kidsOnly} vaikų + ${kids.length - kidsOnly} mokytoja, telefonų ${count}`);
 
   const phones = [];
   const join = async (i) => {
@@ -94,8 +95,8 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
   }
   await sleep(15500); // užraktas 15 s
   await join(count - 1);
-  const joined = await screen.evaluate(() => window.AGTA.host.list().length);
-  console.log(`Prisijungė ${joined}/${count} per ${((Date.now() - t0) / 1000).toFixed(1)} s (su 15 s užraktu)`);
+  const c = await screen.evaluate(() => window.AGTA.host.counts());
+  console.log(`Prisijungė vaikų ${c.kidsIn}/${c.kidsTotal}${c.teacherIn ? ' + mokytoja' : ''} per ${((Date.now() - t0) / 1000).toFixed(1)} s (su 15 s užraktu)`);
 
   await sleep(2500);
   for (const p of phones.slice(0, 8)) await p.page.locator('.act').first().click();

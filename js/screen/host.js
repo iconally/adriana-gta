@@ -87,6 +87,14 @@ export class Host extends EventBus {
   isTeacher(name) { return !!this.kid(name)?.teacher; }
 
   teachers() { return this.list().filter((p) => this.isTeacher(p.name)); }
+  // Skaičiai be mokytojos: kiek vaikų sąraše ir kiek jų prisijungė.
+  counts() {
+    const kidsTotal = this.roster.kids.filter((k) => !k.teacher).length;
+    const hasTeacher = this.roster.kids.some((k) => k.teacher);
+    const list = this.list();
+    const teacherIn = list.some((p) => this.isTeacher(p.name));
+    return { kidsTotal, kidsIn: list.length - (teacherIn ? 1 : 0), hasTeacher, teacherIn };
+  }
 
   touch(pid) {
     const p = this.players.get(pid);
