@@ -1,11 +1,11 @@
 // Virtualūs vaikai: užpildo klasę ir spaudo mygtukus, kad žaidimą
 // būtų galima matyti pilną be telefonų (kūrimui ir repeticijoms).
 // Visada prisijungia ir virtuali mokytoja: jei klasės sąraše jos nėra,
-// laikinai pridedama "Mokytoja" (išimant virtualius vaikus - pašalinama).
+// laikinai pridedama mokytoja "Daiva" (išimant virtualius vaikus - pašalinama).
 
 import { placeholderAvatar } from './roster.js';
 
-const VIRTUAL_TEACHER = 'Mokytoja';
+const VIRTUAL_TEACHER = 'Daiva';
 
 export class Bots {
   constructor(host) {

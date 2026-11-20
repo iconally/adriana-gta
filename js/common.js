@@ -43,6 +43,12 @@ export function isBoy(name) {
 export const GIRL_COLORS = [0xff6fb5, 0x6fe6ff, 0xffd166, 0xa98bff, 0x7dff9b, 0xff9a6b];
 export const BOY_COLORS = [0x4da3ff, 0x6fe6ff, 0x7dff9b, 0xffd166, 0xff9a6b, 0x8a7dff];
 
+// Mokytojos užrašas ekrane: "Daiva" -> "Mokytoja Daiva" (jei sąraše jau parašyta "Mokytoja ..." - paliekam).
+export function teacherLabel(name) {
+  if (!name) return 'Mokytoja';
+  return /mokytoj/i.test(name) ? name : `Mokytoja ${name}`;
+}
+
 export function shuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {

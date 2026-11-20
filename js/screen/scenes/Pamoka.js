@@ -16,7 +16,7 @@ import { headText, bodyText, banner, subtitle, missionCard, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { BOARD } from '../art-class.js';
-import { isBoy, GIRL_COLORS, BOY_COLORS, shuffle } from '../../common.js';
+import { isBoy, GIRL_COLORS, BOY_COLORS, shuffle, teacherLabel } from '../../common.js';
 
 const STAGE = STAGES.pamoka;
 const CAUGHT_BACK = 1;
@@ -210,7 +210,14 @@ export class PamokaScene extends Phaser.Scene {
     const head = this.add.image(4, -130, face ? 'adr_face' : 'adr_head').setOrigin(0.5, face ? 0.5 : 0.56);
     if (face) head.setDisplaySize(124, 124);
     box.add([body, head]);
+    this.namePlate(x, row, 'Adriana', C.pink);
     this.adr = { box, x, y: row.y, s: row.s * 1.1, name: 'Adriana' };
+  }
+
+  // Vardo kortelė ant savo suolo priekio (ne virš galvos - kad nepatektų ant kito suolo).
+  namePlate(x, row, name, color) {
+    const k = row.s * 1.1;
+    return bodyText(this, x, row.y + 36 * k, name, Math.round(31 * row.s), color).setDepth(row.y + 3);
   }
 
   makeSeatedKid(player, r, x) {
@@ -219,8 +226,8 @@ export class PamokaScene extends Phaser.Scene {
     const body = this.add.image(0, 64, 'kid_body').setOrigin(0.5, 1).setTint(tintOf(player.name));
     const key = this.textures.exists(avatarKey(player.name)) ? avatarKey(player.name) : 'dot';
     const head = this.add.image(0, -110, key).setDisplaySize(96, 96);
-    const tag = bodyText(this, 0, -180, player.name, 30, C.yellow);
-    box.add([body, head, tag]);
+    box.add([body, head]);
+    const tag = this.namePlate(x, row, player.name, C.yellow);
     return { box, body, head, tag, name: player.name, pid: player.pid, x, y: row.y, s: row.s };
   }
 
@@ -269,13 +276,13 @@ export class PamokaScene extends Phaser.Scene {
   // ---------------- mokytoja ----------------
   makeTeacher() {
     const t = this.A.host.teachers()[0];
-    this.teacherName = t ? t.name : 'Mokytoja';
+    this.teacherName = t ? t.name : 'Daiva';
     const box = this.add.container(TEACHER.x, TEACHER.y).setScale(TEACHER.s).setDepth(TEACHER.y + 40);
     const body = this.add.image(0, 0, 'teacher_back').setOrigin(0.5, 1);
     const faceKey = t && this.textures.exists(avatarKey(t.name)) ? avatarKey(t.name) : 'teacher_face';
     const face = this.add.image(0, -290, faceKey).setDisplaySize(104, 104).setVisible(false);
     const hair = this.add.image(0, -292, 'teacher_hair').setTint(0x8a5a33).setScale(0.95);
-    const tag = bodyText(this, 0, 26, this.teacherName, 28, C.yellow); // po kojomis - kad neuždengtų lentos
+    const tag = bodyText(this, 0, 26, teacherLabel(this.teacherName), 28, C.yellow); // po kojomis - kad neuždengtų lentos
     box.add([body, face, hair, tag]);
     this.teacher = { box, body, face, hair, state: 'writing', since: 0, until: 0, extra: 0, avatarKey: t ? avatarKey(t.name) : null };
     if (t) {
@@ -342,10 +349,12 @@ export class PamokaScene extends Phaser.Scene {
   makeCard() {
     const h = this.seq[0];
     this.cardImg = this.add.image(h.x, h.y, 'xmas_card').setDepth(1200).setScale(0.8 * h.s * 1.1);
-    this.ring = this.add.ellipse(h.x, h.y + 10, 160, 50, 0xffd23f, 0.35).setDepth(1150).setStrokeStyle(4, 0xffd23f);
+    this.ring = this.add.ellipse(h.x, h.y + 10, 160, 50, 0x3ddc84, 0.35).setDepth(1150).setStrokeStyle(4, 0x3ddc84);
     this.tweens.add({ targets: this.ring, alpha: 0.15, yoyo: true, repeat: -1, duration: 400 });
-    this.holderTag = headText(this, h.x, h.y - 160, 'ADRIANA TURI ATVIRUKĄ! →', 30, C.yellow).setDepth(1550);
-    this.helpTag = bodyText(this, h.x, h.y - 205, 'Adriana, padėk! →', 22, C.teal).setDepth(1550).setVisible(false);
+    // Žinutės viršuje po mokytojos būsena: kas turi atviruką ir ar reikia Adrianos pagalbos.
+    this.holderTag = headText(this, 960, 264, '', 40, C.green).setDepth(1800).setVisible(false);
+    this.helpTag = headText(this, 960, 316, '', 32, C.teal).setDepth(1800).setVisible(false);
+    this.tweens.add({ targets: this.helpTag, alpha: 0.45, yoyo: true, repeat: -1, duration: 420 });
   }
 
   holderPos(i) {
@@ -359,7 +368,7 @@ export class PamokaScene extends Phaser.Scene {
     const p = this.holderPos(this.idx);
     const last = h.type === 'teacher';
     this.ring.setPosition(p.x, p.y + 12).setSize(170 * p.s, 54 * p.s).setVisible(!last);
-    this.holderTag.setPosition(p.x, p.y - 190 * h.s - 40).setText(h.type === 'adriana' ? 'ADRIANA TURI ATVIRUKĄ! →' : `${h.name.toUpperCase()} TURI ATVIRUKĄ!`).setVisible(!last);
+    this.holderTag.setText(h.type === 'adriana' ? 'ADRIANA TURI ATVIRUKĄ! SPAUSK →' : `${h.name.toUpperCase()} TURI ATVIRUKĄ!`).setVisible(!last);
     this.helpTag.setVisible(false);
     this.updateStatus();
     if (h.type === 'kid' && this.mode === 'play') {
@@ -486,7 +495,7 @@ export class PamokaScene extends Phaser.Scene {
 
   // subtitrai ir juostos virš suolų (šioje scenoje daug sluoksnių)
   sub(text, color) {
-    subtitle(this, text, { color });
+    subtitle(this, text, { color, y: 382 });
     if (this._subtitle) this._subtitle.setDepth(1700);
   }
 
@@ -595,6 +604,8 @@ export class PamokaScene extends Phaser.Scene {
     this.barW = w;
     this.cardIcon = this.add.image(960 - w / 2, 136, 'xmas_card').setScale(0.5).setDepth(D + 1);
     this.passText = bodyText(this, 960 + w / 2 + 20, 140, '', 24, '#f1e6ff').setOrigin(0, 0.5).setDepth(D);
+    // tamsus fonas po žinutėmis, kad jos būtų įskaitomos ant langų ir plakato
+    this.add.rectangle(960, 264, 1060, 164, 0x0b0418, 0.62).setStrokeStyle(3, 0x14081f).setDepth(D - 10);
     this.stateText = headText(this, 960, 210, 'Mokytoja rašo - perduok!', 40, C.green).setDepth(D);
   }
 
@@ -725,12 +736,12 @@ export class PamokaScene extends Phaser.Scene {
     }
 
     // jei turėtojas užsižiopsojo - Adriana gali padėti
+    // (rodoma tik kol mokytoja rašo - kitaip padėdama Adriana būtų pagauta)
     const h = this.seq[this.idx];
-    if (play && !this.flight && h && h.type === 'kid') {
-      const waiting = now - this.holderSince >= HELP_MS;
-      if (waiting !== this.helpTag.visible) {
-        this.helpTag.setVisible(waiting).setPosition(h.x, h.y - 190 * h.s - 80);
-      }
+    const help = play && !this.flight && h && h.type === 'kid' && t.state === 'writing' && now - this.holderSince >= HELP_MS;
+    if (help !== this.helpTag.visible) {
+      this.helpTag.setVisible(help);
+      if (help) this.helpTag.setText(`${h.name.toUpperCase()} UŽSIŽIOPSOJO - ADRIANA, PADĖK! →`);
     }
 
     this.updateHud();

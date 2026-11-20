@@ -12,7 +12,7 @@
 import { headText, bodyText, banner, subtitle, floatText, missionCard, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
-import { isBoy, GIRL_COLORS, BOY_COLORS } from '../../common.js';
+import { isBoy, GIRL_COLORS, BOY_COLORS, teacherLabel } from '../../common.js';
 
 const STAGE = STAGES.laiptai;
 const RUN = 84; // laiptelio plotis
@@ -384,7 +384,7 @@ export class LaiptaiScene extends Phaser.Scene {
     const body = this.add.image(0, 0, 'teacher_body').setOrigin(0.5, 1);
     const key = this.textures.exists(avatarKey(t.name)) ? avatarKey(t.name) : 'dot';
     const head = this.add.image(0, -290, key).setDisplaySize(110, 110);
-    const tag = bodyText(this, 0, -372, t.name, 30, C.yellow);
+    const tag = bodyText(this, 0, -372, teacherLabel(t.name), 30, C.yellow);
     box.add([body, head, tag]);
     this.L.bg.add(box);
     this.teacher = { box, head, name: t.name };
