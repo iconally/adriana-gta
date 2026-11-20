@@ -2,83 +2,83 @@
  "route": {
   "broliai": {
    "pos": [
-    1016,
-    183
+    726,
+    212
    ],
    "place": "Namai",
    "where": "Namai"
   },
   "laiptai": {
    "pos": [
-    331,
-    256
+    489,
+    232
    ],
    "place": "Mokykla",
    "where": "Mokykla"
   },
+  "pamoka": {
+   "pos": [
+    419,
+    312
+   ],
+   "place": "Klasė",
+   "where": "Klasė"
+  },
   "autobusas": {
    "pos": [
-    725,
-    219
+    474,
+    528
    ],
    "place": "Stotelė",
-   "where": "Stotelė prie Akropolio"
+   "where": "Stotelė"
   },
   "podiumas": {
    "pos": [
-    464,
-    644
+    570,
+    625
    ],
    "place": "Mados šou",
    "where": "Vingio estrada"
   },
   "pianinas": {
    "pos": [
-    1407,
-    796
+    1489,
+    793
    ],
    "place": "Piano koncertas",
    "where": "Filharmonija"
   },
   "kinu": {
    "pos": [
-    1297,
-    715
+    1433,
+    692
    ],
    "place": "Kinų kalbos pamoka",
    "where": "Konfucijaus institutas"
   },
   "tenisas": {
    "pos": [
-    1755,
-    475
+    1749,
+    484
    ],
    "place": "Teniso treniruotė",
    "where": "Kalnų parkas"
   },
   "robotas": {
    "pos": [
-    863,
-    392
+    1105,
+    387
    ],
    "place": "Programavimo būrelis",
    "where": "Baltasis tiltas"
   },
   "finalas": {
    "pos": [
-    1325,
-    582
+    1447,
+    575
    ],
    "place": "Kalėdinis klasės vakarėlis",
    "where": "Katedros aikštė"
-  },
-  "pamoka": {
-   "pos": [
-    426,
-    331
-   ],
-   "place": "Klasė",
-   "where": "Klasė"
   }
  },
  "landmarks": [
@@ -86,40 +86,40 @@
    "id": "tv",
    "label": "TV bokštas",
    "pos": [
-    165,
-    507
+    171,
+    514
    ]
   },
   {
    "id": "pilis",
    "label": "Gedimino pilis",
    "pos": [
-    1523,
-    531
+    1552,
+    534
    ]
   },
   {
    "id": "stotis",
    "label": "Stotis",
    "pos": [
-    1116,
-    857
+    1336,
+    859
    ]
   },
   {
    "id": "dangorazdziai",
-   "label": "Dangoraižiai",
+   "label": "",
    "pos": [
-    884,
-    347
+    1133,
+    332
    ]
   },
   {
    "id": "ozas",
    "label": "Ozas",
    "pos": [
-    936,
-    198
+    1194,
+    181
    ]
   }
  ],

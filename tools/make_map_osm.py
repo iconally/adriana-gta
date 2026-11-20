@@ -25,10 +25,12 @@ random.seed(7)
 
 # ---------------- taškai (apytiksliai; namai ir mokykla - tik rajonas) ----------------
 ROUTE = [
-    ('broliai', 'Namai', 54.7150, 25.2820),
-    ('laiptai', 'Mokykla', 54.7068, 25.2290),
-    ('pamoka', 'Klasė', None, None),  # šalia mokyklos (ekrano poslinkis)
-    ('autobusas', 'Stotelė prie Akropolio', 54.7110, 25.2630),
+    # Namai, mokykla, klasė ir stotelė dedami ekrane šalia ežerėlių (žr. NEAR) -
+    # tik apytiksliai, kad kelias eitų be zigzagų.
+    ('broliai', 'Namai', None, None),
+    ('laiptai', 'Mokykla', None, None),
+    ('pamoka', 'Klasė', None, None),
+    ('autobusas', 'Stotelė', None, None),
     ('podiumas', 'Vingio estrada', 54.6845, 25.2405),
     ('pianinas', 'Filharmonija', 54.6772, 25.2888),
     ('kinu', 'Konfucijaus institutas', 54.6826, 25.2872),
@@ -40,7 +42,7 @@ LANDMARKS = [
     ('tv', 'TV bokštas', 54.6872, 25.2147),
     ('pilis', 'Gedimino pilis', 54.6867, 25.2907),
     ('stotis', 'Stotis', 54.6705, 25.2843),
-    ('dangorazdziai', 'Dangoraižiai', 54.6965, 25.2760),
+    ('dangorazdziai', '', 54.6965, 25.2760),  # be užrašo
     ('ozas', 'Ozas', 54.7133, 25.2790),
 ]
 # Pavadinimai žemėlapyje (tikra vieta lieka "where" ir rodoma misijos kortelėje).
@@ -50,7 +52,9 @@ NAMES = {
     'tenisas': 'Teniso treniruotė', 'robotas': 'Programavimo būrelis', 'finalas': 'Kalėdinis klasės vakarėlis',
 }
 CENTER = (54.6857, 25.2876)  # Katedra
-KLASE_OFFSET = (95, 75)
+# Ežerėliai prie namų ir taškų poslinkiai nuo jų ekrane (x, y).
+LAKES = (54.7069, 25.2466)
+NEAR = {'broliai': (62, -26), 'laiptai': (-175, -6), 'pamoka': (-245, 74), 'autobusas': (-190, 290)}
 
 LAT0 = math.radians(CENTER[0])
 MX = 111320 * math.cos(LAT0)
@@ -83,7 +87,7 @@ class Proj:
 def fit(bbox):
     """Ieško projekcijos: visi taškai telpa ekrane, tarpai tarp jų kuo didesni,
     o žemėlapio duomenys padengia visą ekraną (be tuščių kraštų)."""
-    route_pts = [(lat, lon) for _, _, lat, lon in ROUTE if lat]
+    route_pts = [(lat, lon) for _, _, lat, lon in ROUTE if lat] + [LAKES]
     lm_pts = [(lat, lon) for _, _, lat, lon in LANDMARKS]
     pts = route_pts + lm_pts
     S, Wl, N, E = bbox
@@ -333,8 +337,12 @@ for rid, label, lat, lon in ROUTE:
         continue
     x, y = P(lat, lon)
     route[rid] = {'pos': [round(x), round(y)], 'place': NAMES[rid], 'where': label}
-sx, sy = route['laiptai']['pos']
-route['pamoka'] = {'pos': [sx + KLASE_OFFSET[0], sy + KLASE_OFFSET[1]], 'place': NAMES['pamoka'], 'where': 'Klasė'}
+lx, ly = P(*LAKES)
+for rid, label, lat, lon in ROUTE:
+    if lat is None:
+        dx, dy = NEAR[rid]
+        route[rid] = {'pos': [round(lx + dx), round(ly + dy)], 'place': NAMES[rid], 'where': label}
+route = {rid: route[rid] for rid, _, _, _ in ROUTE}
 landmarks = [{'id': k, 'label': lbl, 'pos': [round(lm_xy[k][0]), round(lm_xy[k][1])]} for k, lbl, _, _ in LANDMARKS]
 layout = {'route': route, 'landmarks': landmarks,
           'attribution': '© OpenStreetMap contributors'}

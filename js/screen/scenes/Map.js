@@ -27,11 +27,12 @@ export class MapScene extends Phaser.Scene {
 
     this.add.image(960, 540, 'map').setDisplaySize(1920, 1080).setDepth(-100);
     this.layout = this.cache.json.get('mapLayout') || null;
-    this.drawLandmarks();
-    snow(this, 500);
-
     this.curve = new Phaser.Curves.Spline(ROUTE.map((r) => new Phaser.Math.Vector2(r.pos[0], r.pos[1])));
     this.samples = this.curve.getPoints(LAST * 40);
+    // maršruto linija - kliūtis užrašams
+    this.routeBoxes = this.samples.filter((_, i) => i % 3 === 0).map((p) => ({ x0: p.x - 9, y0: p.y - 9, x1: p.x + 9, y1: p.y + 9 }));
+    this.drawLandmarks();
+    snow(this, 500);
     this.routeGfx = this.add.graphics().setDepth(10);
     this.points = ROUTE.map((r, i) => this.makePoint(r, i));
     this.placeLabels();
@@ -39,6 +40,7 @@ export class MapScene extends Phaser.Scene {
     const next = this.nextIndex();
     this.at = next === -1 ? LAST : Math.max(0, next - 1);
     this.travel = tOf(this.at);
+    this.tagSide = 0;
     this.makeMarker();
     this.placeMarker(this.travel);
     this.makePanel();
@@ -56,7 +58,21 @@ export class MapScene extends Phaser.Scene {
       callback: () => subtitle(this, A.lines.pick('common', 'map'), { color: '#f1e6ff', y: 930 }),
     });
 
-    this.time.delayedCall(700, () => this.advance());
+    // Grįžus po misijos: įvykdytas taškas "sužiba", tada Adriana lėtai keliauja toliau,
+    // o už jos lieka stora geltona linija.
+    const justDone = next !== 0 && this.A.host.done.has(ROUTE[this.at].id);
+    if (justDone) this.time.delayedCall(400, () => this.celebrate(this.at));
+    this.time.delayedCall(justDone ? 1600 : 700, () => this.advance());
+  }
+
+  celebrate(i) {
+    const p = this.points[i];
+    p.box.setAlpha(1);
+    this.tweens.add({ targets: p.box, scale: 1.35, yoyo: true, duration: 260, ease: 'Back.Out' });
+    const t = headText(this, p.box.x, p.box.y + radOf(i) + 36, 'ĮVYKDYTA!', 40, C.green).setDepth(45).setScale(0.3);
+    this.tweens.add({ targets: t, scale: 1, duration: 260, ease: 'Back.Out' });
+    this.tweens.add({ targets: t, alpha: 0, y: t.y - 30, delay: 1300, duration: 400, onComplete: () => t.destroy() });
+    this.A.sfx.pop();
   }
 
   nextIndex() {
@@ -74,7 +90,7 @@ export class MapScene extends Phaser.Scene {
   moveTo(i, done) {
     const from = this.travel;
     const to = tOf(i);
-    const dur = Math.min(2200, 700 + Math.abs(to - from) * LAST * 450);
+    const dur = Math.min(3000, 1200 + Math.abs(to - from) * LAST * 900);
     this.tweens.addCounter({
       from: 0, to: 1, duration: dur, ease: 'Sine.InOut',
       onUpdate: (tw) => {
@@ -112,6 +128,7 @@ export class MapScene extends Phaser.Scene {
   allDone() {
     this.ready = null;
     this.refreshPoints(-1);
+    this.panel.setVisible(true);
     this.panelKicker.setText('VILNIUS');
     this.panelTitle.setText('VISOS MISIJOS ĮVYKDYTOS!');
     this.panelDesc.setText('ESC - į laukiamąjį');
@@ -139,17 +156,24 @@ export class MapScene extends Phaser.Scene {
     const pts = this.samples;
     const cut = Math.round(this.travel * (pts.length - 1));
     g.clear();
-    g.lineStyle(20, 0x14081f, 0.85);
-    g.strokePoints(pts);
+    // dar nekeliauta - plona punktyrinė
+    g.lineStyle(12, 0x14081f, 0.7);
+    g.strokePoints(pts.slice(cut));
     for (let i = cut; i < pts.length - 1; i++) {
       if (i % 4 < 2) {
-        g.lineStyle(8, 0xff3ea5, 1);
+        g.lineStyle(6, 0xff3ea5, 1);
         g.lineBetween(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y);
       }
     }
+    // jau buvome - stora geltona su švytėjimu
     if (cut > 0) {
-      g.lineStyle(10, 0xffd23f, 1);
-      g.strokePoints(pts.slice(0, cut + 1));
+      const done = pts.slice(0, cut + 1);
+      g.lineStyle(34, 0xffd23f, 0.18);
+      g.strokePoints(done);
+      g.lineStyle(24, 0x14081f, 1);
+      g.strokePoints(done);
+      g.lineStyle(16, 0xffd23f, 1);
+      g.strokePoints(done);
     }
   }
 
@@ -217,8 +241,24 @@ export class MapScene extends Phaser.Scene {
   placeMarker(t) {
     const p = this.curve.getPoint(Phaser.Math.Clamp(t, 0, 1));
     this.marker.setPosition(p.x, p.y - 30);
-    // Prie viršutinio krašto užrašas "JŪS ESATE ČIA" eina į šoną, kad neišlįstų už ekrano.
-    const side = p.y < 240 ? (p.x > 960 ? -1 : 1) : 0;
+    // Užrašas "JŪS ESATE ČIA" - virš žymos arba šone: kur neuždengia kitų taškų ir neišlenda už ekrano.
+    const cost = (side) => {
+      const cx = p.x + side * 182;
+      const cy = p.y - 30 + (side ? -86 : -168);
+      const b = { x0: cx - 118, y0: cy - 23, x1: cx + 118, y1: cy + 23 };
+      let c = b.x0 < 0 || b.x1 > 1920 || b.y0 < 0 ? 1e6 : 0;
+      ROUTE.forEach((r, i) => {
+        const k = radOf(i) + 8;
+        c += overlap(b, { x0: r.pos[0] - k, y0: r.pos[1] - k, x1: r.pos[0] + k, y1: r.pos[1] + k });
+      });
+      return c;
+    };
+    const cur = this.tagSide ?? 0;
+    if (cost(cur) > 0) {
+      const best = [0, 1, -1].reduce((a, b) => (cost(b) < cost(a) ? b : a));
+      if (cost(best) < cost(cur)) this.tagSide = best;
+    }
+    const side = this.tagSide ?? 0;
     const tx = side * 182;
     const ty = side ? -86 : -168;
     this.markerTag[0].setPosition(tx, ty);
@@ -230,7 +270,7 @@ export class MapScene extends Phaser.Scene {
     const obst = ROUTE.map((r, i) => {
       const k = radOf(i) + 6;
       return { x0: r.pos[0] - k, y0: r.pos[1] - k, x1: r.pos[0] + k, y1: r.pos[1] + k };
-    }).concat(this.landmarkBoxes);
+    }).concat(this.landmarkBoxes, this.routeBoxes);
     ROUTE.forEach((r, i) => {
       const { label } = this.points[i];
       const rad = radOf(i);
@@ -260,8 +300,10 @@ export class MapScene extends Phaser.Scene {
       const [top, bottom, dx, hw] = ICON_BOX[l.id] || [-40, 20, 0, 26];
       const x = l.pos[0] + dx;
       this.landmarkBoxes.push({ x0: x - hw, y0: l.pos[1] + top, x1: x + hw, y1: l.pos[1] + bottom });
+      if (!l.label) continue;
       const opts = [l.pos[1] + bottom + 18, l.pos[1] + top - 16];
-      const near = (y) => Math.min(...ROUTE.map((r) => Math.hypot(r.pos[0] - x, r.pos[1] + 30 - y)));
+      const near = (y) => Math.min(...ROUTE.map((r) => Math.hypot(r.pos[0] - x, r.pos[1] + 30 - y)),
+        ...this.samples.map((p) => Math.hypot(p.x - x, p.y - y) + 40));
       const y = near(opts[0]) >= near(opts[1]) || near(opts[0]) > 110 ? opts[0] : opts[1];
       const t = bodyText(this, x, y, l.label, 18, '#d9c8ff').setAlpha(0.9).setDepth(5);
       this.landmarkBoxes.push({ x0: x - t.width / 2, y0: y - t.height / 2, x1: x + t.width / 2, y1: y + t.height / 2 });
@@ -298,15 +340,18 @@ export class MapScene extends Phaser.Scene {
     this.panelAction = headText(this, 26, 172, '', 28, C.white, { strokeThickness: 0 }).setOrigin(0, 0.5);
     this.tweens.add({ targets: this.panelAction, alpha: 0.35, yoyo: true, repeat: -1, duration: 650 });
     box.add([bg, this.panelKicker, this.panelTitle, this.panelDesc, this.panelAction]);
+    box.setVisible(false);
+    this.panel = box;
   }
 
   showPanel(stage) {
+    this.panel.setVisible(true);
     const where = stage.where || stage.place;
     this.panelKicker.setText(`MISIJA ${stage.nr}  ·  ${where.toUpperCase()}`);
     const kmax = PANEL_W - 50;
     this.panelKicker.setScale(this.panelKicker.width > kmax ? kmax / this.panelKicker.width : 1);
     this.panelTitle.setText(stage.mission);
-    // Jei tikra vieta jau pasako pavadinimą (Namai, Stotelė prie Akropolio), rodom etapo pavadinimą.
+    // Jei tikra vieta jau pasako pavadinimą (Namai, Stotelė), rodom etapo pavadinimą.
     this.panelDesc.setText(where.toLowerCase().includes(stage.place.toLowerCase()) ? stage.title : stage.place);
     const max = PANEL_W - 50;
     const fit = this.panelTitle.width > max ? max / this.panelTitle.width : 1;
