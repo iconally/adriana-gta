@@ -100,24 +100,29 @@ export function generateConcertArt(scene) {
     shape(c, (p) => rr(p, -10, FLOOR_Y - 8, 1940, 14, 4), '#2a0a20', 0);
     // eglė dešinėje
     c.fillStyle = '#16402f';
+    // pakopos: viršuje siauriausia, apačioje plačiausia
     for (let k = 0; k < 4; k++) {
-      const w = 120 - k * 24;
+      const w = 48 + k * 24;
       const top = 230 + k * 70;
-      c.beginPath(); c.moveTo(1790, top - 40); c.lineTo(1790 + w, top + 110); c.lineTo(1790 - w, top + 110); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(1680, top - 40); c.lineTo(1680 + w, top + 110); c.lineTo(1680 - w, top + 110); c.closePath(); c.fill();
     }
     for (let i = 0; i < 30; i++) {
       const t = rnd();
       c.fillStyle = cols[i % cols.length];
-      c.beginPath(); c.arc(1790 + (rnd() * 2 - 1) * (30 + t * 90), 230 + t * 300, 6, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(1680 + (rnd() * 2 - 1) * (20 + t * 80), 210 + t * 300, 6, 0, Math.PI * 2); c.fill();
     }
-    shape(c, (p) => { for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k * 4 * Math.PI) / 5; p[k ? 'lineTo' : 'moveTo'](1790 + Math.cos(a) * 26, 186 + Math.sin(a) * 26); } p.closePath(); }, '#ffd23f', 4);
+    shape(c, (p) => { for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k * 4 * Math.PI) / 5; p[k ? 'lineTo' : 'moveTo'](1680 + Math.cos(a) * 26, 186 + Math.sin(a) * 26); } p.closePath(); }, '#ffd23f', 4);
     // užuolaidos
     const curtain = (x0, x1, flip) => {
       const g = c.createLinearGradient(x0, 0, x1, 0);
       g.addColorStop(0, flip ? '#6e0a1f' : '#b0163a');
       g.addColorStop(1, flip ? '#b0163a' : '#6e0a1f');
       c.fillStyle = g;
-      c.beginPath(); c.moveTo(x0, 0); c.lineTo(x1, 0); c.quadraticCurveTo(flip ? x0 + 40 : x1 - 40, 600, x1, 1080); c.lineTo(x0, 1080); c.closePath();
+      c.beginPath();
+      // vidinis kraštas šiek tiek išlenktas, išorinis - iki pat ekrano krašto
+      if (flip) { c.moveTo(x1, 0); c.lineTo(x0, 0); c.quadraticCurveTo(x0 + 40, 600, x0, 1080); c.lineTo(x1, 1080); }
+      else { c.moveTo(x0, 0); c.lineTo(x1, 0); c.quadraticCurveTo(x1 - 40, 600, x1, 1080); c.lineTo(x0, 1080); }
+      c.closePath();
       c.fill();
       c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 6;
       for (let x = x0 + 22; x < x1 - 10; x += 34) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x + (flip ? -10 : 10), 1080); c.stroke(); }

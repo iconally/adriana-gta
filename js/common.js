@@ -39,9 +39,9 @@ export function isBoy(name) {
   return first.endsWith('s');
 }
 
-// Drabužių spalvos: berniukams be rožinės.
-export const GIRL_COLORS = [0xff6fb5, 0x6fe6ff, 0xffd166, 0xa98bff, 0x7dff9b, 0xff9a6b];
-export const BOY_COLORS = [0x4da3ff, 0x6fe6ff, 0x7dff9b, 0xffd166, 0xff9a6b, 0x8a7dff];
+// Vaikų drabužiai - ryškios neoninės (GTA) spalvos: mergaitėms - rožinės atspalviai, berniukams be rožinės.
+export const GIRL_COLORS = [0xff3ea5, 0xff2bd6, 0xff5c8a, 0xd23cff, 0xff7ac4, 0xff1f6b];
+export const BOY_COLORS = [0x2f8bff, 0x2de2e6, 0x3ddc84, 0xffd23f, 0xff7a3c, 0x8a5cff];
 
 // Mokytojos užrašas ekrane: "Daiva" -> "Mokytoja Daiva" (jei sąraše jau parašyta "Mokytoja ..." - paliekam).
 export function teacherLabel(name) {

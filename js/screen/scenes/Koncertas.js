@@ -13,7 +13,7 @@
 import { headText, bodyText, banner, subtitle, missionCard, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
-import { isBoy } from '../../common.js';
+import { isBoy, GIRL_COLORS, BOY_COLORS } from '../../common.js';
 
 const STAGE = STAGES.pianinas;
 const Q = 0.3; // ketvirtinės natos trukmė (s)
@@ -59,12 +59,10 @@ const COND = { x: 960, y: 955, s: 0.7 };
 const KB = { y: 210, w: 120, gap: 126 };
 
 const rand = (a, b) => a + Math.random() * (b - a);
-const NEON_GIRL = [0xff3ea5, 0x2de2e6, 0xffd23f, 0xb06bff, 0x3ddc84, 0xff7a3c];
-const NEON_BOY = [0x2f8bff, 0x2de2e6, 0x3ddc84, 0xffd23f, 0xff7a3c, 0x8a5cff];
 function tintOf(name) {
   let h = 0;
   for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const colors = isBoy(name) ? NEON_BOY : NEON_GIRL;
+  const colors = isBoy(name) ? BOY_COLORS : GIRL_COLORS;
   return colors[h % colors.length];
 }
 const conductorLabel = (name) => (/mokytoj|dirigent/i.test(name) ? name : `Dirigentė ${name}`);

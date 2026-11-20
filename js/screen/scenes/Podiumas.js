@@ -15,7 +15,7 @@ import { headText, bodyText, banner, subtitle, missionCard, snow, C } from '../f
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { runwayY, runwayHW } from '../art-show.js';
-import { isBoy, teacherLabel } from '../../common.js';
+import { isBoy, GIRL_COLORS, BOY_COLORS, teacherLabel } from '../../common.js';
 
 const STAGE = STAGES.podiumas;
 const BPM = 100;
@@ -51,13 +51,10 @@ for (const [u, left, right] of [[0.84, 4, 2], [0.54, 3, 3], [0.24, 3, 3]]) {
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const other = (f) => (f === 'L' ? 'R' : 'L');
-// Mados šou - ryškūs neoniniai drabužiai (GTA stiliumi).
-const SHOW_GIRL = [0xff3ea5, 0x2de2e6, 0xffd23f, 0xb06bff, 0x3ddc84, 0xff7a3c];
-const SHOW_BOY = [0x2f8bff, 0x2de2e6, 0x3ddc84, 0xffd23f, 0xff7a3c, 0x8a5cff];
 function tintOf(name) {
   let h = 0;
   for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const colors = isBoy(name) ? SHOW_BOY : SHOW_GIRL;
+  const colors = isBoy(name) ? BOY_COLORS : GIRL_COLORS;
   return colors[h % colors.length];
 }
 
