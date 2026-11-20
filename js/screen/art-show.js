@@ -146,8 +146,8 @@ export function generateShowArt(scene) {
     }
     // sniegas (žemė)
     const g = c.createLinearGradient(0, 440, 0, 1080);
-    g.addColorStop(0, '#8d80cf');
-    g.addColorStop(1, '#4b3b8f');
+    g.addColorStop(0, '#4b3d8f');
+    g.addColorStop(1, '#251852');
     c.fillStyle = g;
     c.fillRect(0, 440, 1920, 640);
     for (let i = 0; i < 420; i++) {
