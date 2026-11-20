@@ -9,7 +9,7 @@ Kalėdinis klasės vakarėlio žaidimas. Adriana žaidžia dideliame ekrane, o k
 - Telefono mygtukai keičiasi pagal etapą (laukiamajame: "Labas!" ir "Pašokti").
 - 4 etapas "Bėgimas iki autobuso": Adriana šokinėja per balas, pusnis, tvoras ir draugus. Klasiokai mėto gniūžtes, moja iš autobuso, šaukia, o "vairuotojo draugai" prideda iki +5 s.
 - 5 etapas "Mados šou Vingio estradoje": Adriana eina podiumu pagal muziką (← → pakaitomis į taktą), gale - poza (TARPAS). Klasiokai ploja (ramina), fotografuoja, pučia vėją ir leidžia sniegą; mokytoja - komisija, pabaigoje parodo balą.
-- 6 etapas "Kalėdinis koncertas Filharmonijoje": rojalis pagroja frazę („Skamba varpeliai“), Adriana ją pakartoja klavišais A S D F G (Do Re Mi Fa Sol). Klasė - orkestras (varpeliai, smuikai, būgnai, trimitai): groja tik ta grupė, kurios telefonas žalias; finale - visi, pabaigoje visi nusilenkia. Mokytoja - dirigentė.
+- 6 etapas "Kalėdinis koncertas Filharmonijoje": kiekviena frazė („Skamba varpeliai“) eina iš eilės - 1) rojalis pagroja, 2) Adriana groja pagal natų korteles klavišais A S D F G (Do Re Mi Fa Sol; šviečia kita nata ir jos klavišas), 3) atsako viena orkestro grupė (varpeliai, smuikai, būgnai ar trimitai - jų telefonai žali, kitų raudoni). Finale groja visi, pabaigoje visi nusilenkia. Mokytoja - dirigentė.
 - Vedėjo pultas (klavišas H), replikų biblioteka, garso efektai, vietinis testavimo režimas.
 
 ## Darbas su VS Code
@@ -83,7 +83,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 | → arba TARPAS | Adriana perduoda atviruką (3 etapas); jei kas užsižiopsojo 3 s - perduoda už jį |
 | TARPAS arba ↑ | Adrianos šuolis (autobusas) |
 | ← → pakaitomis į taktą | žingsniai podiumu (5 etapas); podiumo gale TARPAS - poza, kai žiedas užsidaro |
-| A S D F G (arba 1-5) | rojalio klavišai Do Re Mi Fa Sol (6 etapas) |
+| A S D F G (arba 1-5) | rojalio klavišai Do Re Mi Fa Sol (6 etapas) - spausk tą, kurio natos kortelė šviečia |
 | R | kartoti etapą |
 | ESC | į laukiamąjį |
 | H | vedėjo pultas |

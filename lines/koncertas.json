@@ -1,9 +1,9 @@
 {
   "intro": [
-    "Patarimas: pirma klausyk ir žiūrėk, kurie klavišai užsidega - tada kartok.",
+    "Eilė: pirma groja rojalis, tada Adriana, tada viena orkestro grupė.",
+    "Patarimas: Adriana spaudžia klavišą, kurio natos kortelė šviečia geltonai.",
     "Patarimas: orkestre groja tik ta grupė, kurios telefonas žalias!",
-    "Patarimas: A S D F G - tai Do Re Mi Fa Sol.",
-    "Patarimas: dirigentė gali paleisti visą orkestrą - „Visi kartu!“"
+    "Patarimas: A S D F G - tai Do Re Mi Fa Sol."
   ],
   "start": [
     "Šviesos gęsta... Koncertas prasideda!",
@@ -16,32 +16,18 @@
     "Rojalis groja - įsimink!"
   ],
   "your_turn": [
-    "Dabar tu, Adriana!",
-    "Kartok!",
-    "Tavo eilė!"
-  ],
-  "phrase_ok": [
-    "Puikiai sugrota!",
-    "Kaip tikra pianistė!",
-    "Salė klausosi užgniaužusi kvapą!",
-    "Bravo!"
-  ],
-  "phrase_ok_help": [
-    "Sugrota! Rojalis truputį padėjo.",
-    "Pavyko! Toliau - dar gražiau."
+    "Dabar tu, Adriana - groji pagal natas!",
+    "Adrianos eilė!",
+    "Spausk šviečiančią natą!"
   ],
   "wrong": [
-    "Ups! Dar kartą...",
-    "Plumpt! Nieko tokio - klausyk dar kartą.",
-    "Ne tas klavišas... bandom iš naujo!"
-  ],
-  "help": [
-    "Rojalis padeda: sek geltoną rodyklę!",
-    "Sek rodyklę - viskas bus gerai!"
+    "Ups! Ne ta nata - pabandyk dar.",
+    "Plumpt! Žiūrėk į geltoną kortelę.",
+    "Beveik! Spausk šviečiantį klavišą."
   ],
   "section": [
     "Dabar groja {grupe}!",
-    "{grupe}, jūsų eilė!"
+    "{Grupe}, jūsų eilė!"
   ],
   "sour": [
     "Kažkas groja ne savo metu!",

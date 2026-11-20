@@ -57,6 +57,9 @@ const PIANO = { x: 790, y: 725, s: 0.9 };
 const ADR = { x: 760, y: 655, s: 0.62 };
 const COND = { x: 960, y: 955, s: 0.7 };
 const KB = { y: 210, w: 120, gap: 126 };
+const ORCH_MS = 4500; // kiek laiko groja orkestro grupė po Adrianos
+const SHEET_Y = 392; // natų lapas virš rojalio
+const STEP_Y = 318; // eiliškumas: rojalis -> Adriana -> grupė
 
 const rand = (a, b) => a + Math.random() * (b - a);
 function tintOf(name) {
@@ -80,7 +83,6 @@ export class KoncertasScene extends Phaser.Scene {
     // Phaser naudoja tą patį scenos objektą, todėl visą būseną nustatom iš naujo.
     this.phraseIdx = 0;
     this.pos = 0;
-    this.help = false;
     this.mistakes = 0;
     this.phraseMistakes = 0;
     this.clean = 0;
@@ -115,7 +117,7 @@ export class KoncertasScene extends Phaser.Scene {
       mission: STAGE.mission,
       title: STAGE.title,
       tip: A.lines.pick('koncertas', 'intro'),
-      controls: 'Adriana: klausyk ir kartok klavišais A S D F G.   Orkestras: grok, kai telefonas žalias!',
+      controls: 'Eilė: 🎹 rojalis → ⭐ Adriana groja pagal natas (A S D F G) → 🔔 orkestro grupė.   Telefonas žalias - grok!',
     });
     this.card.setDepth(1900);
 
@@ -132,7 +134,7 @@ export class KoncertasScene extends Phaser.Scene {
     ];
     // Virtualūs vaikai dažniausiai groja savo metu, kartais suklysta.
     A.host.botFilter = (p, btn) => {
-      if (btn === 'groti') return this.isCued(A.host.roles[p.pid]) ? Math.random() < 0.9 : Math.random() < 0.12;
+      if (btn === 'groti') return this.isCued(A.host.roles[p.pid]) ? Math.random() < 0.9 : Math.random() < 0.06;
       if (btn === 'nusilenkti') return this.mode === 'bow';
       return Math.random() < 0.3;
     };
@@ -182,41 +184,44 @@ export class KoncertasScene extends Phaser.Scene {
     this.startPhrase(0);
   }
 
+  // Kiekviena frazė - 3 žingsniai iš eilės: 1) rojalis groja, 2) Adriana groja pagal natas,
+  // 3) atsako orkestro grupė. Kol groja vienas - kiti tyli.
   startPhrase(i) {
     this.phraseIdx = i;
     this.phraseMistakes = 0;
-    this.help = false;
-    const ph = PHRASES[i];
-    this.cue(ph.section);
     this.phraseText.setText(`Frazė ${i + 1}/${PHRASES.length}  ${'●'.repeat(i)}${'○'.repeat(PHRASES.length - i)}`);
-    this.time.delayedCall(700, () => this.playDemo());
+    this.makeSheet(PHRASES[i]);
+    this.time.delayedCall(500, () => this.playDemo());
   }
 
-  // Rojalis pagroja frazę, klavišai užsidega.
+  // 1) Rojalis pagroja frazę: natos ir klavišai užsidega.
   playDemo() {
     const ph = PHRASES[this.phraseIdx];
     this.mode = 'demo';
     this.pos = 0;
-    this.hint.setVisible(false);
-    this.say('KLAUSYK...', C.yellow);
-    this.maybeSub(this.A.lines.pick('koncertas', 'listen'), '#f1e6ff', 5000);
-    let t = 250;
+    this.cue(null);
+    this.setStep(0);
+    this.say('🎹 ROJALIS GROJA - KLAUSYK', C.yellow);
+    let t = 300;
     [...ph.notes].forEach((n, k) => {
       const d = ph.dur[k] * Q * 1000;
-      this.later(t, () => this.noteSound(n, d, 'demo'));
+      this.later(t, () => { this.noteSound(n, d, 'demo'); this.cardState(k, 'demo'); });
       t += d;
     });
-    this.later(t + 250, () => this.yourTurn());
+    this.later(t + 300, () => this.yourTurn());
   }
 
+  // 2) Adriana groja pagal natas: šviečia kita nata ir jos klavišas.
   yourTurn() {
     this.mode = 'play';
     this.pos = 0;
-    this.say('TAVO EILĖ! Kartok: A S D F G', C.green);
-    this.maybeSub(this.A.lines.pick('koncertas', 'your_turn'), C.green, 6000);
+    this.setStep(1);
+    this.say('⭐ ADRIANA, TAVO EILĖ!', C.green);
+    this.maybeSub(this.A.lines.pick('koncertas', 'your_turn'), C.green, 4000);
+    this.sheet.forEach((c, k) => this.cardState(k, k === 0 ? 'next' : 'idle'));
     this.updateHint();
+    this.updatePhones();
   }
-
   // Suplanuotas veiksmas, kurį galima atšaukti (pvz., pakartojant frazę).
   later(ms, fn) {
     this.events_.push(this.time.delayedCall(ms, fn));
@@ -236,59 +241,69 @@ export class KoncertasScene extends Phaser.Scene {
     const want = ph.notes[this.pos];
     if (KEYS[i] === want) {
       this.noteSound(want, 260, 'ok');
+      this.cardState(this.pos, 'done');
       this.pos += 1;
       if (this.pos >= ph.notes.length) this.phraseDone();
-      else this.updateHint();
+      else { this.cardState(this.pos, 'next'); this.updateHint(); }
       return;
     }
-    // ne tas klavišas
+    // ne tas klavišas - netikra nata, bet tęsiam nuo tos pačios natos
     this.noteSound(KEYS[i], 260, 'bad');
     this.A.sfx.plunk();
     this.mistakes += 1;
     this.phraseMistakes += 1;
-    this.feedback('Ups!', C.red);
-    this.cameras.main.shake(120, 0.003);
-    if (this.help) return; // su pagalba - tiesiog bandyk dar kartą tą patį klavišą
-    if (this.phraseMistakes >= 2) {
-      this.help = true;
-      this.sub(this.A.lines.pick('koncertas', 'help'), C.yellow);
-    } else {
-      this.maybeSub(this.A.lines.pick('koncertas', 'wrong'), C.orange, 0);
-    }
-    this.mode = 'wait';
-    this.hint.setVisible(false);
-    this.say('KLAUSYK DAR KARTĄ...', C.orange);
-    this.time.delayedCall(800, () => { if (this.mode === 'wait') this.playDemo(); });
+    this.feedback('Ne ta nata!', C.red);
+    const c = this.sheet[this.pos];
+    if (c) this.tweens.add({ targets: c.box, x: c.box.x + 8, yoyo: true, repeat: 2, duration: 50 });
+    this.maybeSub(this.A.lines.pick('koncertas', 'wrong'), C.orange, 3000);
   }
 
+  // Kito klavišo paryškinimas ir rodyklė virš jo.
   updateHint() {
-    if (!this.help || this.mode !== 'play') { this.hint.setVisible(false); return; }
-    const want = PHRASES[this.phraseIdx].notes[this.pos];
-    this.hint.setVisible(true).setX(this.keyX(KEYS.indexOf(want)));
+    if (this.mode !== 'play') { this.hint.setVisible(false); this.keys.forEach((k) => k.setStrokeStyle(4, 0x14081f)); return; }
+    const want = KEYS.indexOf(PHRASES[this.phraseIdx].notes[this.pos]);
+    this.keys.forEach((k, j) => k.setStrokeStyle(j === want ? 8 : 4, j === want ? 0xffd23f : 0x14081f));
+    this.hint.setVisible(true).setX(this.keyX(want));
   }
 
   phraseDone() {
-    this.mode = 'between';
+    this.mode = 'orch';
     this.hint.setVisible(false);
+    this.keys.forEach((k) => k.setStrokeStyle(4, 0x14081f));
     if (this.phraseMistakes === 0) this.clean += 1;
-    const t = headText(this, 960, 470, this.phraseMistakes ? 'SUGROTA!' : 'PUIKU!', 120, this.phraseMistakes ? C.teal : C.green).setDepth(1700).setScale(0.4);
+    const t = headText(this, 960, 580, this.phraseMistakes ? 'SUGROTA!' : 'PUIKU!', 110, this.phraseMistakes ? C.teal : C.green).setDepth(1700).setScale(0.4);
     this.tweens.add({ targets: t, scale: 1, duration: 200, ease: 'Back.Out' });
-    this.tweens.add({ targets: t, alpha: 0, y: 430, delay: 800, duration: 300, onComplete: () => t.destroy() });
+    this.tweens.add({ targets: t, alpha: 0, y: 540, delay: 700, duration: 300, onComplete: () => t.destroy() });
     this.A.sfx.plus();
-    this.sub(this.A.lines.pick('koncertas', this.help ? 'phrase_ok_help' : 'phrase_ok'), C.green);
-    this.say(this.phraseMistakes ? 'SUGROTA!' : 'PUIKU!', C.green);
-    // grupė, kuri grojo, nusilenkia
+    // 3) atsako orkestro grupė
+    this.time.delayedCall(600, () => this.orchestraTurn());
+  }
+
+  orchestraTurn() {
     const sec = PHRASES[this.phraseIdx].section;
-    for (const v of this.seats.values()) if (v.role === sec) this.tweens.add({ targets: v.box, y: v.y - 14 * v.s, yoyo: true, duration: 160 });
-    this.time.delayedCall(1500, () => {
+    const S = SECTIONS[sec];
+    this.setStep(2);
+    this.cue(sec);
+    this.say(`${S.emoji} ${S.name}, JŪSŲ EILĖ - GROKITE!`, S.css);
+    this.orchEnd = this.time.now + ORCH_MS;
+    this.orchBar.setVisible(true);
+    this.orchBarBg.setVisible(true);
+    // rojalis tyliai laiko akordą, kad orkestrui būtų smagiau
+    const chord = CHORD[PHRASES[this.phraseIdx].chord];
+    for (let b = 0; b < 6; b++) this.later(b * 700, () => this.A.sfx.piano(chord[b % 3] / 2));
+    this.time.delayedCall(ORCH_MS, () => {
+      this.orchBar.setVisible(false);
+      this.orchBarBg.setVisible(false);
+      for (const v of this.seats.values()) if (v.role === sec) this.tweens.add({ targets: v.box, y: v.y - 14 * v.s, yoyo: true, duration: 160 });
       if (this.phraseIdx + 1 < PHRASES.length) this.startPhrase(this.phraseIdx + 1);
       else this.startFinale();
     });
   }
-
   startFinale() {
     this.mode = 'finale';
     this.cue('visi');
+    this.makeSheet(null);
+    this.setStep(-1);
     this.phraseText.setText(`FINALAS  ${'●'.repeat(PHRASES.length)}`);
     this.say('FINALAS! GROJA VISI!', C.yellow);
     this.sub(this.A.lines.pick('koncertas', 'finale'), C.yellow);
@@ -390,7 +405,7 @@ export class KoncertasScene extends Phaser.Scene {
     if (section && SECTIONS[section]) {
       const S = SECTIONS[section];
       this.secText.setText(`Groja: ${S.emoji} ${S.name}`).setColor(S.css);
-      this.maybeSub(this.A.lines.pick('koncertas', 'section', { grupe: S.name.charAt(0) + S.name.slice(1).toLowerCase() }), S.css, 0);
+      this.maybeSub(this.A.lines.pick('koncertas', 'section', { grupe: S.short, Grupe: S.name.charAt(0) + S.name.slice(1).toLowerCase() }), S.css, 0);
     } else if (section === 'visi') {
       this.secText.setText('Groja: VISI!').setColor(C.yellow);
     } else {
@@ -402,7 +417,15 @@ export class KoncertasScene extends Phaser.Scene {
   // Telefonų viršuje: grojantiems - žalia „GROK!“, kitiems - raudona „Tyliai“.
   updatePhones() {
     const host = this.A.host;
-    if (!this.cued) { if (this.mode !== 'bow') host.setStatus(null); return; }
+    if (this.mode === 'bow' || this.mode === 'end' || this.mode === 'result') return;
+    if (!this.cued) {
+      // groja rojalis arba Adriana - visas orkestras tyli
+      const who = this.mode === 'play' ? 'Adriana ⭐' : 'rojalis 🎹';
+      const by = {};
+      for (const p of host.list()) if (host.isTeacher(p.name)) by[p.pid] = { text: `Tyla - groja ${who}`, tone: 'wait' };
+      host.setStatus({ text: `Tyliai - groja ${who}`, tone: 'wait' }, by);
+      return;
+    }
     const tutti = this.cued === 'visi' || this.time.now < this.tuttiUntil;
     const S = SECTIONS[this.cued];
     const by = {};
@@ -472,6 +495,7 @@ export class KoncertasScene extends Phaser.Scene {
     const vars = { dirigente: conductorLabel(this.condName) };
     this.tweens.add({ targets: this.baton, angle: -70, yoyo: true, duration: 160, repeat: 1 });
     if (action === 'visi') {
+      if (this.mode !== 'orch' && this.mode !== 'finale') { this.condSay('Palaukim...', '#f1e6ff'); return; }
       this.tuttiUntil = this.time.now + 4000;
       this.updatePhones();
       this.time.delayedCall(4050, () => this.updatePhones());
@@ -616,6 +640,64 @@ export class KoncertasScene extends Phaser.Scene {
     this.hint = headText(this, 0, KB.y - 98, '▼', 46, C.yellow).setDepth(D).setVisible(false);
     this.tweens.add({ targets: this.hint, y: KB.y - 86, yoyo: true, repeat: -1, duration: 300 });
     this.fb = headText(this, 470, KB.y + 20, '', 36, C.green).setDepth(D);
+    // eiliškumas
+    this.steps = ['🎹 Rojalis', '⭐ Adriana', '🎼 Orkestras'].map((label, i) => {
+      const x = 960 + (i - 1) * 250;
+      const bg = this.add.rectangle(x, STEP_Y, 220, 40, 0x0b0418, 0.85).setStrokeStyle(3, 0x5b3fd6).setDepth(D);
+      const t = bodyText(this, x, STEP_Y, label, 24, '#9c8fd6', { strokeThickness: 0 }).setDepth(D);
+      if (i < 2) bodyText(this, x + 125, STEP_Y, '→', 26, '#9c8fd6', { strokeThickness: 0 }).setDepth(D);
+      return { bg, t, label };
+    });
+    // orkestro laiko juosta
+    this.orchBarBg = this.add.rectangle(1700, 160, 368, 14, 0x000000, 0.6).setDepth(D).setVisible(false);
+    this.orchBar = this.add.rectangle(1518, 160, 360, 8, 0xffd23f).setOrigin(0, 0.5).setDepth(D).setVisible(false);
+    this.sheet = [];
+  }
+
+  // Natų lapas virš rojalio: kortelės su klavišu ir nata.
+  makeSheet(ph) {
+    (this.sheetObjs || []).forEach((o) => o.destroy());
+    this.sheetObjs = [];
+    this.sheet = [];
+    if (!ph) return;
+    const n = ph.notes.length;
+    const w = 74;
+    const bg = this.add.rectangle(960, SHEET_Y, n * (w + 8) + 30, 96, 0xfdf6e3, 0.96).setStrokeStyle(5, 0x14081f).setDepth(1750);
+    this.sheetObjs.push(bg);
+    [...ph.notes].forEach((note, k) => {
+      const i = KEYS.indexOf(note);
+      const x = 960 + (k - (n - 1) / 2) * (w + 8);
+      const box = this.add.container(x, SHEET_Y).setDepth(1751);
+      const r = this.add.rectangle(0, 0, w, 78, 0xffffff).setStrokeStyle(3, 0x14081f);
+      const l = headText(this, 0, -8, KEY_LABEL[i], 38, '#14081f', { strokeThickness: 0 });
+      const so = bodyText(this, 0, 24, SOLFEGE[i], 18, '#5b3fd6', { strokeThickness: 0 });
+      box.add([r, l, so]);
+      this.sheetObjs.push(box);
+      this.sheet.push({ box, r });
+    });
+  }
+
+  cardState(k, state) {
+    const c = this.sheet[k];
+    if (!c) return;
+    const col = { idle: 0xffffff, next: 0xffd23f, done: 0x3ddc84, demo: 0xffe98a }[state];
+    c.r.setFillStyle(col).setStrokeStyle(state === 'next' ? 6 : 3, 0x14081f);
+    if (state === 'next') this.tweens.add({ targets: c.box, scale: 1.12, yoyo: true, duration: 140 });
+    if (state === 'demo') this.time.delayedCall(260, () => { if (this.mode === 'demo') c.r.setFillStyle(0xffffff); });
+  }
+
+  // Kieno eilė: 0 - rojalis, 1 - Adriana, 2 - orkestras, -1 - nieko (finalas).
+  setStep(i) {
+    this.steps.forEach((s, j) => {
+      const on = j === i;
+      s.bg.setFillStyle(on ? 0xffd23f : 0x0b0418, on ? 1 : 0.85).setStrokeStyle(3, on ? 0x14081f : 0x5b3fd6);
+      s.t.setColor(on ? '#14081f' : '#9c8fd6');
+      if (j === 2) {
+        const sec = this.phraseIdx != null && PHRASES[this.phraseIdx] ? SECTIONS[PHRASES[this.phraseIdx].section] : null;
+        s.t.setText(sec ? `${sec.emoji} ${sec.name.charAt(0)}${sec.name.slice(1).toLowerCase()}` : s.label);
+      }
+      if (on) this.tweens.add({ targets: [s.bg, s.t], scale: 1.08, yoyo: true, duration: 160 });
+    });
   }
 
   light(i, color, ms) {
@@ -643,7 +725,7 @@ export class KoncertasScene extends Phaser.Scene {
   }
 
   sub(text, color) {
-    subtitle(this, text, { color, y: 340 });
+    subtitle(this, text, { color, y: 480 });
     if (this._subtitle) this._subtitle.setDepth(1700);
   }
 
@@ -671,6 +753,10 @@ export class KoncertasScene extends Phaser.Scene {
       this.baton.angle = -30 + Math.sin(this.time.now / 1000 * 6) * 22;
     }
 
+    if (this.mode === 'orch' && this.orchEnd) {
+      const f = Phaser.Math.Clamp((this.orchEnd - this.time.now) / ORCH_MS, 0, 1);
+      this.orchBar.setSize(Math.max(1, 360 * f), 8);
+    }
     const h = this.harmony / 100;
     this.harmFill.setSize(Math.max(1, 360 * h), 16).setFillStyle(h > 0.6 ? 0x3ddc84 : h > 0.3 ? 0xff9a3c : 0xff4d5e);
     this.mistakeText.setText(`Klaidos: ${this.mistakes}`);

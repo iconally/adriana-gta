@@ -4,6 +4,13 @@ import { connectNet } from '../net.js';
 import { MONTHS_LT, uid, mdFrom, netModeFromUrl } from '../common.js';
 import { VERSION } from '../version.js';
 
+// Vibracija tik po pirmo palietimo (kitaip naršyklė ją blokuoja ir rašo klaidą).
+function buzz(pattern) {
+  if (!navigator.vibrate) return;
+  if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
+  navigator.vibrate(pattern);
+}
+
 const $ = (id) => document.getElementById(id);
 document.getElementById('ver').textContent = VERSION;
 const params = new URLSearchParams(location.search);
@@ -65,7 +72,7 @@ async function start() {
     if (d.tone) el.classList.add(d.tone); // go - žalia, wait - raudona
     void el.offsetWidth;
     el.classList.add('show');
-    if (d.buzz !== false && navigator.vibrate) navigator.vibrate([120, 60, 120]);
+    if (d.buzz !== false) buzz([120, 60, 120]);
     clearTimeout(el._t);
     el._t = setTimeout(() => { el.hidden = true; }, d.ms || 3500);
   });
@@ -193,7 +200,7 @@ function onClaimed(d) {
   $('role-me').textContent = d.name;
   $('wait-text').textContent = 'Tu prisijungei! Žiūrėk į ekraną - ten tavo avataras.';
   ui.show('s-wait');
-  if (navigator.vibrate) navigator.vibrate([40, 40, 40]);
+  buzz([40, 40, 40]);
   if (state.sync) setTimeout(render, 1200);
 }
 
@@ -222,7 +229,7 @@ function render() {
     const box = $('buttons');
     box.innerHTML = '';
     for (const b of role.buttons) box.appendChild(makeButton(b));
-    if (navigator.vibrate) navigator.vibrate(60);
+    buzz(60);
   }
   const live = s.phase === 'play' || s.phase === 'lobby';
   $('role-state').textContent = {
@@ -239,7 +246,7 @@ function render() {
     box.textContent = mine.text;
     box.className = `status ${mine.tone || ''}`;
     box.hidden = false;
-    if (mine.holder && !state.wasHolder && navigator.vibrate) navigator.vibrate([150, 60, 150]);
+    if (mine.holder && !state.wasHolder) buzz([150, 60, 150]);
   } else {
     box.hidden = true;
   }
@@ -267,7 +274,7 @@ function makeButton(def) {
     if (now < busyUntil) return;
     busyUntil = now + (def.cd || 1200);
     state.net.send('press', { pid: state.pid, a: def.id });
-    if (navigator.vibrate) navigator.vibrate(25);
+    buzz(25);
     const ok = btn.querySelector('.ok');
     ok.textContent = def.ok || '✓';
     btn.classList.remove('pop');
