@@ -8,7 +8,7 @@
 // skrenda - PAGAVO, atvirukas grįžta vienu vaiku atgal. Laiko riba nėra - misija baigiasi,
 // kai atvirukas pasiekia mokytoją (laikas tik skaičiuojamas).
 // Kiekvienas vaikas turi „Perduoti“ ir vieną savo mygtuką:
-//  - paklausti mokytojos (ji iškart atsisuka!), rašyti uoliai (ilgiau rašo),
+//  - paklausti mokytojos (ji iškart atsisuka!), valgyti mandariną, dainuoti, šnabždėti,
 //    čiaudėti, numesti penalą, žiovauti, kelti ranką (fonas);
 //  - mokytoja: atsisukti (bando pagauti), rašyti toliau.
 
@@ -26,8 +26,6 @@ const WRITE = [3.5, 6.0]; // kiek sekundžių rašo lentoje
 const WARN = 0.8; // „Hmm?“ prieš atsisukant
 const FACE = [1.2, 2.0]; // kiek žiūri į klasę
 const CALM_MS = 1500; // ką tik pradėjusios rašyti mokytojos neatsuksi
-const DILIGENT_ADD = 0.8;
-const DILIGENT_MAX = 2.4;
 const QUESTION_GAP = 9000;
 
 // Suolų eilės: y - suolo viršus, s - mastelis (toliau - mažesni).
@@ -77,7 +75,6 @@ export class PamokaScene extends Phaser.Scene {
     this.questions = 0;
     this.helps = 0;
     this.lastQuestion = -99999;
-    this.lastDiligent = 0;
     this.elapsed = 0;
     this.lastSub = 0;
     this.stats = new Map();
@@ -512,7 +509,9 @@ export class PamokaScene extends Phaser.Scene {
     switch (action) {
       case 'perduoti': return this.kidPass(player, v);
       case 'klausti': return this.ask(player, v);
-      case 'rasyti': return this.diligent(player, v);
+      case 'mandarinas': return this.mandarin(player, v);
+      case 'dainuoti': return this.sing(player, v);
+      case 'snabzdeti': return this.whisper(player, v);
       case 'ranka': if (v) { this.tweens.add({ targets: v.box, y: v.y - 14, yoyo: true, duration: 140 }); this.kidBubble(v, 'Aš! Aš!', C.yellow); } return undefined;
       case 'ziovauti': if (v) { this.kidBubble(v, 'Aaaa...', '#d9c8ff'); this.tweens.add({ targets: v.box, scaleY: v.s * 1.08, yoyo: true, duration: 400 }); } return undefined;
       case 'ciaudeti': return this.sneeze(player, v);
@@ -546,17 +545,39 @@ export class PamokaScene extends Phaser.Scene {
     this.teacherWarn(550);
   }
 
-  diligent(player, v) {
-    if (v) this.tweens.add({ targets: v.box, angle: { from: -4, to: 4 }, yoyo: true, repeat: 3, duration: 60, onComplete: () => v.box.setAngle(0) });
-    const t = this.teacher;
-    const now = this.time.now;
-    if (t.state !== 'writing' || now - this.lastDiligent < 1000 || t.extra >= DILIGENT_MAX) return;
-    this.lastDiligent = now;
-    t.extra += DILIGENT_ADD;
-    t.until += DILIGENT_ADD * 1000;
-    this.stat(player, 'uolumas');
-    if (v) this.kidBubble(v, '✎ ✎ ✎', C.green, 24);
-    if (Math.random() < 0.25) this.maybeSub(this.A.lines.pick('pamoka', 'diligent', { vardas: player.name }), C.green, 4000);
+  // mandarinas: „Skanu!“, žievelės skrenda į šalis
+  mandarin(player, v) {
+    this.A.sfx.rustle();
+    if (!v) return;
+    this.kidBubble(v, 'Skanu!', C.orange);
+    for (let i = 0; i < 3; i++) {
+      const p = this.add.image(v.x, v.y - 60 * v.s, 'mandarin').setDepth(1100).setScale(v.s * 0.45);
+      this.tweens.add({ targets: p, x: v.x + rand(-90, 90) * v.s, y: v.y + rand(10, 60) * v.s, angle: rand(-200, 200), duration: 600, ease: 'Quad.Out' });
+      this.tweens.add({ targets: p, alpha: 0, delay: 900, duration: 400, onComplete: () => p.destroy() });
+    }
+    if (Math.random() < 0.25) this.maybeSub(this.A.lines.pick('pamoka', 'mandarin'), C.orange, 4000);
+  }
+
+  // dainelė: „Din din don!“ ir natos
+  sing(player, v) {
+    this.A.sfx.jingle();
+    if (!v) return;
+    this.kidBubble(v, 'Din din don!', C.teal);
+    for (let i = 0; i < 3; i++) {
+      const n = bodyText(this, v.x + rand(-40, 40) * v.s, v.y - 120 * v.s, i % 2 ? '♫' : '♪', Math.round(40 * v.s + 10), C.teal).setDepth(1100);
+      this.tweens.add({ targets: n, y: n.y - rand(60, 110), x: n.x + rand(-30, 30), alpha: 0, delay: i * 140, duration: 1100, onComplete: () => n.destroy() });
+    }
+    this.tweens.add({ targets: v.box, angle: { from: -6, to: 6 }, yoyo: true, repeat: 2, duration: 160, onComplete: () => v.box.setAngle(0) });
+    if (Math.random() < 0.25) this.maybeSub(this.A.lines.pick('pamoka', 'song'), C.teal, 4000);
+  }
+
+  // šnabždesys: „Ššš...“ ir pasilenkia prie suolo draugo
+  whisper(player, v) {
+    this.A.sfx.shh();
+    if (!v) return;
+    this.kidBubble(v, 'Ššš...', '#d9c8ff');
+    this.tweens.add({ targets: v.box, angle: Math.random() < 0.5 ? -12 : 12, yoyo: true, hold: 300, duration: 180 });
+    if (Math.random() < 0.25) this.maybeSub(this.A.lines.pick('pamoka', 'whisper'), '#d9c8ff', 4000);
   }
 
   sneeze(player, v) {

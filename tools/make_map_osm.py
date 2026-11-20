@@ -54,7 +54,8 @@ NAMES = {
 CENTER = (54.6857, 25.2876)  # Katedra
 # Ežerėliai prie namų ir taškų poslinkiai nuo jų ekrane (x, y).
 LAKES = (54.7069, 25.2466)
-NEAR = {'broliai': (62, -26), 'laiptai': (-175, -6), 'pamoka': (-245, 74), 'autobusas': (-190, 290)}
+# Mokykla ir klasė - viena vieta (taškai liečiasi), stotelė iškart šalia jų.
+NEAR = {'broliai': (62, -26), 'laiptai': (-166, -6), 'pamoka': (-252, -6), 'autobusas': (-338, -6)}
 
 LAT0 = math.radians(CENTER[0])
 MX = 111320 * math.cos(LAT0)

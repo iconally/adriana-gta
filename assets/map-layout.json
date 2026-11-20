@@ -10,7 +10,7 @@
   },
   "laiptai": {
    "pos": [
-    489,
+    498,
     232
    ],
    "place": "Mokykla",
@@ -18,16 +18,16 @@
   },
   "pamoka": {
    "pos": [
-    419,
-    312
+    412,
+    232
    ],
    "place": "Klasė",
    "where": "Klasė"
   },
   "autobusas": {
    "pos": [
-    474,
-    528
+    326,
+    232
    ],
    "place": "Stotelė",
    "where": "Stotelė"

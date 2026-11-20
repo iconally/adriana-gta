@@ -117,11 +117,11 @@ export const STAGES = {
     // Visi vaikai turi mygtuką „Perduoti“, skiriasi tik antrasis.
     // Atvirukas keliauja atsitiktine tvarka (be pasikartojimų), paskutinė gauna mokytoja.
     slots: [
-      'smalsuolis', 'uolus', 'ciaudulys', 'penalas', 'mieguistas', 'ranka',
-      'smalsuolis', 'uolus', 'ciaudulys', 'penalas', 'mieguistas', 'ranka',
-      'smalsuolis', 'uolus', 'ciaudulys', 'penalas', 'mieguistas',
+      'smalsuolis', 'mandarinas', 'ciaudulys', 'daina', 'penalas', 'snabzdukas', 'mieguistas', 'ranka',
+      'mandarinas', 'smalsuolis', 'daina', 'ciaudulys', 'snabzdukas', 'penalas', 'ranka', 'mieguistas',
+      'mandarinas',
     ],
-    fallback: 'uolus',
+    fallback: 'mandarinas',
     teacherRole: 'lenta',
     roles: {
       smalsuolis: {
@@ -131,11 +131,25 @@ export const STAGES = {
           { id: 'klausti', label: 'Paklausti mokytojos', emoji: '🙋', cd: 6000, ok: 'Mokytoja!' },
         ],
       },
-      uolus: {
+      mandarinas: {
         name: '', emoji: '✉️', desc: KLASE_DESC,
         buttons: [
           { id: 'perduoti', label: 'Perduoti', emoji: '✉️', cd: 1200, ok: 'Skrenda!' },
-          { id: 'rasyti', label: 'Rašyti uoliai', emoji: '✍️', cd: 1500, ok: 'Rašau!' },
+          { id: 'mandarinas', label: 'Valgyti mandariną', emoji: '🍊', cd: 2000, ok: 'Skanu!' },
+        ],
+      },
+      daina: {
+        name: '', emoji: '✉️', desc: KLASE_DESC,
+        buttons: [
+          { id: 'perduoti', label: 'Perduoti', emoji: '✉️', cd: 1200, ok: 'Skrenda!' },
+          { id: 'dainuoti', label: 'Dainuoti dainelę', emoji: '🎵', cd: 2500, ok: 'Din din don!' },
+        ],
+      },
+      snabzdukas: {
+        name: '', emoji: '✉️', desc: KLASE_DESC,
+        buttons: [
+          { id: 'perduoti', label: 'Perduoti', emoji: '✉️', cd: 1200, ok: 'Skrenda!' },
+          { id: 'snabzdeti', label: 'Šnabždėti', emoji: '🤫', cd: 1500, ok: 'Ššš...' },
         ],
       },
       ciaudulys: {
@@ -253,9 +267,9 @@ export const STAGES = {
 // (žemėlapyje toks etapas praleidžiamas). "pos" - taško vieta žemėlapyje (1920x1080).
 export const ROUTE = [
   { id: 'broliai', nr: 1, title: 'Soskė broliukams', mission: 'NURAMINK BROLIUKUS', place: 'Namai', where: 'Namai', icon: '🏠', pos: [726, 212], scene: 'Broliai' },
-  { id: 'laiptai', nr: 2, title: 'Laiptai su kuprine', mission: 'UŽLIPK Į MOKYKLĄ', place: 'Mokykla', where: 'Mokykla', icon: '🎒', pos: [489, 232], scene: 'Laiptai' },
-  { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', where: 'Klasė', icon: '✏️', pos: [419, 312], scene: 'Pamoka' },
-  { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė', where: 'Stotelė', icon: '🚌', pos: [474, 528], scene: 'Bus' },
+  { id: 'laiptai', nr: 2, title: 'Laiptai su kuprine', mission: 'UŽLIPK Į MOKYKLĄ', place: 'Mokykla', where: 'Mokykla', icon: '🎒', pos: [498, 232], scene: 'Laiptai' },
+  { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', where: 'Klasė', icon: '✏️', pos: [412, 232], scene: 'Pamoka' },
+  { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė', where: 'Stotelė', icon: '🚌', pos: [326, 232], scene: 'Bus' },
   { id: 'podiumas', nr: 5, title: 'Podiumas', mission: 'NENUGRIŪK PODIUME', place: 'Mados šou', where: 'Vingio estrada', icon: '👗', pos: [570, 625], scene: null },
   { id: 'pianinas', nr: 6, title: 'Pianinas', mission: 'SUGROK KALĖDAS', place: 'Piano koncertas', where: 'Filharmonija', icon: '🎹', pos: [1489, 793], scene: null },
   { id: 'kinu', nr: 7, title: 'Kinų kalba', mission: 'KINŲ KALBOS IŠŠŪKIS', place: 'Kinų kalbos pamoka', where: 'Konfucijaus institutas', icon: '🐼', pos: [1433, 692], scene: null },

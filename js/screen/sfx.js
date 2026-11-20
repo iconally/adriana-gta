@@ -178,6 +178,8 @@ export const sfx = {
   bell() { tone(988, 0.35, { type: 'sine', vol: 0.2 }); tone(784, 0.55, { type: 'sine', vol: 0.2, delay: 0.3 }); },
   click() { tone(1800, 0.03, { type: 'square', vol: 0.12 }); noise(0.04, { vol: 0.1, freq: 3000 }); },
   rustle() { noise(0.35, { vol: 0.12, freq: 1800 }); },
+  jingle() { [1319, 1319, 988].forEach((f, i) => tone(f, i === 2 ? 0.4 : 0.16, { type: 'sine', vol: 0.09, delay: i * 0.17 })); },
+  shh() { noise(0.55, { vol: 0.05, freq: 4200 }); },
   lullaby() { [659, 587, 523].forEach((f, i) => tone(f, 0.28, { type: 'sine', vol: 0.1, delay: i * 0.22 })); },
   twinkle() { [1319, 1568, 1760, 2093].forEach((f, i) => tone(f, 0.12, { type: 'triangle', vol: 0.07, delay: i * 0.07 })); },
   miracle() { [523, 659, 784, 1046, 1319].forEach((f, i) => tone(f, 0.5, { type: 'sine', vol: 0.12, delay: i * 0.12 })); },

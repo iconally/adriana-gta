@@ -29,10 +29,6 @@
     "{vardas}: O kada pertrauka?",
     "{vardas}: Mokytoja, aš nesupratau!"
   ],
-  "diligent": [
-    "{vardas} rašo taip uoliai, kad mokytoja negali atsitraukti nuo lentos.",
-    "Mokytoja: puiku, {vardas}! Rašau toliau."
-  ],
   "sneeze": [
     "APČIHI!",
     "Į sveikatą!"
@@ -73,5 +69,20 @@
   "your_turn": [
     "{vardas} turi atviruką!",
     "Eilė: {vardas}!"
+  ],
+  "mandarin": [
+    "Kvepia mandarinais - Kalėdos jau čia!",
+    "Kas čia valgo mandariną per pamoką?",
+    "Mandarino žievelės skraido po klasę!"
+  ],
+  "song": [
+    "Klasėje kažkas dainuoja - kalėdinė nuotaika!",
+    "Din din don... Tyliau, mokytoja rašo!",
+    "Labai gražiai, bet labai tyliai!"
+  ],
+  "whisper": [
+    "Ššš... kas ten šnabžda?",
+    "Šnabždesiai klasėje...",
+    "Visi šnabžda, kol mokytoja rašo."
   ]
 }
