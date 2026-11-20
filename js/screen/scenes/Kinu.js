@@ -5,6 +5,8 @@
 //  2) Atsakymas: kas atsakė teisingai - jų žibintai auksiniai, kas klydo - pilki.
 //  3) Gaudymas: iš kiekvieno atsakiusio vaiko žibinto krenta tas hieroglifas, kurį jis pasirinko
 //     (atsakė „Sniegas“ - krenta 雪, atsakė „Vanduo“ - krenta 水). Neatsakė - iš jo žibinto nekrenta nieko.
+//     Teisingų visada daugiau nei klaidingų: teisingai atsakiusiųjų žibintai meta papildomų teisingų,
+//     o likusį laiką krenta tik teisingi. Jei niekas neatsakė teisingai - teisingus meta Laoshi (iš viršaus).
 //     Jei niekas neatsakė (pvz. nėra telefonų), krenta atsitiktiniai hieroglifai.
 //     Adriana su raudonu dubeniu bėgioja ← → ir gaudo tik teisingus. Kiekvienas hieroglifas ištariamas kiniškai.
 // Mokytoja - laoshi (老师): „Lėčiau!“ (hieroglifai krenta lėčiau) ir „Nǐ hǎo!“ (žibintai sumirksi).
@@ -74,6 +76,7 @@ export class KinuScene extends Phaser.Scene {
     this.shares = [];
     this.items = [];
     this.drops = [];
+    this.fill = [];
     this.dropIdx = 0;
     this.spawnEvery = SPAWN_MS;
     this.totRight = 0;
@@ -278,16 +281,28 @@ export class KinuScene extends Phaser.Scene {
 
   startCatch() {
     this.mode = 'catch';
-    this.catchEnd = this.time.now + CATCH_MS;
     this.spawnT = 0;
+    const w = WORDS[this.round];
+    const good = { pid: null, ch: w.ch, lt: w.lt.toLowerCase(), correct: true };
     // Kas ką atsakė, tas ir krenta iš jo žibinto. Neatsakiusiųjų žibintai tyli.
-    this.drops = shuffle([...this.answers.entries()].map(([pid, a]) => {
+    const all = [...this.answers.entries()].map(([pid, a]) => {
       const o = this.options[a.choice];
       return { pid, ch: o.ch, lt: o.lt.toLowerCase(), correct: !!o.ok };
-    }));
+    });
+    const right = all.filter((d) => d.correct);
+    const wrong = all.length - right.length;
+    // Teisingų visada bent 2 daugiau nei klaidingų - papildomus meta teisingai atsakiusiųjų žibintai
+    // (jei tokių nėra - Laoshi iš viršaus).
+    const extra = [];
+    for (let i = 0; i < wrong + 2 - right.length; i++) extra.push(right.length ? right[i % right.length] : good);
+    this.drops = shuffle([...all, ...extra]);
+    this.fill = right.length ? right : [good];       // kai sąrašas baigiasi - krenta tik teisingi
     this.dropIdx = 0;
-    this.spawnEvery = this.drops.length ? Phaser.Math.Clamp((CATCH_MS - 900) / this.drops.length, 220, SPAWN_MS) : SPAWN_MS;
-    const w = WORDS[this.round];
+    const n = this.drops.length;
+    const dur = n ? Phaser.Math.Clamp(n * 230 + 900, CATCH_MS, 8500) : CATCH_MS;
+    this.catchEnd = this.time.now + dur;
+    this.spawnEvery = n ? Phaser.Math.Clamp((dur - 900) / n, 200, SPAWN_MS) : SPAWN_MS;
+    if (all.length && !right.length) this.time.delayedCall(900, () => this.teacherSay(`Gaudyk ${w.ch}!`, C.yellow));
     this.say(`GAUDYK ${w.ch} ${w.em}!`, C.yellow);
     this.maybeSub(this.A.lines.pick('kinu', 'catch', { ch: w.ch, lt: w.lt.toLowerCase() }), C.yellow, 2000);
   }
@@ -306,8 +321,8 @@ export class KinuScene extends Phaser.Scene {
     const w = WORDS[this.round];
     let d;
     if (this.drops.length) {
-      // atsakymai krenta iš eilės; jei atsakė nedaug - kartojasi, kol baigsis laikas
-      d = this.drops[this.dropIdx % this.drops.length];
+      // pirma visi atsakymai (sumaišyti), paskui - tik teisingi
+      d = this.dropIdx < this.drops.length ? this.drops[this.dropIdx] : this.fill[(this.dropIdx - this.drops.length) % this.fill.length];
       this.dropIdx += 1;
     } else {
       // niekas neatsakė - atsitiktiniai hieroglifai (pusė teisingų)
@@ -317,7 +332,7 @@ export class KinuScene extends Phaser.Scene {
       d = { pid: null, ch: o.ch, lt: o.lt, correct };
     }
     const all = [...this.lanterns.values()];
-    const L = d.pid ? this.lanterns.get(d.pid) : (all.length ? pick(all) : null);
+    const L = d.pid ? this.lanterns.get(d.pid) : (!this.answers.size && all.length ? pick(all) : null);
     const x = L ? L.x : rand(X_MIN, X_MAX);
     const box = this.add.container(Phaser.Math.Clamp(x, X_MIN, X_MAX), LANTERN.y + 120).setDepth(900);
     const tile = this.add.image(0, 0, 'char_tile').setScale(0.95);
