@@ -3,16 +3,17 @@
 // 5 raundai, po vieną žodį (雪 sniegas, 星 žvaigždė, 树 medis, 月 mėnulis, 火 ugnis):
 //  1) Viktorina: ekrane hieroglifas ir pinjinis, telefonuose - 2 atsakymai. Adriana irgi spėja (← / →).
 //  2) Atsakymas: kas atsakė teisingai - jų žibintai auksiniai, kas klydo - pilki.
-//  3) Gaudymas: iš žibintų krenta hieroglifai. Iš „teisingų“ žibintų - teisingas, iš kitų - klaidinantys.
-//     Kuo daugiau klasės atsakė teisingai, tuo daugiau teisingų hieroglifų krenta.
-//     Adriana su raudonu dubeniu bėgioja ← → ir gaudo tik teisingus.
-// Mokytoja - 老师: „Lėčiau!“ (hieroglifai krenta lėčiau) ir „Nǐ hǎo!“ (žibintai sumirksi).
+//  3) Gaudymas: iš kiekvieno atsakiusio vaiko žibinto krenta tas hieroglifas, kurį jis pasirinko
+//     (atsakė „Sniegas“ - krenta 雪, atsakė „Vanduo“ - krenta 水). Neatsakė - iš jo žibinto nekrenta nieko.
+//     Jei niekas neatsakė (pvz. nėra telefonų), krenta atsitiktiniai hieroglifai.
+//     Adriana su raudonu dubeniu bėgioja ← → ir gaudo tik teisingus. Kiekvienas hieroglifas ištariamas kiniškai.
+// Mokytoja - laoshi (老师): „Lėčiau!“ (hieroglifai krenta lėčiau) ir „Nǐ hǎo!“ (žibintai sumirksi).
 
 import { headText, bodyText, banner, subtitle, missionCard, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { CJK_FONT, FLOOR_Y } from '../art-china.js';
-import { shuffle, teacherLabel } from '../../common.js';
+import { shuffle } from '../../common.js';
 
 const STAGE = STAGES.kinu;
 const WORDS = [
@@ -28,8 +29,10 @@ const DISTRACT = [
   { ch: '大', lt: 'didelis' }, { ch: '口', lt: 'burna' }, { ch: '马', lt: 'arklys' }, { ch: '米', lt: 'ryžiai' },
 ];
 const WRONG_MEANINGS = [
-  { lt: 'Kalnas', em: '⛰️' }, { lt: 'Vanduo', em: '💧' }, { lt: 'Žmogus', em: '🧑' }, { lt: 'Saulė', em: '☀️' }, { lt: 'Arklys', em: '🐴' },
+  { ch: '山', lt: 'Kalnas', em: '⛰️' }, { ch: '水', lt: 'Vanduo', em: '💧' }, { ch: '人', lt: 'Žmogus', em: '🧑' },
+  { ch: '日', lt: 'Saulė', em: '☀️' }, { ch: '马', lt: 'Arklys', em: '🐴' },
 ];
+const laoshiLabel = (name) => `Laoshi ${String(name || 'Daiva').replace(/mokytoja\s*/i, '')}`;
 const QUIZ_MS = 4500;
 const REVEAL_MS = 1100;
 const CATCH_MS = 5500;
@@ -70,6 +73,11 @@ export class KinuScene extends Phaser.Scene {
     this.share = 0.5;
     this.shares = [];
     this.items = [];
+    this.drops = [];
+    this.dropIdx = 0;
+    this.spawnEvery = SPAWN_MS;
+    this.totRight = 0;
+    this.totAns = 0;
     this.spawnT = 0;
     this.catchEnd = 0;
     this.slowUntil = 0;
@@ -135,6 +143,7 @@ export class KinuScene extends Phaser.Scene {
       A.host.lock('b', undefined, false);
       this.setButtons(null);
       A.host.setStatus(null);
+      try { window.speechSynthesis?.cancel(); } catch { /* nieko */ }
     });
   }
 
@@ -187,8 +196,8 @@ export class KinuScene extends Phaser.Scene {
     this.round = i;
     const w = WORDS[i];
     // atsakymai: teisingas + vienas klaidingas, atsitiktine tvarka
-    const wrongPool = [...WORDS.filter((x) => x !== w).map((x) => ({ lt: x.lt, em: x.em })), ...WRONG_MEANINGS];
-    const opts = shuffle([{ lt: w.lt, em: w.em, ok: true }, { ...pick(wrongPool), ok: false }]);
+    const wrongPool = [...WORDS.filter((x) => x !== w).map((x) => ({ ch: x.ch, lt: x.lt, em: x.em })), ...WRONG_MEANINGS];
+    const opts = shuffle([{ ch: w.ch, lt: w.lt, em: w.em, ok: true }, { ...pick(wrongPool), ok: false }]);
     this.options = opts;
     this.correctIdx = opts.findIndex((o) => o.ok);
     this.answers = new Map();
@@ -208,6 +217,7 @@ export class KinuScene extends Phaser.Scene {
     this.say(`KĄ REIŠKIA ${w.ch}?`, C.yellow);
     this.maybeSub(this.A.lines.pick('kinu', 'quiz'), '#f1e6ff', 0);
     this.A.sfx.pop();
+    this.zh(w.ch);
     this.quizTimer = this.time.delayedCall(QUIZ_MS, () => this.reveal());
   }
 
@@ -238,18 +248,21 @@ export class KinuScene extends Phaser.Scene {
     for (const [pid, a] of this.answers) {
       const ok = a.choice === this.correctIdx;
       if (ok) right += 1;
+
       const L = this.lanterns.get(pid);
       if (L) this.lanternState(L, ok ? 'right' : 'wrong');
     }
     this.share = this.answers.size ? right / this.answers.size : 0.5;
     this.shares.push(this.answers.size ? right / this.answers.size : null);
+    this.totRight += right;
+    this.totAns += this.answers.size;
     if (this.adrPick === this.correctIdx) this.adrRight += 1;
     // telefonams - ar atspėjo
     const by = {};
     const ans = `${w.ch} = ${w.lt.toLowerCase()} ${w.em}`;
     for (const p of host.list()) {
       const a = this.answers.get(p.pid);
-      if (host.isTeacher(p.name)) by[p.pid] = { text: `${ans} · teisingai ${Math.round(this.share * 100)}%`, tone: 'go' };
+      if (host.isTeacher(p.name)) by[p.pid] = { text: `${ans} · teisingai ${right} iš ${this.answers.size}`, tone: 'go' };
       else if (!a) by[p.pid] = { text: ans, tone: 'wait' };
       else by[p.pid] = a.choice === this.correctIdx ? { text: `Teisingai! ${ans}`, tone: 'go' } : { text: `Ne... ${ans}`, tone: 'wait' };
     }
@@ -259,6 +272,7 @@ export class KinuScene extends Phaser.Scene {
     this.sub(this.A.lines.pick('kinu', this.share >= 0.6 ? 'reveal_good' : 'reveal_bad'), this.share >= 0.6 ? C.green : C.orange);
     if (this.adrPick === this.correctIdx) this.time.delayedCall(500, () => this.maybeSub(this.A.lines.pick('kinu', 'adr_right'), C.pink, 0));
     this.A.sfx.plus();
+    this.zh(w.ch);
     this.time.delayedCall(REVEAL_MS, () => this.startCatch());
   }
 
@@ -266,6 +280,13 @@ export class KinuScene extends Phaser.Scene {
     this.mode = 'catch';
     this.catchEnd = this.time.now + CATCH_MS;
     this.spawnT = 0;
+    // Kas ką atsakė, tas ir krenta iš jo žibinto. Neatsakiusiųjų žibintai tyli.
+    this.drops = shuffle([...this.answers.entries()].map(([pid, a]) => {
+      const o = this.options[a.choice];
+      return { pid, ch: o.ch, lt: o.lt.toLowerCase(), correct: !!o.ok };
+    }));
+    this.dropIdx = 0;
+    this.spawnEvery = this.drops.length ? Phaser.Math.Clamp((CATCH_MS - 900) / this.drops.length, 220, SPAWN_MS) : SPAWN_MS;
     const w = WORDS[this.round];
     this.say(`GAUDYK ${w.ch} ${w.em}!`, C.yellow);
     this.maybeSub(this.A.lines.pick('kinu', 'catch', { ch: w.ch, lt: w.lt.toLowerCase() }), C.yellow, 2000);
@@ -283,31 +304,34 @@ export class KinuScene extends Phaser.Scene {
 
   spawn() {
     const w = WORDS[this.round];
-    const pCorrect = 0.35 + 0.5 * this.share;
-    const correct = Math.random() < pCorrect;
-    const all = [...this.lanterns.values()];
-    const group = all.filter((L) => L.state === (correct ? 'right' : 'wrong'));
-    const L = group.length ? pick(group) : (all.length ? pick(all) : null);
-    const x = L ? L.x : rand(X_MIN, X_MAX);
-    let ch = w.ch;
-    let lt = w.lt.toLowerCase();
-    if (!correct) {
+    let d;
+    if (this.drops.length) {
+      // atsakymai krenta iš eilės; jei atsakė nedaug - kartojasi, kol baigsis laikas
+      d = this.drops[this.dropIdx % this.drops.length];
+      this.dropIdx += 1;
+    } else {
+      // niekas neatsakė - atsitiktiniai hieroglifai (pusė teisingų)
+      const correct = Math.random() < 0.5;
       const pool = [...DISTRACT, ...WORDS.filter((x2) => x2 !== w).map((x2) => ({ ch: x2.ch, lt: x2.lt.toLowerCase() }))];
-      const d = pick(pool);
-      ch = d.ch; lt = d.lt;
+      const o = correct ? { ch: w.ch, lt: w.lt.toLowerCase() } : pick(pool);
+      d = { pid: null, ch: o.ch, lt: o.lt, correct };
     }
+    const all = [...this.lanterns.values()];
+    const L = d.pid ? this.lanterns.get(d.pid) : (all.length ? pick(all) : null);
+    const x = L ? L.x : rand(X_MIN, X_MAX);
     const box = this.add.container(Phaser.Math.Clamp(x, X_MIN, X_MAX), LANTERN.y + 120).setDepth(900);
     const tile = this.add.image(0, 0, 'char_tile').setScale(0.95);
-    const t = this.cjk(0, 2, ch, 54, '#14081f', { strokeThickness: 0 });
+    const t = this.cjk(0, 2, d.ch, 54, '#14081f', { strokeThickness: 0 });
     box.add([tile, t]);
     box.setScale(0.3);
     this.tweens.add({ targets: box, scale: 1, duration: 160 });
     if (L) this.tweens.add({ targets: L.box, angle: { from: -10, to: 10 }, yoyo: true, duration: 120, onComplete: () => L.box.setAngle(0) });
-    this.items.push({ box, correct, ch, lt, owner: L ? L.pid : null, spin: rand(-30, 30) });
+    this.items.push({ box, correct: d.correct, ch: d.ch, lt: d.lt, owner: L ? L.pid : null, spin: rand(-30, 30) });
   }
 
   onCatch(it) {
     const p = { x: this.adrX, y: ADR_Y - 120 };
+    this.zh(it.ch);
     if (it.correct) {
       this.caught += 1;
       this.A.sfx.plus();
@@ -357,16 +381,14 @@ export class KinuScene extends Phaser.Scene {
     const box = this.add.container(960, 500).setDepth(1950).setAlpha(0);
     box.add(this.add.rectangle(0, 0, 1240, 620, 0x0b0418, 0.9).setStrokeStyle(6, 0xffd23f));
     box.add(headText(this, 0, -245, 'KINŲ KALBA ĮVEIKTA!', 66, C.yellow));
-    const valid = this.shares.filter((x) => x != null);
-    const avg = valid.length ? Math.round((valid.reduce((a, b) => a + b, 0) / valid.length) * 100) : 0;
     const all = [...this.stats.values()];
     const rows = [
       [`Pagauta: ${this.caught}   ·   Ups: ${this.ups}   ·   Žodžiai: ${WORDS.map((w) => w.ch).join(' ')}`, C.white],
-      [`Klasės viktorina: ${avg}% teisingai   ·   Adriana atspėjo: ${this.adrRight}/${WORDS.length}`, C.white],
+      [`Klasės atsakymai: ✓ ${this.totRight} iš ${this.totAns}   ·   Adriana atspėjo: ${this.adrRight} iš ${WORDS.length}`, C.white],
     ];
     const best = (k) => all.map((x) => [x, x.counts[k] || 0]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1])[0];
     const right = best('teisingai');
-    if (right) rows.push([`Daugiausiai teisingų: ${right[0].name} (${right[1]}/${WORDS.length})`, C.green]);
+    if (right) rows.push([`Daugiausiai teisingų: ${right[0].name} (${right[1]} iš ${WORDS.length})`, C.green]);
     const fast = all.filter((x) => x.fast != null).sort((a, b) => a.fast - b.fast)[0];
     if (fast) rows.push([`Greičiausiai atsakė teisingai: ${fast.name} (${(fast.fast / 1000).toFixed(1).replace('.', ',')} s)`, C.teal]);
     const helper = best('padejo');
@@ -406,7 +428,7 @@ export class KinuScene extends Phaser.Scene {
   }
 
   teacherAction(player, action) {
-    const vars = { mokytoja: teacherLabel(this.teacherName) };
+    const vars = { mokytoja: laoshiLabel(this.teacherName) };
     if (action === 'leciau') {
       this.slowUntil = this.time.now + 4000;
       this.teacherSay('Lėčiau!', C.teal);
@@ -421,6 +443,22 @@ export class KinuScene extends Phaser.Scene {
   onLateJoin(player) {
     if (this.A.host.isTeacher(player.name)) return;
     this.makeLanterns();
+  }
+
+  // Ištarti kiniškai (naršyklės balsas zh-CN; jei jo nėra - tyliai).
+  zh(text) {
+    try {
+      const ss = window.speechSynthesis;
+      if (!ss || !window.SpeechSynthesisUtterance) return;
+      if (!this.zhVoice) this.zhVoice = ss.getVoices().find((v) => /^zh(-|_)?(CN|Hans)?/i.test(v.lang)) || null;
+      ss.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'zh-CN';
+      if (this.zhVoice) u.voice = this.zhVoice;
+      u.rate = 0.8;
+      u.volume = 1;
+      ss.speak(u);
+    } catch { /* nieko */ }
   }
 
   // ---------------- piešimas ----------------
@@ -507,8 +545,9 @@ export class KinuScene extends Phaser.Scene {
       B.t.setColor(revealed && o.ok ? '#14081f' : '#f1e6ff');
     });
     const pickTxt = this.adrPick != null ? `   ·   Adriana: ${this.adrPick === 0 ? '←' : '→'}` : '';
-    const pct = revealed && this.answers.size ? `   ·   ${Math.round(this.share * 100)}% teisingai` : '';
-    this.bCount.setText(`Atsakė: ${this.answers.size}/${kids}${pct}${revealed ? '' : pickTxt}`);
+    if (!revealed) { this.bCount.setText(`Atsakė: ${this.answers.size} iš ${kids}${pickTxt}`); return; }
+    const right = [...this.answers.values()].filter((a) => a.choice === this.correctIdx).length;
+    this.bCount.setText(`Atsakė ${this.answers.size} iš ${kids}:   ✓ ${right}   ✗ ${this.answers.size - right}`);
   }
 
   makeTeacher() {
@@ -520,7 +559,7 @@ export class KinuScene extends Phaser.Scene {
     const face = this.add.image(0, -290, faceKey).setDisplaySize(104, 104);
     box.add([body, face]);
     this.teacherBox = box;
-    this.cjk(505, 946, `${teacherLabel(this.teacherName)} 老师`, 22, C.yellow).setDepth(961);
+    this.cjk(505, 946, `${laoshiLabel(this.teacherName)} 老师`, 22, C.yellow).setDepth(961);
   }
 
   teacherSay(text, color) {
@@ -612,7 +651,7 @@ export class KinuScene extends Phaser.Scene {
     // hieroglifų lietus
     if (this.mode === 'catch') {
       this.spawnT += dt * 1000;
-      if (this.spawnT >= SPAWN_MS && now < this.catchEnd - 900) { this.spawnT = 0; this.spawn(); }
+      if (this.spawnT >= this.spawnEvery && now < this.catchEnd - 900) { this.spawnT = 0; this.spawn(); }
     }
     const speed = now < this.slowUntil ? SLOW_FALL : FALL;
     const basketY = ADR_Y - 100 * ADR_S;

@@ -378,7 +378,7 @@ export const STAGES = {
         ],
       },
       laoshi: {
-        name: 'Mokytoja 老师', emoji: '🏮', desc: 'Jūs - kinų kalbos mokytoja (老师 lǎoshī)! „Lėčiau!“ - hieroglifai kelias sekundes krenta lėčiau. „Nǐ hǎo!“ - visi žibintai sumirksi.',
+        name: 'Laoshi 老师', emoji: '🏮', desc: 'Jūs - laoshi (老师, kinų kalbos mokytoja)! „Lėčiau!“ - hieroglifai kelias sekundes krenta lėčiau. „Nǐ hǎo!“ - visi žibintai sumirksi.',
         buttons: [
           { id: 'leciau', label: 'Lėčiau!', emoji: '🐢', cd: 12000, ok: 'Lėčiau...' },
           { id: 'nihao', label: 'Nǐ hǎo!', emoji: '👋', cd: 3000, ok: '你好!' },
