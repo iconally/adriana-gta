@@ -320,7 +320,7 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     while (Date.now() < until) {
       const s = await screen.evaluate(() => { const k = window.AGTA.game.scene.getScene('Koncertas'); return { mode: k?.mode, ph: k?.phraseIdx }; });
       if (s.mode === 'result') break;
-      if (!shotPlay && s.ph >= 1 && s.mode === 'demo') {
+      if (!shotPlay && s.ph >= 1 && s.mode === 'orch') {
         shotPlay = true;
         await shot(screen, '71-koncertas-groja');
         await Promise.all(phones.slice(0, 4).map((p, i) => shot(p.page, `tel-koncertas-${i}`)));

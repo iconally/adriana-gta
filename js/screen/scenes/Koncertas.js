@@ -1,13 +1,14 @@
 // 6 etapas: Kalėdinis koncertas Filharmonijoje - „SUGROK KALĖDAS“.
 //
-// Adriana prie rojalio: rojalis pagroja frazę (klavišai užsidega), Adriana ją pakartoja
-// klavišais A S D F G (Do Re Mi Fa Sol). Laikas nesvarbus - svarbi tvarka. Suklydus frazė
-// parodoma iš naujo; po 2 klaidų toje pačioje frazėje rojalis padeda (geltona rodyklė).
-// 4 frazės „Skamba varpeliai“ (Jingle Bells, liaudies melodija), tada finalas ir nusilenkimas.
+// Adriana - tai rojalis. Melodija „Skamba varpeliai“ (Jingle Bells, liaudies melodija)
+// suskaidyta į 4 frazes. Eilė: 🎹 rojalis (Adriana) -> 🥁 būgnai -> 🎹 -> 🎺 trimitai ->
+// 🎹 -> 🎻 smuikai -> 🎹 -> 🔔 varpeliai -> finalas (visi) -> nusilenkimas.
+// Adriana groja pagal natų eilutę: šviečia kita nata su klavišu (A S D F G = Do Re Mi Fa Sol).
+// Visa melodija trunka ne ilgiau nei 1 min: jei Adriana per 7 s frazės nebaigia,
+// rojalis pagroja likusias natas pats.
 //
-// Klasė - orkestras: varpeliai, smuikai, būgnai, trimitai. Kiekvienoje frazėje groja viena
-// grupė (jų telefonai žali), kitos tyli (raudona). Grojant savo metu kyla orkestro darna,
-// ne laiku - netikra nata ir darna krenta. Finale groja visi, pabaigoje visi nusilenkia.
+// Klasė - orkestras: kai groja jų grupė, telefonai žali („GROK!“), kitaip - raudoni („Tyliai“).
+// Grojant savo metu kyla orkestro darna, ne laiku - netikra nata. Pabaigoje visi nusilenkia.
 // Mokytoja - dirigentė: „Visi kartu!“ (kelias sekundes groja visi) ir „Ššš!“ (nutildo).
 
 import { headText, bodyText, banner, subtitle, missionCard, C } from '../fx.js';
@@ -16,7 +17,6 @@ import { STAGES } from '../stages.js';
 import { isBoy, GIRL_COLORS, BOY_COLORS } from '../../common.js';
 
 const STAGE = STAGES.pianinas;
-const Q = 0.3; // ketvirtinės natos trukmė (s)
 const NOTE_F = { C: 523.25, D: 587.33, E: 659.25, F: 698.46, G: 783.99 };
 const KEYS = ['C', 'D', 'E', 'F', 'G'];
 const KEY_LABEL = ['A', 'S', 'D', 'F', 'G'];
@@ -27,22 +27,29 @@ const CHORD = {
   G: [783.99, 987.77, 587.33],
 };
 const PHRASES = [
-  { notes: 'EEEEEE', dur: [1, 1, 2, 1, 1, 2], section: 'varpeliai', chord: 'C' },
-  { notes: 'EGCDE', dur: [1, 1, 1.5, 0.5, 3], section: 'smuikai', chord: 'C' },
-  { notes: 'FFFFFEE', dur: [1, 1, 1.5, 0.5, 1, 1, 2], section: 'bugnai', chord: 'F' },
-  { notes: 'EDDEDG', dur: [1, 1, 1, 1, 2, 2], section: 'trimitai', chord: 'G' },
+  { notes: 'EEEEEE', section: 'bugnai', chord: 'C' },
+  { notes: 'EGCDE', section: 'trimitai', chord: 'C' },
+  { notes: 'FFFFFEE', section: 'smuikai', chord: 'F' },
+  { notes: 'EDDEDG', section: 'varpeliai', chord: 'G' },
 ];
-const FINALE = {
-  notes: 'EEEEEEEGCDEFFFFFEEEGGFDC',
-  dur: [1, 1, 2, 1, 1, 2, 1, 1, 1.5, 0.5, 4, 1, 1, 1.5, 0.5, 1, 1, 0.5, 0.5, 1, 1, 1, 1, 4],
-  q: 0.26,
-};
+const FINALE = { notes: 'EEEEEEEGCDE', dur: [1, 1, 2, 1, 1, 2, 1, 1, 1.5, 0.5, 4], q: 0.24 };
 const SECTIONS = {
   varpeliai: { name: 'VARPELIAI', short: 'varpeliai', emoji: '🔔', color: 0xffd23f, css: C.yellow, tex: 'inst_bells' },
   smuikai: { name: 'SMUIKAI', short: 'smuikai', emoji: '🎻', color: 0xff7a3c, css: C.orange, tex: 'inst_violin' },
   bugnai: { name: 'BŪGNAI', short: 'būgnai', emoji: '🥁', color: 0x2de2e6, css: C.teal, tex: 'inst_drum' },
   trimitai: { name: 'TRIMITAI', short: 'trimitai', emoji: '🎺', color: 0xff3ea5, css: C.pink, tex: 'inst_trumpet' },
 };
+// Eilutė viršuje: kas groja dabar.
+const LINEUP = [
+  { id: 'rojalis', label: '🎹 Rojalis' },
+  { id: 'bugnai', label: '🥁 Būgnai' },
+  { id: 'trimitai', label: '🎺 Trimitai' },
+  { id: 'smuikai', label: '🎻 Smuikai' },
+  { id: 'varpeliai', label: '🔔 Varpeliai' },
+];
+const MELODY_S = 60; // visa melodija - ne ilgiau nei 1 min
+const ADR_LIMIT = 7000; // tiek ms Adriana turi frazei, paskui rojalis pagelbsti
+const ORCH_MS = 3500; // kiek laiko groja orkestro grupė
 // Orkestro vietos: kiekviena grupė stovi kartu.
 const FRONT = { g: 724, s: 0.72 };
 const BACK = { g: 530, s: 0.58 };
@@ -56,10 +63,8 @@ const OVERFLOW = [230, 1690, 1790, 130].map((x) => ({ x, ...BACK }));
 const PIANO = { x: 790, y: 725, s: 0.9 };
 const ADR = { x: 760, y: 655, s: 0.62 };
 const COND = { x: 960, y: 955, s: 0.7 };
-const KB = { y: 210, w: 120, gap: 126 };
-const ORCH_MS = 4500; // kiek laiko groja orkestro grupė po Adrianos
-const SHEET_Y = 392; // natų lapas virš rojalio
-const STEP_Y = 318; // eiliškumas: rojalis -> Adriana -> grupė
+const LINEUP_Y = 140;
+const SHEET_Y = 300; // natų eilutė
 
 const rand = (a, b) => a + Math.random() * (b - a);
 function tintOf(name) {
@@ -69,14 +74,14 @@ function tintOf(name) {
   return colors[h % colors.length];
 }
 const conductorLabel = (name) => (/mokytoj|dirigent/i.test(name) ? name : `Dirigentė ${name}`);
-
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 export class KoncertasScene extends Phaser.Scene {
   constructor() { super('Koncertas'); }
 
   create() {
     const A = window.AGTA;
     this.A = A;
-    this.mode = 'intro'; // intro -> count -> demo/play/wait/between (x4) -> finale -> bow -> end -> result
+    this.mode = 'intro'; // intro -> count -> (play -> orch) x4 -> finale -> bow -> end -> result
     A.host.setPhase('intro', STAGE);
     A.host.lock('nusilenkti', null, false); // „Nusilenkti“ - tik pabaigoje
 
@@ -89,7 +94,7 @@ export class KoncertasScene extends Phaser.Scene {
     this.cued = null;
     this.tuttiUntil = 0;
     this.shushUntil = 0;
-    this.harmony = 50;
+    this.harmony = 65;
     this.onTimes = [];
     this.offTimes = [];
     this.lastInst = {};
@@ -99,6 +104,10 @@ export class KoncertasScene extends Phaser.Scene {
     this.elapsed = 0;
     this.events_ = [];
     this.autoT = 0;
+    this.melodyLeft = MELODY_S;
+    this.phraseStart = 0;
+    this.assisting = false;
+    this.orchEnd = 0;
     this.stats = new Map();
     this.sectionHits = {};
     this.seats = new Map();
@@ -117,7 +126,7 @@ export class KoncertasScene extends Phaser.Scene {
       mission: STAGE.mission,
       title: STAGE.title,
       tip: A.lines.pick('koncertas', 'intro'),
-      controls: 'Eilė: 🎹 rojalis → ⭐ Adriana groja pagal natas (A S D F G) → 🔔 orkestro grupė.   Telefonas žalias - grok!',
+      controls: 'Adriana - rojalis: spausk šviečiančios natos klavišą (A S D F G).   Orkestras: grok, kai telefonas žalias!',
     });
     this.card.setDepth(1900);
 
@@ -184,71 +193,44 @@ export class KoncertasScene extends Phaser.Scene {
     this.startPhrase(0);
   }
 
-  // Kiekviena frazė - 3 žingsniai iš eilės: 1) rojalis groja, 2) Adriana groja pagal natas,
-  // 3) atsako orkestro grupė. Kol groja vienas - kiti tyli.
+  // Frazė: 1) Adriana (rojalis) groja pagal natas, 2) atsako orkestro grupė.
   startPhrase(i) {
     this.phraseIdx = i;
     this.phraseMistakes = 0;
     this.phraseText.setText(`Frazė ${i + 1}/${PHRASES.length}  ${'●'.repeat(i)}${'○'.repeat(PHRASES.length - i)}`);
-    this.makeSheet(PHRASES[i]);
-    this.time.delayedCall(500, () => this.playDemo());
-  }
-
-  // 1) Rojalis pagroja frazę: natos ir klavišai užsidega.
-  playDemo() {
-    const ph = PHRASES[this.phraseIdx];
-    this.mode = 'demo';
-    this.pos = 0;
-    this.cue(null);
-    this.setStep(0);
-    this.say('🎹 ROJALIS GROJA - KLAUSYK', C.yellow);
-    let t = 300;
-    [...ph.notes].forEach((n, k) => {
-      const d = ph.dur[k] * Q * 1000;
-      this.later(t, () => { this.noteSound(n, d, 'demo'); this.cardState(k, 'demo'); });
-      t += d;
-    });
-    this.later(t + 300, () => this.yourTurn());
-  }
-
-  // 2) Adriana groja pagal natas: šviečia kita nata ir jos klavišas.
-  yourTurn() {
     this.mode = 'play';
     this.pos = 0;
-    this.setStep(1);
-    this.say('⭐ ADRIANA, TAVO EILĖ!', C.green);
-    this.maybeSub(this.A.lines.pick('koncertas', 'your_turn'), C.green, 4000);
-    this.sheet.forEach((c, k) => this.cardState(k, k === 0 ? 'next' : 'idle'));
-    this.updateHint();
-    this.updatePhones();
+    this.assisting = false;
+    this.phraseStart = this.time.now;
+    this.cue(null);
+    this.setLineup('rojalis');
+    this.makeSheet(PHRASES[i]);
+    this.cardState(0, 'next');
+    this.say('🎹 ADRIANA, GROK!', C.green);
+    if (i === 0) this.maybeSub(this.A.lines.pick('koncertas', 'your_turn'), C.green, 0);
   }
-  // Suplanuotas veiksmas, kurį galima atšaukti (pvz., pakartojant frazę).
+
+  // Suplanuotas veiksmas, kurį galima atšaukti.
   later(ms, fn) {
     this.events_.push(this.time.delayedCall(ms, fn));
   }
 
-  noteSound(n, ms, kind) {
-    const i = KEYS.indexOf(n);
+  noteSound(n) {
     this.A.sfx.piano(NOTE_F[n]);
-    this.light(i, kind === 'demo' ? 0xffd23f : kind === 'ok' ? 0x3ddc84 : 0xff4d5e, Math.max(160, ms * 0.85));
     this.tweens.add({ targets: this.adrBox, y: ADR.y - 5, yoyo: true, duration: 80 });
   }
 
   onKey(i) {
-    if (this.mode === 'demo') { this.feedback('Palauk - klausyk!', C.orange); return; }
-    if (this.mode !== 'play') return;
+    if (this.mode !== 'play' || this.assisting) return;
     const ph = PHRASES[this.phraseIdx];
     const want = ph.notes[this.pos];
     if (KEYS[i] === want) {
-      this.noteSound(want, 260, 'ok');
-      this.cardState(this.pos, 'done');
-      this.pos += 1;
-      if (this.pos >= ph.notes.length) this.phraseDone();
-      else { this.cardState(this.pos, 'next'); this.updateHint(); }
+      this.noteSound(want);
+      this.advanceNote();
       return;
     }
     // ne tas klavišas - netikra nata, bet tęsiam nuo tos pačios natos
-    this.noteSound(KEYS[i], 260, 'bad');
+    this.A.sfx.piano(NOTE_F[KEYS[i]]);
     this.A.sfx.plunk();
     this.mistakes += 1;
     this.phraseMistakes += 1;
@@ -258,39 +240,47 @@ export class KoncertasScene extends Phaser.Scene {
     this.maybeSub(this.A.lines.pick('koncertas', 'wrong'), C.orange, 3000);
   }
 
-  // Kito klavišo paryškinimas ir rodyklė virš jo.
-  updateHint() {
-    if (this.mode !== 'play') { this.hint.setVisible(false); this.keys.forEach((k) => k.setStrokeStyle(4, 0x14081f)); return; }
-    const want = KEYS.indexOf(PHRASES[this.phraseIdx].notes[this.pos]);
-    this.keys.forEach((k, j) => k.setStrokeStyle(j === want ? 8 : 4, j === want ? 0xffd23f : 0x14081f));
-    this.hint.setVisible(true).setX(this.keyX(want));
+  advanceNote() {
+    const ph = PHRASES[this.phraseIdx];
+    this.cardState(this.pos, 'done');
+    this.pos += 1;
+    if (this.pos >= ph.notes.length) this.phraseDone();
+    else this.cardState(this.pos, 'next');
+  }
+
+  // Adriana per ilgai - rojalis greitai pagroja likusias natas (kad melodija tilptų į 1 min).
+  assist() {
+    this.assisting = true;
+    this.feedback('Rojalis padeda...', C.yellow);
+    const ph = PHRASES[this.phraseIdx];
+    for (let k = this.pos; k < ph.notes.length; k++) {
+      this.later((k - this.pos) * 230, () => { this.noteSound(ph.notes[k]); this.advanceNote(); });
+    }
   }
 
   phraseDone() {
     this.mode = 'orch';
-    this.hint.setVisible(false);
-    this.keys.forEach((k) => k.setStrokeStyle(4, 0x14081f));
-    if (this.phraseMistakes === 0) this.clean += 1;
-    const t = headText(this, 960, 580, this.phraseMistakes ? 'SUGROTA!' : 'PUIKU!', 110, this.phraseMistakes ? C.teal : C.green).setDepth(1700).setScale(0.4);
+    if (this.phraseMistakes === 0 && !this.assisting) this.clean += 1;
+    const ok = this.phraseMistakes === 0 && !this.assisting;
+    const t = headText(this, 960, 580, ok ? 'PUIKU!' : 'SUGROTA!', 110, ok ? C.green : C.teal).setDepth(1700).setScale(0.4);
     this.tweens.add({ targets: t, scale: 1, duration: 200, ease: 'Back.Out' });
-    this.tweens.add({ targets: t, alpha: 0, y: 540, delay: 700, duration: 300, onComplete: () => t.destroy() });
+    this.tweens.add({ targets: t, alpha: 0, y: 540, delay: 600, duration: 300, onComplete: () => t.destroy() });
     this.A.sfx.plus();
-    // 3) atsako orkestro grupė
-    this.time.delayedCall(600, () => this.orchestraTurn());
+    this.time.delayedCall(500, () => this.orchestraTurn());
   }
 
   orchestraTurn() {
     const sec = PHRASES[this.phraseIdx].section;
     const S = SECTIONS[sec];
-    this.setStep(2);
+    this.setLineup(sec);
     this.cue(sec);
-    this.say(`${S.emoji} ${S.name}, JŪSŲ EILĖ - GROKITE!`, S.css);
+    this.say(`${S.emoji} ${S.name}, GROKITE!`, S.css);
     this.orchEnd = this.time.now + ORCH_MS;
     this.orchBar.setVisible(true);
     this.orchBarBg.setVisible(true);
     // rojalis tyliai laiko akordą, kad orkestrui būtų smagiau
     const chord = CHORD[PHRASES[this.phraseIdx].chord];
-    for (let b = 0; b < 6; b++) this.later(b * 700, () => this.A.sfx.piano(chord[b % 3] / 2));
+    for (let b = 0; b < 5; b++) this.later(b * 700, () => this.A.sfx.piano(chord[b % 3] / 2));
     this.time.delayedCall(ORCH_MS, () => {
       this.orchBar.setVisible(false);
       this.orchBarBg.setVisible(false);
@@ -299,19 +289,20 @@ export class KoncertasScene extends Phaser.Scene {
       else this.startFinale();
     });
   }
+
   startFinale() {
     this.mode = 'finale';
     this.cue('visi');
     this.makeSheet(null);
-    this.setStep(-1);
+    this.setLineup('visi');
     this.phraseText.setText(`FINALAS  ${'●'.repeat(PHRASES.length)}`);
     this.say('FINALAS! GROJA VISI!', C.yellow);
     this.sub(this.A.lines.pick('koncertas', 'finale'), C.yellow);
-    let t = 600;
+    let t = 300;
     [...FINALE.notes].forEach((n, k) => {
       const d = FINALE.dur[k] * FINALE.q * 1000;
       this.later(t, () => {
-        this.noteSound(n, d, 'demo');
+        this.noteSound(n);
         if (k % 2 === 0) this.A.sfx.instrument('bugnai', 0);
       });
       t += d;
@@ -322,6 +313,7 @@ export class KoncertasScene extends Phaser.Scene {
   startBow() {
     this.mode = 'bow';
     this.cue(null);
+    this.setLineup(null);
     this.A.host.lock('nusilenkti', undefined, false);
     this.A.host.setStatus({ text: 'Nusilenk! 🙇', tone: 'go' });
     this.say('NUSILENKITE!', C.yellow);
@@ -404,12 +396,7 @@ export class KoncertasScene extends Phaser.Scene {
     this.setGlows(section);
     if (section && SECTIONS[section]) {
       const S = SECTIONS[section];
-      this.secText.setText(`Groja: ${S.emoji} ${S.name}`).setColor(S.css);
-      this.maybeSub(this.A.lines.pick('koncertas', 'section', { grupe: S.short, Grupe: S.name.charAt(0) + S.name.slice(1).toLowerCase() }), S.css, 0);
-    } else if (section === 'visi') {
-      this.secText.setText('Groja: VISI!').setColor(C.yellow);
-    } else {
-      this.secText.setText('');
+      this.maybeSub(this.A.lines.pick('koncertas', 'section', { grupe: S.short, Grupe: cap(S.short) }), S.css, 0);
     }
     this.updatePhones();
   }
@@ -419,8 +406,8 @@ export class KoncertasScene extends Phaser.Scene {
     const host = this.A.host;
     if (this.mode === 'bow' || this.mode === 'end' || this.mode === 'result') return;
     if (!this.cued) {
-      // groja rojalis arba Adriana - visas orkestras tyli
-      const who = this.mode === 'play' ? 'Adriana ⭐' : 'rojalis 🎹';
+      // groja Adriana (rojalis) - visas orkestras tyli
+      const who = 'Adriana 🎹';
       const by = {};
       for (const p of host.list()) if (host.isTeacher(p.name)) by[p.pid] = { text: `Tyla - groja ${who}`, tone: 'wait' };
       host.setStatus({ text: `Tyliai - groja ${who}`, tone: 'wait' }, by);
@@ -615,8 +602,6 @@ export class KoncertasScene extends Phaser.Scene {
     bodyText(this, COND.x, COND.y + 6, conductorLabel(this.condName), 26, C.yellow).setDepth(COND.y + 1);
   }
 
-  keyX(i) { return 960 + (i - 2) * KB.gap; }
-
   makeHud() {
     const D = 1800;
     headText(this, 40, 54, STAGE.mission, 46, C.yellow).setOrigin(0, 0.5).setDepth(D);
@@ -625,52 +610,52 @@ export class KoncertasScene extends Phaser.Scene {
     bodyText(this, 1880, 40, 'Orkestro darna', 24, '#f1e6ff').setOrigin(1, 0.5).setDepth(D);
     this.add.rectangle(1700, 76, 368, 26, 0x000000, 0.6).setStrokeStyle(3, 0x14081f).setDepth(D);
     this.harmFill = this.add.rectangle(1518, 76, 180, 16, 0x3ddc84).setOrigin(0, 0.5).setDepth(D);
-    this.secText = headText(this, 1880, 124, '', 34, C.yellow).setOrigin(1, 0.5).setDepth(D);
+    this.timeText = headText(this, 1880, 124, `⏱ ${MELODY_S} s`, 34, '#f1e6ff').setOrigin(1, 0.5).setDepth(D);
     this.stateText = headText(this, 960, 56, '', 44, C.white).setDepth(D);
-    // klaviatūra: A S D F G = Do Re Mi Fa Sol
-    this.add.rectangle(960, KB.y, 5 * KB.gap + 40, 160, 0x0b0418, 0.8).setStrokeStyle(4, 0xffd23f).setDepth(D - 2);
-    this.keys = KEYS.map((_, i) => {
-      const x = this.keyX(i);
-      const r = this.add.rectangle(x, KB.y, KB.w, 130, 0xfdf6e3).setStrokeStyle(4, 0x14081f).setDepth(D - 1);
-      headText(this, x, KB.y + 18, KEY_LABEL[i], 44, '#14081f', { strokeThickness: 0 }).setDepth(D);
-      bodyText(this, x, KB.y + 50, SOLFEGE[i], 22, '#5b3fd6', { strokeThickness: 0 }).setDepth(D);
-      return r;
+    // eilutė: kas dabar groja
+    this.lineup = LINEUP.map((L, i) => {
+      const x = 960 + (i - 2) * 228;
+      const bg = this.add.rectangle(x, LINEUP_Y, 212, 50, 0x0b0418, 0.85).setStrokeStyle(3, 0x5b3fd6).setDepth(D);
+      const t = bodyText(this, x, LINEUP_Y, L.label, 26, '#9c8fd6', { strokeThickness: 0 }).setDepth(D);
+      return { id: L.id, bg, t };
     });
-    for (const i of [0.5, 1.5, 3.5]) this.add.rectangle(this.keyX(i), KB.y - 34, 54, 62, 0x14081f).setDepth(D);
-    this.hint = headText(this, 0, KB.y - 98, '▼', 46, C.yellow).setDepth(D).setVisible(false);
-    this.tweens.add({ targets: this.hint, y: KB.y - 86, yoyo: true, repeat: -1, duration: 300 });
-    this.fb = headText(this, 470, KB.y + 20, '', 36, C.green).setDepth(D);
-    // eiliškumas
-    this.steps = ['🎹 Rojalis', '⭐ Adriana', '🎼 Orkestras'].map((label, i) => {
-      const x = 960 + (i - 1) * 250;
-      const bg = this.add.rectangle(x, STEP_Y, 220, 40, 0x0b0418, 0.85).setStrokeStyle(3, 0x5b3fd6).setDepth(D);
-      const t = bodyText(this, x, STEP_Y, label, 24, '#9c8fd6', { strokeThickness: 0 }).setDepth(D);
-      if (i < 2) bodyText(this, x + 125, STEP_Y, '→', 26, '#9c8fd6', { strokeThickness: 0 }).setDepth(D);
-      return { bg, t, label };
-    });
-    // orkestro laiko juosta
-    this.orchBarBg = this.add.rectangle(1700, 160, 368, 14, 0x000000, 0.6).setDepth(D).setVisible(false);
-    this.orchBar = this.add.rectangle(1518, 160, 360, 8, 0xffd23f).setOrigin(0, 0.5).setDepth(D).setVisible(false);
+    // orkestro laiko juosta (po eilute)
+    this.orchBarBg = this.add.rectangle(960, LINEUP_Y + 40, 600, 12, 0x000000, 0.6).setDepth(D).setVisible(false);
+    this.orchBar = this.add.rectangle(660, LINEUP_Y + 40, 592, 6, 0xffd23f).setOrigin(0, 0.5).setDepth(D).setVisible(false);
+    this.fb = headText(this, 960, SHEET_Y + 78, '', 36, C.green).setDepth(D);
     this.sheet = [];
   }
 
-  // Natų lapas virš rojalio: kortelės su klavišu ir nata.
+  // Kas groja: 'rojalis', grupė, 'visi' arba null.
+  setLineup(id) {
+    this.lineup.forEach((L) => {
+      const on = id === 'visi' || L.id === id;
+      const col = L.id === 'rojalis' ? 0x3ddc84 : SECTIONS[L.id].color;
+      L.bg.setFillStyle(on ? col : 0x0b0418, on ? 1 : 0.85).setStrokeStyle(on ? 5 : 3, on ? 0xffffff : 0x5b3fd6);
+      L.t.setColor(on ? '#14081f' : '#9c8fd6');
+      L.bg.setScale(1);
+      L.t.setScale(1);
+      if (on && id !== 'visi') this.tweens.add({ targets: [L.bg, L.t], scale: 1.1, yoyo: true, duration: 180 });
+    });
+  }
+
+  // Natų eilutė: kortelės su klavišu ir nata (vienintelė „klaviatūra“ ekrane).
   makeSheet(ph) {
     (this.sheetObjs || []).forEach((o) => o.destroy());
     this.sheetObjs = [];
     this.sheet = [];
     if (!ph) return;
     const n = ph.notes.length;
-    const w = 74;
-    const bg = this.add.rectangle(960, SHEET_Y, n * (w + 8) + 30, 96, 0xfdf6e3, 0.96).setStrokeStyle(5, 0x14081f).setDepth(1750);
+    const w = 96;
+    const bg = this.add.rectangle(960, SHEET_Y, n * (w + 10) + 34, 120, 0xfdf6e3, 0.96).setStrokeStyle(5, 0x14081f).setDepth(1750);
     this.sheetObjs.push(bg);
     [...ph.notes].forEach((note, k) => {
       const i = KEYS.indexOf(note);
-      const x = 960 + (k - (n - 1) / 2) * (w + 8);
+      const x = 960 + (k - (n - 1) / 2) * (w + 10);
       const box = this.add.container(x, SHEET_Y).setDepth(1751);
-      const r = this.add.rectangle(0, 0, w, 78, 0xffffff).setStrokeStyle(3, 0x14081f);
-      const l = headText(this, 0, -8, KEY_LABEL[i], 38, '#14081f', { strokeThickness: 0 });
-      const so = bodyText(this, 0, 24, SOLFEGE[i], 18, '#5b3fd6', { strokeThickness: 0 });
+      const r = this.add.rectangle(0, 0, w, 100, 0xffffff).setStrokeStyle(3, 0x14081f);
+      const l = headText(this, 0, -12, KEY_LABEL[i], 50, '#14081f', { strokeThickness: 0 });
+      const so = bodyText(this, 0, 30, SOLFEGE[i], 22, '#5b3fd6', { strokeThickness: 0 });
       box.add([r, l, so]);
       this.sheetObjs.push(box);
       this.sheet.push({ box, r });
@@ -680,33 +665,9 @@ export class KoncertasScene extends Phaser.Scene {
   cardState(k, state) {
     const c = this.sheet[k];
     if (!c) return;
-    const col = { idle: 0xffffff, next: 0xffd23f, done: 0x3ddc84, demo: 0xffe98a }[state];
-    c.r.setFillStyle(col).setStrokeStyle(state === 'next' ? 6 : 3, 0x14081f);
-    if (state === 'next') this.tweens.add({ targets: c.box, scale: 1.12, yoyo: true, duration: 140 });
-    if (state === 'demo') this.time.delayedCall(260, () => { if (this.mode === 'demo') c.r.setFillStyle(0xffffff); });
-  }
-
-  // Kieno eilė: 0 - rojalis, 1 - Adriana, 2 - orkestras, -1 - nieko (finalas).
-  setStep(i) {
-    this.steps.forEach((s, j) => {
-      const on = j === i;
-      s.bg.setFillStyle(on ? 0xffd23f : 0x0b0418, on ? 1 : 0.85).setStrokeStyle(3, on ? 0x14081f : 0x5b3fd6);
-      s.t.setColor(on ? '#14081f' : '#9c8fd6');
-      if (j === 2) {
-        const sec = this.phraseIdx != null && PHRASES[this.phraseIdx] ? SECTIONS[PHRASES[this.phraseIdx].section] : null;
-        s.t.setText(sec ? `${sec.emoji} ${sec.name.charAt(0)}${sec.name.slice(1).toLowerCase()}` : s.label);
-      }
-      if (on) this.tweens.add({ targets: [s.bg, s.t], scale: 1.08, yoyo: true, duration: 160 });
-    });
-  }
-
-  light(i, color, ms) {
-    const k = this.keys[i];
-    if (!k) return;
-    k.setFillStyle(color);
-    this.tweens.add({ targets: k, scaleY: 0.94, yoyo: true, duration: 70 });
-    if (k.timer) k.timer.remove();
-    k.timer = this.time.delayedCall(ms, () => k.setFillStyle(0xfdf6e3));
+    const col = { idle: 0xffffff, next: 0xffd23f, done: 0x3ddc84 }[state];
+    c.r.setFillStyle(col).setStrokeStyle(state === 'next' ? 7 : 3, 0x14081f);
+    if (state === 'next') this.tweens.add({ targets: c.box, scale: 1.14, yoyo: true, duration: 150 });
   }
 
   say(text, color) { this.stateText.setText(text).setColor(color); }
@@ -736,27 +697,31 @@ export class KoncertasScene extends Phaser.Scene {
   // ---------------- ciklas ----------------
   update(_, deltaMs) {
     const dt = Math.min(deltaMs, 66) / 1000;
-    const active = this.mode !== 'intro' && this.mode !== 'count' && this.mode !== 'result' && this.mode !== 'end';
+    const melody = this.mode === 'play' || this.mode === 'orch' || this.mode === 'finale';
+    const active = melody || this.mode === 'bow';
     if (active) this.elapsed += dt;
+    if (melody) this.melodyLeft = Math.max(0, this.melodyLeft - dt);
 
-    // autoplay (testams): kartoja frazę be klaidų
-    if (this.autoplay && this.mode === 'play') {
+    // autoplay (testams): groja be klaidų
+    if (this.autoplay && this.mode === 'play' && !this.assisting) {
       this.autoT += dt;
-      if (this.autoT > 0.28) {
+      if (this.autoT > 0.3) {
         this.autoT = 0;
         this.onKey(KEYS.indexOf(PHRASES[this.phraseIdx].notes[this.pos]));
       }
     }
+    // Adriana per ilgai groja frazę - rojalis padeda (visa melodija - iki 1 min)
+    if (this.mode === 'play' && !this.assisting && this.time.now - this.phraseStart > ADR_LIMIT) this.assist();
 
-    // dirigentė mojuoja lazdele, kai groja
+    // dirigentė mojuoja lazdele
     if (active && this.mode !== 'bow' && !this.tweens.isTweening(this.baton)) {
       this.baton.angle = -30 + Math.sin(this.time.now / 1000 * 6) * 22;
     }
-
     if (this.mode === 'orch' && this.orchEnd) {
       const f = Phaser.Math.Clamp((this.orchEnd - this.time.now) / ORCH_MS, 0, 1);
-      this.orchBar.setSize(Math.max(1, 360 * f), 8);
+      this.orchBar.setSize(Math.max(1, 592 * f), 6);
     }
+    this.timeText.setText(`⏱ ${Math.ceil(this.melodyLeft)} s`).setColor(this.melodyLeft < 10 ? C.orange : '#f1e6ff');
     const h = this.harmony / 100;
     this.harmFill.setSize(Math.max(1, 360 * h), 16).setFillStyle(h > 0.6 ? 0x3ddc84 : h > 0.3 ? 0xff9a3c : 0xff4d5e);
     this.mistakeText.setText(`Klaidos: ${this.mistakes}`);
