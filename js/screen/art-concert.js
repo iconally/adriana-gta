@@ -102,16 +102,16 @@ export function generateConcertArt(scene) {
     c.fillStyle = '#16402f';
     // pakopos: viršuje siauriausia, apačioje plačiausia
     for (let k = 0; k < 4; k++) {
-      const w = 48 + k * 24;
+      const w = 36 + k * 18;
       const top = 230 + k * 70;
-      c.beginPath(); c.moveTo(1680, top - 40); c.lineTo(1680 + w, top + 110); c.lineTo(1680 - w, top + 110); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(1715, top - 40); c.lineTo(1715 + w, top + 110); c.lineTo(1715 - w, top + 110); c.closePath(); c.fill();
     }
     for (let i = 0; i < 30; i++) {
       const t = rnd();
       c.fillStyle = cols[i % cols.length];
-      c.beginPath(); c.arc(1680 + (rnd() * 2 - 1) * (20 + t * 80), 210 + t * 300, 6, 0, Math.PI * 2); c.fill();
+      c.beginPath(); c.arc(1715 + (rnd() * 2 - 1) * (14 + t * 60), 210 + t * 300, 6, 0, Math.PI * 2); c.fill();
     }
-    shape(c, (p) => { for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k * 4 * Math.PI) / 5; p[k ? 'lineTo' : 'moveTo'](1680 + Math.cos(a) * 26, 186 + Math.sin(a) * 26); } p.closePath(); }, '#ffd23f', 4);
+    shape(c, (p) => { for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k * 4 * Math.PI) / 5; p[k ? 'lineTo' : 'moveTo'](1715 + Math.cos(a) * 26, 186 + Math.sin(a) * 26); } p.closePath(); }, '#ffd23f', 4);
     // užuolaidos
     const curtain = (x0, x1, flip) => {
       const g = c.createLinearGradient(x0, 0, x1, 0);
