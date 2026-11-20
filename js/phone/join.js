@@ -219,7 +219,8 @@ function render() {
     return;
   }
 
-  const key = `${s.stage}:${roleId}`;
+  // raktas keičiasi ir tada, kai scena pakeičia klausimą ar mygtukų užrašus (pvz. kinų viktorina)
+  const key = `${s.stage}:${roleId}:${role.emoji}:${role.desc}:${role.buttons.map((b) => `${b.emoji}${b.label}`).join('|')}`;
   if (key !== state.lastRoleKey) {
     state.lastRoleKey = key;
     $('role-emoji').textContent = role.emoji;

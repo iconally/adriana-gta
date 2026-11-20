@@ -359,6 +359,33 @@ export const STAGES = {
       },
     },
   },
+  kinu: {
+    id: 'kinu',
+    nr: 7,
+    title: 'Kinų kalbos pamoka',
+    mission: 'KINŲ KALBOS IŠŠŪKIS',
+    // Klasės viktorina: kiekviename raunde telefone - hieroglifas ir 2 atsakymai.
+    // Mygtukų užrašus ir klausimą scena keičia kiekviename raunde.
+    slots: Array(17).fill('mokinys'),
+    fallback: 'mokinys',
+    teacherRole: 'laoshi',
+    roles: {
+      mokinys: {
+        name: '', emoji: '🐼', desc: 'Kinų kalbos viktorina! Kai ekrane pasirodys hieroglifas - atsakyk, ką jis reiškia.',
+        buttons: [
+          { id: 'a', label: '...', emoji: '❓', cd: 800, ok: 'Atsakyta!' },
+          { id: 'b', label: '...', emoji: '❓', cd: 800, ok: 'Atsakyta!' },
+        ],
+      },
+      laoshi: {
+        name: 'Mokytoja 老师', emoji: '🏮', desc: 'Jūs - kinų kalbos mokytoja (老师 lǎoshī)! „Lėčiau!“ - hieroglifai kelias sekundes krenta lėčiau. „Nǐ hǎo!“ - visi žibintai sumirksi.',
+        buttons: [
+          { id: 'leciau', label: 'Lėčiau!', emoji: '🐢', cd: 12000, ok: 'Lėčiau...' },
+          { id: 'nihao', label: 'Nǐ hǎo!', emoji: '👋', cd: 3000, ok: '你好!' },
+        ],
+      },
+    },
+  },
 };
 
 // Visas dienos maršrutas žemėlapyje. "scene" - Phaser scena; null - dar kuriama
@@ -370,7 +397,7 @@ export const ROUTE = [
   { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė', where: 'Stotelė', icon: '🚌', pos: [326, 232], scene: 'Bus' },
   { id: 'podiumas', nr: 5, title: 'Mados šou Vingio estradoje', mission: 'NENUGRIŪK PODIUME', place: 'Mados šou', where: 'Vingio estrada', icon: '👗', pos: [570, 625], scene: 'Podiumas' },
   { id: 'pianinas', nr: 6, title: 'Kalėdinis koncertas Filharmonijoje', mission: 'SUGROK KALĖDAS', place: 'Piano koncertas', where: 'Filharmonija', icon: '🎹', pos: [1489, 793], scene: 'Koncertas' },
-  { id: 'kinu', nr: 7, title: 'Kinų kalba', mission: 'KINŲ KALBOS IŠŠŪKIS', place: 'Kinų kalbos pamoka', where: 'Konfucijaus institutas', icon: '🐼', pos: [1433, 692], scene: null },
+  { id: 'kinu', nr: 7, title: 'Kinų kalbos pamoka', mission: 'KINŲ KALBOS IŠŠŪKIS', place: 'Kinų kalbos pamoka', where: 'Konfucijaus institutas', icon: '🐼', pos: [1433, 692], scene: 'Kinu' },
   { id: 'tenisas', nr: 8, title: 'Tenisas', mission: 'ATMUŠK KAMUOLIUKUS', place: 'Teniso treniruotė', where: 'Kalnų parkas', icon: '🎾', pos: [1749, 484], scene: null },
   { id: 'robotas', nr: 9, title: 'Dovanų robotas', mission: 'UŽPROGRAMUOK ROBOTĄ', place: 'Programavimo būrelis', where: 'Baltasis tiltas', icon: '🤖', pos: [1105, 387], scene: null },
   { id: 'finalas', nr: 10, title: 'Finalas: eglė', mission: 'UŽDEK EGLĘ', place: 'Kalėdinis klasės vakarėlis', where: 'Katedros aikštė', icon: '🎄', pos: [1447, 575], scene: null },

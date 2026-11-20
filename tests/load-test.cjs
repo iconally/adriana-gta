@@ -346,6 +346,45 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     console.log(`Po koncerto žemėlapyje: ${await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'))}`);
   }
 
+  // 7 etapas: kinų kalbos pamoka (Adriana - autoplay, telefonai atsako į viktoriną atsitiktinai)
+  await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Map')?.ready?.id === 'kinu', null, { timeout: 60000 });
+  await screen.keyboard.press('Enter'); // žemėlapis -> kinų kalba
+  await sleep(1500);
+  await shot(screen, '80-kinu-ivadas');
+  await screen.evaluate(() => { window.AGTA.game.scene.getScene('Kinu').autoplay = true; });
+  await screen.keyboard.press('Enter');
+  {
+    let shotQuiz = false;
+    const until = Date.now() + 240000;
+    while (Date.now() < until) {
+      const mode = await screen.evaluate(() => window.AGTA.game.scene.getScene('Kinu')?.mode);
+      if (mode === 'result') break;
+      if (!shotQuiz && mode === 'quiz') {
+        shotQuiz = true;
+        await sleep(600);
+        await Promise.all(phones.slice(0, 2).map((p, i) => shot(p.page, `tel-kinu-${i}`)));
+        await shot(screen, '81-kinu-viktorina');
+      }
+      const batch = phones.filter(() => Math.random() < 0.3);
+      await Promise.all(batch.map(async (p) => {
+        const btns = p.page.locator('.act:not(.off)');
+        const n = await btns.count();
+        if (n) { await btns.nth(Math.floor(Math.random() * n)).click({ timeout: 1000 }).catch(() => {}); presses += 1; }
+      }));
+      await sleep(400);
+    }
+    await sleep(800);
+    await shot(screen, '82-kinu-rezultatas');
+    const rk = await screen.evaluate(() => {
+      const s = window.AGTA.game.scene.getScene('Kinu');
+      return { mode: s.mode, caught: s.caught, ups: s.ups, adr: s.adrRight, shares: s.shares.map((x) => (x == null ? null : Math.round(x * 100))) };
+    });
+    console.log(`Kinų kalba: ${JSON.stringify(rk)}`);
+    await screen.keyboard.press('Enter');
+    await sleep(1500);
+    console.log(`Po kinų kalbos žemėlapyje: ${await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'))}`);
+  }
+
   console.log(errors.length ? `KLAIDOS (${errors.length}):\n${errors.slice(0, 30).join('\n')}` : 'Klaidų konsolėje nėra.');
   await browser.close();
   process.exit(errors.length ? 1 : 0);

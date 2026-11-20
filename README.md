@@ -10,6 +10,7 @@ Kalėdinis klasės vakarėlio žaidimas. Adriana žaidžia dideliame ekrane, o k
 - 4 etapas "Bėgimas iki autobuso": Adriana šokinėja per balas, pusnis, tvoras ir draugus. Klasiokai mėto gniūžtes, moja iš autobuso, šaukia, o "vairuotojo draugai" prideda iki +5 s.
 - 5 etapas "Mados šou Vingio estradoje": Adriana eina podiumu pagal muziką (← → pakaitomis į taktą), gale - poza (TARPAS). Klasiokai ploja (ramina), fotografuoja, pučia vėją ir leidžia sniegą; mokytoja - komisija, pabaigoje parodo balą.
 - 6 etapas "Kalėdinis koncertas Filharmonijoje": Adriana - tai rojalis. Eilė: 🎹 rojalis → 🥁 būgnai → 🎹 → 🎺 trimitai → 🎹 → 🎻 smuikai → 🎹 → 🔔 varpeliai → finalas (visi) → nusilenkimas; viršuje eilutė rodo, kas groja. Adriana groja „Skamba varpeliai“ pagal natų eilutę (šviečia kita nata su klavišu A S D F G). Visa melodija - ne ilgiau 1 min: jei frazė užtrunka ilgiau nei 7 s, rojalis pagroja likusias natas. Orkestro grupės telefonai žali, kai jų eilė. Mokytoja - dirigentė.
+- 7 etapas "Kinų kalbos pamoka" (Konfucijaus institutas): 5 žodžiai (雪 星 树 月 火). Kiekvienam - klasės viktorina telefonuose (2 atsakymai, Adriana spėja ← / →), tada iš žibintų krenta hieroglifai: iš teisingai atsakiusiųjų žibintų - teisingi, iš kitų - klaidinantys. Adriana su dubeniu gaudo ← →. Mokytoja (老师): „Lėčiau!“ ir „Nǐ hǎo!“.
 - Vedėjo pultas (klavišas H), replikų biblioteka, garso efektai, vietinis testavimo režimas.
 
 ## Darbas su VS Code
@@ -84,6 +85,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 | TARPAS arba ↑ | Adrianos šuolis (autobusas) |
 | ← → pakaitomis į taktą | žingsniai podiumu (5 etapas); podiumo gale TARPAS - poza, kai žiedas užsidaro |
 | A S D F G (arba 1-5) | rojalio klavišai Do Re Mi Fa Sol (6 etapas) - spausk tą, kuris parašytas šviečiančioje natoje |
+| ← → (A D) | kinų kalba: viktorinos metu - Adrianos spėjimas, paskui - bėgioti su dubeniu (7 etapas) |
 | R | kartoti etapą |
 | ESC | į laukiamąjį |
 | H | vedėjo pultas |
@@ -170,6 +172,8 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/sc
 | piano_back, adr_piano_back | 760×440, 200×200 | rojalis iš pianistės pusės (klaviatūra ir natų pultas), Adriana prie jo iš nugaros (galva - adr_head_back) |
 | inst_bells, inst_violin, inst_drum, inst_trumpet | apie 100×80 | orkestro instrumentai |
 | podium_box, rose | 220×60, 40×70 | dirigentės pakyla, rožė finale |
+| china_bg | 1920×1080 | 7 etapo kinų kalbos klasė (langas į Vilnių, ritiniai, panda) |
+| lantern, char_tile, basket | 76×104, 92×92, 180×90 | žibintas (ant jo - vaiko avataras), hieroglifo kortelė, Adrianos dubuo |
 
 ## Struktūra
 
@@ -181,7 +185,7 @@ js/phone/join.js     telefono puslapis
 js/screen/main.js    ekrano paleidimas ir vedėjo pultas
 js/screen/host.js    žaidėjai, vardų tikrinimas, rolės
 js/screen/stages.js  etapų rolės ir mygtukai
-js/screen/scenes/    Boot, Lobby, Map, Broliai, Laiptai, Pamoka, Bus, Podiumas, Koncertas
+js/screen/scenes/    Boot, Lobby, Map, Broliai, Laiptai, Pamoka, Bus, Podiumas, Koncertas, Kinu
 lines/               replikų biblioteka
 vendor/              Phaser 3.90, supabase-js, qrcode-generator (MIT)
 ```
