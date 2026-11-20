@@ -188,6 +188,56 @@ export function generateConcertArt(scene) {
     shape(c, (p) => p.ellipse(84, 44, 30, 11, 0, 0, Math.PI * 2), '#ffffff', 5);
   });
 
+  // ---------- rojalis iš pianistės pusės: klaviatūra skersai, natų pultas priešais ----------
+  // Klavišų vietos naudoja scena: PIANO_KEYS (balti klavišai, x - centras teksto koordinatėmis).
+  tex(scene, 'piano_back', 760, 440, (c) => {
+    // atidarytas dangtis (dešinėje, atremtas)
+    shape(c, (p) => { p.moveTo(430, 160); p.lineTo(690, 18); p.lineTo(712, 44); p.lineTo(520, 178); p.closePath(); }, '#1b1426');
+    c.lineWidth = 7; c.strokeStyle = OUT;
+    c.beginPath(); c.moveTo(600, 176); c.lineTo(668, 66); c.stroke();
+    // korpusas
+    shape(c, (p) => { p.moveTo(36, 300); p.lineTo(36, 176); p.quadraticCurveTo(36, 140, 80, 140); p.lineTo(560, 140); p.quadraticCurveTo(724, 140, 724, 220); p.lineTo(724, 300); p.closePath(); }, '#110b1c');
+    c.fillStyle = 'rgba(255,255,255,.12)'; c.fillRect(60, 150, 640, 6);
+    // natų pultas
+    shape(c, (p) => rr(p, 100, 14, 560, 150, 10), '#1b1426', 6);
+    shape(c, (p) => rr(p, 100, 150, 560, 14, 4), '#e8b63a', 3);
+    // klaviatūros dangtis ir klaviatūra
+    shape(c, (p) => rr(p, 36, 286, 688, 20, 5), '#1b1426', 4);
+    c.fillStyle = '#ffffff';
+    c.fillRect(50, 304, 660, 80);
+    c.lineWidth = 3; c.strokeStyle = OUT;
+    for (let k = 0; k <= 15; k++) { c.beginPath(); c.moveTo(50 + k * 44, 304); c.lineTo(50 + k * 44, 384); c.stroke(); }
+    c.strokeRect(50, 304, 660, 80);
+    c.fillStyle = OUT;
+    for (const k of [0, 1, 3, 4, 5, 7, 8, 10, 11, 12]) c.fillRect(50 + (k + 1) * 44 - 13, 304, 26, 48);
+    shape(c, (p) => rr(p, 36, 382, 688, 16, 5), '#110b1c', 4);
+    // kojos
+    for (const x of [64, 670]) shape(c, (p) => rr(p, x, 396, 28, 42, 6), '#110b1c', 4);
+  });
+
+  // ---------- Adriana prie rojalio iš nugaros (galva - adr_head_back) ----------
+  tex(scene, 'adr_piano_back', 200, 200, (c) => {
+    // suoliukas
+    shape(c, (p) => rr(p, 14, 150, 172, 26, 8), '#110b1c', 5);
+    for (const x of [26, 160]) shape(c, (p) => rr(p, x, 172, 14, 26, 4), '#110b1c', 4);
+    // rankos į klavišus (alkūnės į šonus)
+    for (const [sx, ex, hx] of [[70, 40, 62], [130, 168, 150]]) {
+      c.lineWidth = 22; c.strokeStyle = OUT;
+      c.beginPath(); c.moveTo(sx, 64); c.lineTo(ex, 96); c.lineTo(hx, 70); c.stroke();
+      c.lineWidth = 13; c.strokeStyle = PINK;
+      c.beginPath(); c.moveTo(sx, 64); c.lineTo(ex, 96); c.lineTo(hx, 70); c.stroke();
+    }
+    // suknelė ir liemuo iš nugaros
+    shape(c, (p) => { p.moveTo(62, 104); p.lineTo(138, 104); p.lineTo(170, 160); p.lineTo(30, 160); p.closePath(); }, PINK);
+    shape(c, (p) => rr(p, 28, 150, 144, 14, 7), '#ffffff', 5);
+    shape(c, (p) => rr(p, 66, 40, 68, 70, 18), PINK);
+    shape(c, (p) => rr(p, 62, 98, 76, 11, 5), TEAL, 4);
+    // kaspinas
+    shape(c, (p) => { p.moveTo(100, 104); p.lineTo(78, 92); p.lineTo(78, 116); p.closePath(); }, TEAL, 4);
+    shape(c, (p) => { p.moveTo(100, 104); p.lineTo(122, 92); p.lineTo(122, 116); p.closePath(); }, TEAL, 4);
+    shape(c, (p) => p.ellipse(100, 44, 32, 12, 0, 0, Math.PI * 2), '#ffffff', 5);
+  });
+
   // ---------- instrumentai ----------
   tex(scene, 'inst_bells', 100, 90, (c) => {
     for (const [x, y, a] of [[34, 48, -0.3], [68, 44, 0.3]]) {

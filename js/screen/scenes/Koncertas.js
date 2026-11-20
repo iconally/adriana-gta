@@ -54,17 +54,23 @@ const ORCH_MS = 3500; // kiek laiko groja orkestro grupė
 const FRONT = { g: 724, s: 0.72 };
 const BACK = { g: 530, s: 0.58 };
 const SEATS = {
-  varpeliai: [160, 275, 390, 505, 620].map((x) => ({ x, ...FRONT })),
-  smuikai: [330, 430, 530, 630].map((x) => ({ x, ...BACK })),
-  bugnai: [1290, 1390, 1490, 1590].map((x) => ({ x, ...BACK })),
-  trimitai: [1330, 1445, 1560, 1675].map((x) => ({ x, ...FRONT })),
+  varpeliai: [130, 235, 340, 445, 550].map((x) => ({ x, ...FRONT })),
+  smuikai: [250, 350, 450, 550].map((x) => ({ x, ...BACK })),
+  bugnai: [1370, 1470, 1570, 1670].map((x) => ({ x, ...BACK })),
+  trimitai: [1430, 1530, 1630, 1730].map((x) => ({ x, ...FRONT })),
 };
 const OVERFLOW = [230, 1690, 1790, 130].map((x) => ({ x, ...BACK }));
-const PIANO = { x: 790, y: 725, s: 0.9 };
-const ADR = { x: 760, y: 655, s: 0.62 };
-const COND = { x: 960, y: 955, s: 0.7 };
+// Rojalis iš pianistės pusės (piano_back 760x440, apačios vidurys).
+const PIANO = { x: 960, y: 790 };
+const P_LEFT = PIANO.x - 380;
+const P_TOP = PIANO.y - 440;
+const KEY_IDX = [7, 8, 9, 10, 11]; // baltieji klavišai Do Re Mi Fa Sol (antra oktava)
+const KEY_Y = P_TOP + 344;
+const keyWorldX = (i) => P_LEFT + 50 + KEY_IDX[i] * 44 + 22;
+const ADR = { x: 840, y: 872, s: 0.8 };
+const COND = { x: 1335, y: 960, s: 0.7 };
 const LINEUP_Y = 140;
-const SHEET_Y = 300; // natų eilutė
+const SHEET_Y = P_TOP + 89; // natų lapas ant rojalio pulto
 
 const rand = (a, b) => a + Math.random() * (b - a);
 function tintOf(name) {
@@ -206,6 +212,7 @@ export class KoncertasScene extends Phaser.Scene {
     this.setLineup('rojalis');
     this.makeSheet(PHRASES[i]);
     this.cardState(0, 'next');
+    this.glowNext();
     this.say('🎹 ADRIANA, GROK!', C.green);
     if (i === 0) this.maybeSub(this.A.lines.pick('koncertas', 'your_turn'), C.green, 0);
   }
@@ -215,9 +222,27 @@ export class KoncertasScene extends Phaser.Scene {
     this.events_.push(this.time.delayedCall(ms, fn));
   }
 
-  noteSound(n) {
+  noteSound(n, color = 0x3ddc84) {
     this.A.sfx.piano(NOTE_F[n]);
+    this.flashKey(KEYS.indexOf(n), color);
     this.tweens.add({ targets: this.adrBox, y: ADR.y - 5, yoyo: true, duration: 80 });
+  }
+
+  // Rojalio klavišas užsidega (paspaustas) arba šviečia geltonai (kitas).
+  flashKey(i, color) {
+    const k = this.pianoKeys[i];
+    if (!k) return;
+    if (k.timer) k.timer.remove();
+    k.setFillStyle(color).setAlpha(0.85);
+    k.timer = this.time.delayedCall(220, () => this.glowNext());
+  }
+
+  glowNext() {
+    this.pianoKeys.forEach((k) => k.setAlpha(0));
+    if (this.mode !== 'play' || this.assisting) return;
+    const ph = PHRASES[this.phraseIdx];
+    const i = KEYS.indexOf(ph.notes[this.pos]);
+    if (this.pianoKeys[i]) this.pianoKeys[i].setFillStyle(0xffd23f).setAlpha(0.6);
   }
 
   onKey(i) {
@@ -231,6 +256,7 @@ export class KoncertasScene extends Phaser.Scene {
     }
     // ne tas klavišas - netikra nata, bet tęsiam nuo tos pačios natos
     this.A.sfx.piano(NOTE_F[KEYS[i]]);
+    this.flashKey(i, 0xff4d5e);
     this.A.sfx.plunk();
     this.mistakes += 1;
     this.phraseMistakes += 1;
@@ -262,9 +288,9 @@ export class KoncertasScene extends Phaser.Scene {
     this.mode = 'orch';
     if (this.phraseMistakes === 0 && !this.assisting) this.clean += 1;
     const ok = this.phraseMistakes === 0 && !this.assisting;
-    const t = headText(this, 960, 580, ok ? 'PUIKU!' : 'SUGROTA!', 110, ok ? C.green : C.teal).setDepth(1700).setScale(0.4);
+    const t = headText(this, 960, 590, ok ? 'PUIKU!' : 'SUGROTA!', 110, ok ? C.green : C.teal).setDepth(1700).setScale(0.4);
     this.tweens.add({ targets: t, scale: 1, duration: 200, ease: 'Back.Out' });
-    this.tweens.add({ targets: t, alpha: 0, y: 540, delay: 600, duration: 300, onComplete: () => t.destroy() });
+    this.tweens.add({ targets: t, alpha: 0, y: 550, delay: 600, duration: 300, onComplete: () => t.destroy() });
     this.A.sfx.plus();
     this.time.delayedCall(500, () => this.orchestraTurn());
   }
@@ -323,7 +349,7 @@ export class KoncertasScene extends Phaser.Scene {
     // Adriana atsistoja ir nusilenkia
     this.adrBox.setVisible(false);
     this.adrStand.setVisible(true);
-    this.tweens.add({ targets: this.adrStand, scaleY: ADR.s * 0.86, y: ADR.y + 8, yoyo: true, hold: 500, duration: 300, repeat: 1 });
+    this.tweens.add({ targets: this.adrStand, scaleY: 0.66 * 0.86, y: ADR.y + 18, yoyo: true, hold: 500, duration: 300, repeat: 1 });
     this.roses = this.time.addEvent({ delay: 120, repeat: 30, callback: () => this.rose() });
     this.time.delayedCall(4200, () => this.finish());
   }
@@ -539,18 +565,18 @@ export class KoncertasScene extends Phaser.Scene {
   }
 
   makePiano() {
-    this.add.image(PIANO.x, PIANO.y, 'grand_piano').setOrigin(0, 1).setScale(PIANO.s).setDepth(PIANO.y);
-    this.add.image(ADR.x - 10, ADR.y + 6, 'piano_bench').setOrigin(0.5, 1).setScale(0.8).setDepth(ADR.y - 2);
+    this.add.image(PIANO.x, PIANO.y, 'piano_back').setOrigin(0.5, 1).setDepth(PIANO.y - 200);
+    // klavišų švytėjimas (Do Re Mi Fa Sol)
+    this.pianoKeys = KEY_IDX.map((_, i) => this.add.rectangle(keyWorldX(i), KEY_Y, 40, 76, 0xffd23f).setAlpha(0).setDepth(PIANO.y - 199));
     const face = this.textures.exists('adr_face');
     const headKey = face ? 'adr_face' : 'adr_head';
-    // sėdinti prie rojalio
-    this.adrBox = this.add.container(ADR.x, ADR.y).setScale(ADR.s).setDepth(PIANO.y + 1);
-    const body = this.add.image(0, 0, 'adr_piano').setOrigin(0.5, 1);
-    const head = this.add.image(-12, -226, headKey).setOrigin(0.5, face ? 0.5 : 0.56);
-    if (face) head.setDisplaySize(112, 112);
+    // Adriana prie rojalio - iš nugaros, žiūri į klavišus ir natas
+    this.adrBox = this.add.container(ADR.x, ADR.y).setScale(ADR.s).setDepth(PIANO.y + 10);
+    const body = this.add.image(0, 0, 'adr_piano_back').setOrigin(0.5, 1);
+    const head = this.add.image(0, -196, 'adr_head_back').setOrigin(0.5, 0.56);
     this.adrBox.add([body, head]);
-    // stovinti (nusilenkimui)
-    this.adrStand = this.add.container(ADR.x - 70, ADR.y + 30).setScale(ADR.s).setDepth(ADR.y + 30).setVisible(false);
+    // stovinti (nusilenkimui) - atsisuka į publiką
+    this.adrStand = this.add.container(ADR.x - 140, ADR.y + 10).setScale(0.66).setDepth(PIANO.y + 20).setVisible(false);
     const sb = this.add.image(0, 0, 'adr_walk_a').setOrigin(0.5, 1);
     const sh = this.add.image(2, -244, headKey).setOrigin(0.5, face ? 0.5 : 0.56);
     if (face) sh.setDisplaySize(118, 118);
@@ -622,7 +648,7 @@ export class KoncertasScene extends Phaser.Scene {
     // orkestro laiko juosta (po eilute)
     this.orchBarBg = this.add.rectangle(960, LINEUP_Y + 40, 600, 12, 0x000000, 0.6).setDepth(D).setVisible(false);
     this.orchBar = this.add.rectangle(660, LINEUP_Y + 40, 592, 6, 0xffd23f).setOrigin(0, 0.5).setDepth(D).setVisible(false);
-    this.fb = headText(this, 960, SHEET_Y + 78, '', 36, C.green).setDepth(D);
+    this.fb = headText(this, 960, SHEET_Y - 100, '', 36, C.green).setDepth(D);
     this.sheet = [];
   }
 
@@ -646,16 +672,16 @@ export class KoncertasScene extends Phaser.Scene {
     this.sheet = [];
     if (!ph) return;
     const n = ph.notes.length;
-    const w = 96;
-    const bg = this.add.rectangle(960, SHEET_Y, n * (w + 10) + 34, 120, 0xfdf6e3, 0.96).setStrokeStyle(5, 0x14081f).setDepth(1750);
+    const w = 66;
+    const bg = this.add.rectangle(960, SHEET_Y, n * (w + 6) + 20, 132, 0xfdf6e3, 1).setStrokeStyle(4, 0x14081f).setDepth(PIANO.y - 198);
     this.sheetObjs.push(bg);
     [...ph.notes].forEach((note, k) => {
       const i = KEYS.indexOf(note);
-      const x = 960 + (k - (n - 1) / 2) * (w + 10);
-      const box = this.add.container(x, SHEET_Y).setDepth(1751);
-      const r = this.add.rectangle(0, 0, w, 100, 0xffffff).setStrokeStyle(3, 0x14081f);
-      const l = headText(this, 0, -12, KEY_LABEL[i], 50, '#14081f', { strokeThickness: 0 });
-      const so = bodyText(this, 0, 30, SOLFEGE[i], 22, '#5b3fd6', { strokeThickness: 0 });
+      const x = 960 + (k - (n - 1) / 2) * (w + 6);
+      const box = this.add.container(x, SHEET_Y).setDepth(PIANO.y - 197);
+      const r = this.add.rectangle(0, 0, w, 116, 0xffffff).setStrokeStyle(3, 0x14081f);
+      const l = headText(this, 0, -14, KEY_LABEL[i], 48, '#14081f', { strokeThickness: 0 });
+      const so = bodyText(this, 0, 34, SOLFEGE[i], 22, '#5b3fd6', { strokeThickness: 0 });
       box.add([r, l, so]);
       this.sheetObjs.push(box);
       this.sheet.push({ box, r });
@@ -686,7 +712,7 @@ export class KoncertasScene extends Phaser.Scene {
   }
 
   sub(text, color) {
-    subtitle(this, text, { color, y: 480 });
+    subtitle(this, text, { color, y: 252 });
     if (this._subtitle) this._subtitle.setDepth(1700);
   }
 

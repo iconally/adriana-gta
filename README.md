@@ -167,7 +167,7 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/sc
 | jury_table, score_card | 340×150, 170×200 | komisijos stalas, balo kortelė (skaičius rašomas kode) |
 | flash, wind_puff, snow_puff, footprint | 128×128, 160×70, 140×90, 44×70 | blykstė, vėjo gūsis, sniegas, švytintis pėdsakas |
 | concert_bg | 1920×1080 | 6 etapo Filharmonijos scena (ložės, užuolaidos, grindys) |
-| grand_piano, piano_bench, adr_piano | 480×330, 130×70, 200×220 | rojalis, suoliukas, Adriana prie rojalio (be galvos) |
+| piano_back, adr_piano_back | 760×440, 200×200 | rojalis iš pianistės pusės (klaviatūra ir natų pultas), Adriana prie jo iš nugaros (galva - adr_head_back) |
 | inst_bells, inst_violin, inst_drum, inst_trumpet | apie 100×80 | orkestro instrumentai |
 | podium_box, rose | 220×60, 40×70 | dirigentės pakyla, rožė finale |
 
