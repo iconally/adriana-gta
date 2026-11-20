@@ -87,7 +87,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 | R | kartoti etapą |
 | ESC | į laukiamąjį |
 | H | vedėjo pultas |
-| F | visas ekranas |
+| F | visas ekranas (koncerto etape F - rojalio klavišas, todėl neveikia) |
 
 Jei kompiuteris silpnas, atidaryk `screen.html?canvas`.
 

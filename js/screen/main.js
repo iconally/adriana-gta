@@ -71,7 +71,8 @@ setInterval(() => { if (sfx.ready) $('audio-unlock').hidden = true; }, 1000);
 window.addEventListener('keydown', (e) => {
   if (e.target instanceof HTMLInputElement) return;
   if (e.key === 'h' || e.key === 'H') togglePult();
-  if (e.key === 'f' || e.key === 'F') game.scale.toggleFullscreen();
+  // F - visas ekranas, bet ne koncerte: ten F yra rojalio klavišas (Fa)
+  if ((e.key === 'f' || e.key === 'F') && !game.scene.isActive('Koncertas')) game.scale.toggleFullscreen();
   if (e.key === 'Escape') go('Lobby');
 });
 

@@ -190,7 +190,7 @@ export class KoncertasScene extends Phaser.Scene {
     this.help = false;
     const ph = PHRASES[i];
     this.cue(ph.section);
-    this.phraseText.setText(`Frazė ${i + 1}/${PHRASES.length}`);
+    this.phraseText.setText(`Frazė ${i + 1}/${PHRASES.length}  ${'●'.repeat(i)}${'○'.repeat(PHRASES.length - i)}`);
     this.time.delayedCall(700, () => this.playDemo());
   }
 
@@ -291,7 +291,7 @@ export class KoncertasScene extends Phaser.Scene {
   startFinale() {
     this.mode = 'finale';
     this.cue('visi');
-    this.phraseText.setText('FINALAS');
+    this.phraseText.setText(`FINALAS  ${'●'.repeat(PHRASES.length)}`);
     this.say('FINALAS! GROJA VISI!', C.yellow);
     this.sub(this.A.lines.pick('koncertas', 'finale'), C.yellow);
     let t = 600;
@@ -598,7 +598,7 @@ export class KoncertasScene extends Phaser.Scene {
   makeHud() {
     const D = 1800;
     headText(this, 40, 54, STAGE.mission, 46, C.yellow).setOrigin(0, 0.5).setDepth(D);
-    this.phraseText = bodyText(this, 40, 108, `Frazė 1/${PHRASES.length}`, 26, '#f1e6ff').setOrigin(0, 0.5).setDepth(D);
+    this.phraseText = bodyText(this, 40, 108, `Frazė 1/${PHRASES.length}  ${'○'.repeat(PHRASES.length)}`, 30, C.yellow).setOrigin(0, 0.5).setDepth(D);
     this.mistakeText = bodyText(this, 40, 142, 'Klaidos: 0', 26, '#f1e6ff').setOrigin(0, 0.5).setDepth(D);
     bodyText(this, 1880, 40, 'Orkestro darna', 24, '#f1e6ff').setOrigin(1, 0.5).setDepth(D);
     this.add.rectangle(1700, 76, 368, 26, 0x000000, 0.6).setStrokeStyle(3, 0x14081f).setDepth(D);
