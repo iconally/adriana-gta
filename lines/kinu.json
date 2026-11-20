@@ -1,7 +1,7 @@
 {
   "intro": [
     "Patarimas: pirma visa klasė spėja telefonuose, ką reiškia hieroglifas - tada Adriana gaudo!",
-    "Patarimas: kas atsakė teisingai - iš to žibinto krenta teisingi hieroglifai.",
+    "Patarimas: ką vaikas atsakė, tas hieroglifas ir krenta iš jo žibinto.",
     "Patarimas: Adriana irgi spėja - ← arba →, kol klasė galvoja.",
     "Patarimas: daugelis hieroglifų panašūs į tai, ką reiškia. Pažiūrėk atidžiai!"
   ],
@@ -44,9 +44,12 @@
     "{mokytoja}: lėčiau, lėčiau...",
     "Hieroglifai sulėtėjo!"
   ],
-  "nihao": [
-    "{mokytoja}: 你好! Nǐ hǎo!",
-    "Žibintai mirksi: 你好!"
+  "hongbao": [
+    "{mokytoja} dovanoja hongbao 🧧 - gaudyk!",
+    "红包! Laoshi dovana - trys teisingi hieroglifai!"
+  ],
+  "hongbao_wait": [
+    "{mokytoja} paruošė hongbao 🧧 - kris per gaudymą!"
   ],
   "success": [
     "圣诞快乐! Shèngdàn kuàilè - Linksmų Kalėdų!",

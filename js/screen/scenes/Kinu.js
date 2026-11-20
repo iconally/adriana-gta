@@ -5,11 +5,11 @@
 //  2) Atsakymas: kas atsakė teisingai - jų žibintai auksiniai, kas klydo - pilki.
 //  3) Gaudymas: iš kiekvieno atsakiusio vaiko žibinto krenta tas hieroglifas, kurį jis pasirinko
 //     (atsakė „Sniegas“ - krenta 雪, atsakė „Vanduo“ - krenta 水). Neatsakė - iš jo žibinto nekrenta nieko.
-//     Teisingų visada daugiau nei klaidingų: teisingai atsakiusiųjų žibintai meta papildomų teisingų,
-//     o likusį laiką krenta tik teisingi. Jei niekas neatsakė teisingai - teisingus meta Laoshi (iš viršaus).
-//     Jei niekas neatsakė (pvz. nėra telefonų), krenta atsitiktiniai hieroglifai.
+//     Vienas žibintas - viena kortelė. Jei teisingai neatsakė niekas - 5 teisingas korteles meta Laoshi
+//     (krenta iš viršaus, ne iš žibintų). Jei niekas neatsakė (pvz. nėra telefonų), krenta atsitiktiniai.
 //     Adriana su raudonu dubeniu bėgioja ← → ir gaudo tik teisingus. Kiekvienas hieroglifas ištariamas kiniškai.
-// Mokytoja - laoshi (老师): „Lėčiau!“ (hieroglifai krenta lėčiau) ir „Nǐ hǎo!“ (žibintai sumirksi).
+// Mokytoja - laoshi (老师): „Lėčiau!“ (hieroglifai krenta lėčiau) ir „Hongbao 🧧“ (per gaudymą pati numeta
+// 3 teisingas korteles šalia Adrianos; paspaudus per klausimą - numeta, kai prasidės gaudymas).
 
 import { headText, bodyText, banner, subtitle, missionCard, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
@@ -44,6 +44,7 @@ const SLOW_FALL = 165;
 const LANTERN = { y: 92, x0: 540, x1: 1780 };
 const ADR_Y = 950;
 const ADR_S = 0.62;
+const LAOSHI_DROPS = 5;   // tiek teisingų meta Laoshi, jei teisingai neatsakė niekas
 const X_MIN = 580;
 const X_MAX = 1700;
 const BASKET_HALF = 80;
@@ -76,8 +77,8 @@ export class KinuScene extends Phaser.Scene {
     this.shares = [];
     this.items = [];
     this.drops = [];
-    this.fill = [];
     this.dropIdx = 0;
+    this.hongbaoPending = false;
     this.spawnEvery = SPAWN_MS;
     this.totRight = 0;
     this.totAns = 0;
@@ -281,28 +282,22 @@ export class KinuScene extends Phaser.Scene {
 
   startCatch() {
     this.mode = 'catch';
-    this.spawnT = 0;
     const w = WORDS[this.round];
-    const good = { pid: null, ch: w.ch, lt: w.lt.toLowerCase(), correct: true };
-    // Kas ką atsakė, tas ir krenta iš jo žibinto. Neatsakiusiųjų žibintai tyli.
+    // Kas ką atsakė, tas ir krenta iš jo žibinto - po vieną kortelę. Neatsakiusiųjų žibintai tyli.
     const all = [...this.answers.entries()].map(([pid, a]) => {
       const o = this.options[a.choice];
       return { pid, ch: o.ch, lt: o.lt.toLowerCase(), correct: !!o.ok };
     });
-    const right = all.filter((d) => d.correct);
-    const wrong = all.length - right.length;
-    // Teisingų visada bent 2 daugiau nei klaidingų - papildomus meta teisingai atsakiusiųjų žibintai
-    // (jei tokių nėra - Laoshi iš viršaus).
-    const extra = [];
-    for (let i = 0; i < wrong + 2 - right.length; i++) extra.push(right.length ? right[i % right.length] : good);
-    this.drops = shuffle([...all, ...extra]);
-    this.fill = right.length ? right : [good];       // kai sąrašas baigiasi - krenta tik teisingi
+    // Jei teisingai neatsakė niekas - teisingas korteles meta Laoshi (iš viršaus).
+    const laoshi = all.length && !all.some((d) => d.correct);
+    if (laoshi) for (let i = 0; i < LAOSHI_DROPS; i++) all.push({ pid: null, ch: w.ch, lt: w.lt.toLowerCase(), correct: true, gift: true });
+    this.drops = shuffle(all);
     this.dropIdx = 0;
-    const n = this.drops.length;
-    const dur = n ? Phaser.Math.Clamp(n * 230 + 900, CATCH_MS, 8500) : CATCH_MS;
-    this.catchEnd = this.time.now + dur;
-    this.spawnEvery = n ? Phaser.Math.Clamp((dur - 900) / n, 200, SPAWN_MS) : SPAWN_MS;
-    if (all.length && !right.length) this.time.delayedCall(900, () => this.teacherSay(`Gaudyk ${w.ch}!`, C.yellow));
+    this.catchEnd = this.time.now + CATCH_MS;
+    this.spawnEvery = this.drops.length ? Phaser.Math.Clamp((CATCH_MS - 900) / this.drops.length, 220, 1400) : SPAWN_MS;
+    this.spawnT = this.spawnEvery;               // pirma kortelė - iš karto
+    if (laoshi) this.time.delayedCall(300, () => this.teacherSay(`Gaudyk ${w.ch}!`, C.yellow));
+    if (this.hongbaoPending) { this.hongbaoPending = false; this.time.delayedCall(700, () => this.hongbao()); }
     this.say(`GAUDYK ${w.ch} ${w.em}!`, C.yellow);
     this.maybeSub(this.A.lines.pick('kinu', 'catch', { ch: w.ch, lt: w.lt.toLowerCase() }), C.yellow, 2000);
   }
@@ -319,22 +314,26 @@ export class KinuScene extends Phaser.Scene {
 
   spawn() {
     const w = WORDS[this.round];
-    let d;
     if (this.drops.length) {
-      // pirma visi atsakymai (sumaišyti), paskui - tik teisingi
-      d = this.dropIdx < this.drops.length ? this.drops[this.dropIdx] : this.fill[(this.dropIdx - this.drops.length) % this.fill.length];
+      if (this.dropIdx >= this.drops.length) return;   // kiekvienas atsakymas krenta tik vieną kartą
+      this.dropCard(this.drops[this.dropIdx]);
       this.dropIdx += 1;
-    } else {
-      // niekas neatsakė - atsitiktiniai hieroglifai (pusė teisingų)
-      const correct = Math.random() < 0.5;
-      const pool = [...DISTRACT, ...WORDS.filter((x2) => x2 !== w).map((x2) => ({ ch: x2.ch, lt: x2.lt.toLowerCase() }))];
-      const o = correct ? { ch: w.ch, lt: w.lt.toLowerCase() } : pick(pool);
-      d = { pid: null, ch: o.ch, lt: o.lt, correct };
+      return;
     }
+    // niekas neatsakė (nėra telefonų) - atsitiktiniai hieroglifai iš atsitiktinių žibintų (pusė teisingų)
+    const correct = Math.random() < 0.5;
+    const pool = [...DISTRACT, ...WORDS.filter((x2) => x2 !== w).map((x2) => ({ ch: x2.ch, lt: x2.lt.toLowerCase() }))];
+    const o = correct ? { ch: w.ch, lt: w.lt.toLowerCase() } : pick(pool);
     const all = [...this.lanterns.values()];
-    const L = d.pid ? this.lanterns.get(d.pid) : (!this.answers.size && all.length ? pick(all) : null);
-    const x = L ? L.x : rand(X_MIN, X_MAX);
-    const box = this.add.container(Phaser.Math.Clamp(x, X_MIN, X_MAX), LANTERN.y + 120).setDepth(900);
+    this.dropCard({ pid: all.length ? pick(all).pid : null, ch: o.ch, lt: o.lt, correct });
+  }
+
+  // Viena krentanti kortelė: iš vaiko žibinto (pid) arba Laoshi dovana (gift) - iš viršaus, su raudonu švytėjimu.
+  dropCard(d, x0) {
+    const L = d.pid ? this.lanterns.get(d.pid) : null;
+    const x = L ? L.x : (x0 ?? rand(X_MIN, X_MAX));
+    const box = this.add.container(Phaser.Math.Clamp(x, X_MIN, X_MAX), d.gift ? 30 : LANTERN.y + 120).setDepth(900);
+    if (d.gift) box.add(this.add.rectangle(0, 0, 96, 96, 0xff2b2b, 0.45).setStrokeStyle(4, 0xffd23f));
     const tile = this.add.image(0, 0, 'char_tile').setScale(0.95);
     const t = this.cjk(0, 2, d.ch, 54, '#14081f', { strokeThickness: 0 });
     box.add([tile, t]);
@@ -342,6 +341,19 @@ export class KinuScene extends Phaser.Scene {
     this.tweens.add({ targets: box, scale: 1, duration: 160 });
     if (L) this.tweens.add({ targets: L.box, angle: { from: -10, to: 10 }, yoyo: true, duration: 120, onComplete: () => L.box.setAngle(0) });
     this.items.push({ box, correct: d.correct, ch: d.ch, lt: d.lt, owner: L ? L.pid : null, spin: rand(-30, 30) });
+  }
+
+  // Laoshi hongbao 🧧: 3 teisingos kortelės krenta netoli Adrianos.
+  hongbao() {
+    if (this.mode !== 'catch') { this.hongbaoPending = true; return; }
+    const w = WORDS[this.round];
+    const round = this.round;
+    for (let i = 0; i < 3; i++) {
+      this.time.delayedCall(i * 380, () => {
+        if (this.mode !== 'catch' || this.round !== round) return;
+        this.dropCard({ pid: null, ch: w.ch, lt: w.lt.toLowerCase(), correct: true, gift: true }, this.adrX + rand(-320, 320));
+      });
+    }
   }
 
   onCatch(it) {
@@ -448,10 +460,10 @@ export class KinuScene extends Phaser.Scene {
       this.slowUntil = this.time.now + 4000;
       this.teacherSay('Lėčiau!', C.teal);
       this.maybeSub(this.A.lines.pick('kinu', 'slow', vars), C.teal, 1500);
-    } else if (action === 'nihao') {
-      this.teacherSay('你好!', C.yellow);
-      for (const L of this.lanterns.values()) this.tweens.add({ targets: L.img, alpha: 0.4, yoyo: true, repeat: 1, duration: 120 });
-      this.maybeSub(this.A.lines.pick('kinu', 'nihao', vars), C.yellow, 4000);
+    } else if (action === 'hongbao') {
+      this.teacherSay('红包 🧧', C.red);
+      this.maybeSub(this.A.lines.pick('kinu', this.mode === 'catch' ? 'hongbao' : 'hongbao_wait', vars), C.yellow, 1500);
+      this.hongbao();
     }
   }
 
@@ -682,7 +694,8 @@ export class KinuScene extends Phaser.Scene {
         this.items.splice(this.items.indexOf(it), 1);
       }
     }
-    if (this.mode === 'catch' && now >= this.catchEnd && !this.items.length) this.endCatch();
+    const allDropped = this.drops.length && this.dropIdx >= this.drops.length && !this.hongbaoPending;
+    if (this.mode === 'catch' && (now >= this.catchEnd || (allDropped && now >= this.catchEnd - 2500)) && !this.items.length) this.endCatch();
     else if (this.mode === 'catch' && now >= this.catchEnd + 1800) this.endCatch();
 
     this.scoreText.setText(`Pagauta: ${this.caught}   Ups: ${this.ups}`);
