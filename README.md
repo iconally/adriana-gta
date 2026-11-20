@@ -8,6 +8,7 @@ Kalėdinis klasės vakarėlio žaidimas. Adriana žaidžia dideliame ekrane, o k
 - Prisijungimas telefonu: vardas iš klasės sąrašo + gimimo data (mėnuo ir diena). 3 klaidos - 15 s pertrauka. Perkrovus telefoną, jis grįžta be datos. Jei vaikas jungiasi iš kito telefono, senasis atjungiamas.
 - Telefono mygtukai keičiasi pagal etapą (laukiamajame: "Labas!" ir "Pašokti").
 - 4 etapas "Bėgimas iki autobuso": Adriana šokinėja per balas, pusnis, tvoras ir draugus. Klasiokai mėto gniūžtes, moja iš autobuso, šaukia, o "vairuotojo draugai" prideda iki +5 s.
+- 5 etapas "Mados šou Vingio estradoje": Adriana eina podiumu pagal muziką (← → pakaitomis į taktą), gale - poza (TARPAS). Klasiokai ploja (ramina), fotografuoja, pučia vėją ir leidžia sniegą; mokytoja - komisija, pabaigoje parodo balą.
 - Vedėjo pultas (klavišas H), replikų biblioteka, garso efektai, vietinis testavimo režimas.
 
 ## Darbas su VS Code
@@ -80,6 +81,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 | ← → paeiliui | lipti laiptais (2 etapas); ta pati rodyklė du kartus - suklumpa |
 | → arba TARPAS | Adriana perduoda atviruką (3 etapas); jei kas užsižiopsojo 3 s - perduoda už jį |
 | TARPAS arba ↑ | Adrianos šuolis (autobusas) |
+| ← → pakaitomis į taktą | žingsniai podiumu (5 etapas); podiumo gale TARPAS - poza, kai žiedas užsidaro |
 | R | kartoti etapą |
 | ESC | į laukiamąjį |
 | H | vedėjo pultas |
@@ -157,6 +159,11 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/sc
 | backpack_big | 120×150 | didelė kuprinė (didėja nuo knygų) |
 | book, mandarin | 70×54, 56×56 | knyga (balta, spalvinama kode), mandarinas |
 | school_bell | 90×90 | mokyklos skambutis ("DZIN DZIN!") |
+| show_bg | 1920×1080 | 5 etapo fonas: Vingio estrada ir podiumas (podiumo vieta - `RUNWAY` iš `art-show.js`) |
+| adr_walk_a, adr_walk_b, adr_pose | 180×240 | Adriana podiume iš priekio (be galvos): žingsniai ir poza |
+| adr_back_a, adr_back_b, adr_head_back | 180×240, 150×150 | Adriana iš nugaros ir galva iš nugaros |
+| jury_table, score_card | 340×150, 170×200 | komisijos stalas, balo kortelė (skaičius rašomas kode) |
+| flash, wind_puff, snow_puff, footprint | 128×128, 160×70, 140×90, 44×70 | blykstė, vėjo gūsis, sniegas, švytintis pėdsakas |
 
 ## Struktūra
 
@@ -168,7 +175,7 @@ js/phone/join.js     telefono puslapis
 js/screen/main.js    ekrano paleidimas ir vedėjo pultas
 js/screen/host.js    žaidėjai, vardų tikrinimas, rolės
 js/screen/stages.js  etapų rolės ir mygtukai
-js/screen/scenes/    Boot, Lobby, Bus
+js/screen/scenes/    Boot, Lobby, Map, Broliai, Laiptai, Pamoka, Bus, Podiumas
 lines/               replikų biblioteka
 vendor/              Phaser 3.90, supabase-js, qrcode-generator (MIT)
 ```

@@ -151,6 +151,27 @@ export const sfx = {
     return c?.state === 'running';
   },
   get ready() { return ctx?.state === 'running'; },
+  // Garso laikrodis (s) - muzikos taktams; null, jei garsas neįjungtas.
+  clock() { return ctx?.state === 'running' ? ctx.currentTime : null; },
+  latency() { return ctx ? (ctx.outputLatency || ctx.baseLatency || 0) : 0; },
+  // 5 etapo podiumo muzika: kiekvienas garsas suplanuojamas tiksliu laiku t (garso laikrodžiu).
+  music: {
+    kick(t) { tone(130, 0.2, { type: 'sine', vol: 0.42, slide: -85, delay: Math.max(0, t - ctx.currentTime) }); },
+    snare(t) { noise(0.14, { vol: 0.2, freq: 2600, delay: Math.max(0, t - ctx.currentTime) }); },
+    hat(t) { noise(0.035, { vol: 0.06, freq: 9000, delay: Math.max(0, t - ctx.currentTime) }); },
+    bass(f, t, dur) { tone(f, dur, { type: 'triangle', vol: 0.2, delay: Math.max(0, t - ctx.currentTime) }); },
+    bell(f, t) {
+      const d = Math.max(0, t - ctx.currentTime);
+      tone(f, 0.25, { type: 'triangle', vol: 0.06, delay: d });
+      noise(0.08, { vol: 0.05, freq: 7000, delay: d });
+    },
+  },
+  shutter() { tone(2400, 0.02, { type: 'square', vol: 0.06 }); noise(0.05, { vol: 0.12, freq: 5000, delay: 0.02 }); },
+  clap() { noise(0.05, { vol: 0.14, freq: 3200 }); noise(0.05, { vol: 0.1, freq: 2600, delay: 0.06 }); },
+  whoosh() { noise(0.6, { vol: 0.12, freq: 700 }); tone(300, 0.5, { type: 'sine', vol: 0.04, slide: 200 }); },
+  snowPuff() { noise(0.35, { vol: 0.14, freq: 3500 }); },
+  ooo() { tone(330, 0.6, { type: 'triangle', vol: 0.12, slide: -120 }); tone(415, 0.6, { type: 'triangle', vol: 0.08, slide: -150 }); },
+  bravo() { for (let i = 0; i < 16; i++) noise(0.05, { vol: 0.1 + Math.random() * 0.06, freq: 2400 + Math.random() * 1500, delay: i * 0.07 + Math.random() * 0.03 }); },
   pop() { tone(660, 0.08, { type: 'sine', vol: 0.2, slide: 400 }); },
   hello() { tone(523, 0.08, { type: 'triangle', vol: 0.15 }); tone(784, 0.1, { type: 'triangle', vol: 0.15, delay: 0.07 }); },
   jump() { tone(300, 0.18, { type: 'square', vol: 0.12, slide: 500 }); },

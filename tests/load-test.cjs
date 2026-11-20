@@ -248,6 +248,9 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     }
     await sleep(400);
   }
+  // jei autobusas dar nepasiektas (lėtas ekranas) - užbaigiam, kad testas eitų toliau
+  await screen.evaluate(() => { const s = window.AGTA.game.scene.getScene('Bus'); if (s.mode === 'play') s.dist = 1e9; });
+  await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Bus')?.mode === 'result', null, { timeout: 90000 });
   await sleep(1500);
   await shot(screen, '40-autobusas-rezultatas');
   const res = await screen.evaluate(() => {
@@ -263,6 +266,45 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
   console.log(`Grįžo į žemėlapį: ${back}`);
   await sleep(4000);
   await shot(screen, '50-zemelapis-po-autobuso');
+
+  // 5 etapas: mados šou (Adriana - autoplay pagal muziką, telefonai spaudo atsitiktinai)
+  await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Map')?.ready?.id === 'podiumas', null, { timeout: 60000 });
+  await screen.keyboard.press('Enter'); // žemėlapis -> podiumas
+  await sleep(1500);
+  await shot(screen, '60-podiumas-ivadas');
+  await shot(phones[1].page, 'tel-podiumas-ivadas');
+  await screen.evaluate(() => { window.AGTA.game.scene.getScene('Podiumas').autoplay = true; });
+  await screen.keyboard.press('Enter');
+  {
+    let shotPose = false;
+    const until = Date.now() + 180000;
+    while (Date.now() < until) {
+      const mode = await screen.evaluate(() => window.AGTA.game.scene.getScene('Podiumas')?.mode);
+      if (mode === 'result') break;
+      if (mode === 'pose' && !shotPose) {
+        shotPose = true;
+        await shot(screen, '61-podiumas-poza');
+        await shot(phones[0].page, 'tel-podiumas-poza');
+      }
+      const batch = phones.filter(() => Math.random() < 0.3);
+      await Promise.all(batch.map(async (p) => {
+        const btns = p.page.locator('.act:not(.off)');
+        const n = await btns.count();
+        if (n) { await btns.nth(Math.floor(Math.random() * n)).click({ timeout: 1000 }).catch(() => {}); presses += 1; }
+      }));
+      await sleep(400);
+    }
+    await sleep(800);
+    await shot(screen, '62-podiumas-rezultatas');
+    const rp = await screen.evaluate(() => {
+      const s = window.AGTA.game.scene.getScene('Podiumas');
+      return { mode: s.mode, steps: `${s.goodSteps}/${s.steps}`, stumbles: s.stumbles, pose: s.poseQ, photos: s.posePhotos, score: s.scoreVal };
+    });
+    console.log(`Podiumas: ${JSON.stringify(rp)}`);
+    await screen.keyboard.press('Enter');
+    await sleep(1500);
+    console.log(`Po podiumo žemėlapyje: ${await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'))}`);
+  }
 
   console.log(errors.length ? `KLAIDOS (${errors.length}):\n${errors.slice(0, 30).join('\n')}` : 'Klaidų konsolėje nėra.');
   await browser.close();

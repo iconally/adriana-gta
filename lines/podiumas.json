@@ -1,0 +1,77 @@
+{
+  "intro": [
+    "Patarimas: žingsniuok, kai taškas pasiekia apskritimą - ← → pakaitomis.",
+    "Patarimas: plojimai padeda Adrianai išsilaikyti. Vėjas ir sniegas - trukdo!",
+    "Patarimas: podiumo gale - POZA! Fotografai, ruoškit telefonus.",
+    "Patarimas: nesiskubink - tikros manekenės eina pagal muziką."
+  ],
+  "start": [
+    "Muzika! Podiumas tavo, Adriana!",
+    "Vingio estrada laukia žvaigždės!",
+    "Šviesos, muzika... einam!"
+  ],
+  "perfect": [
+    "Kaip tikra manekenė!",
+    "Tobulai į taktą!",
+    "Žingsnis kaip Paryžiuje!",
+    "Ritmas - tobulas!"
+  ],
+  "miss": [
+    "Oi, ne į taktą!",
+    "Klausyk muzikos!",
+    "Ritmas, ritmas!"
+  ],
+  "stumble": [
+    "Oi! Suklupo... bet atsistoja!",
+    "Bum! Nieko tokio - šypsomės ir einam!",
+    "Net žvaigždės kartais suklumpa!"
+  ],
+  "wind": [
+    "{vardas} pučia vėją!",
+    "Fiuuu! {vardas} sukėlė vėją!",
+    "Vėjas podiume! Laikykis, Adriana!"
+  ],
+  "snow": [
+    "{vardas} paleido sniegą - slidu!",
+    "Sniego patranka! Atsargiai!",
+    "Sninga ant podiumo!"
+  ],
+  "clap": [
+    "Visi ploja!",
+    "Plojimai griaudi!",
+    "Žiūrovai palaiko Adrianą!"
+  ],
+  "pose": [
+    "POZA! Fotografai - dabar!",
+    "Podiumo galas - POZA!"
+  ],
+  "pose_perfect": [
+    "Tobula poza! Blyksi visi telefonai!",
+    "Šita nuotrauka bus žurnalo viršelyje!"
+  ],
+  "pose_good": [
+    "Graži poza!",
+    "Poza! Visi fotografuoja!"
+  ],
+  "pose_late": [
+    "Poza... truputį pavėluota, bet graži!",
+    "Ups, poza ne laiku - bet su šypsena!"
+  ],
+  "back": [
+    "Dabar atgal į sceną - pagal muziką!",
+    "Apsisuka ir grįžta... elegantiškai!"
+  ],
+  "bravo": [
+    "{mokytoja}: BRAVO!",
+    "Komisija ploja!"
+  ],
+  "look": [
+    "{mokytoja} žiūri griežtai... Adriana susijaudino!",
+    "Komisija kelia antakį..."
+  ],
+  "success": [
+    "Mados šou įvykdytas! Vingio estrada ploja!",
+    "Tikra podiumo žvaigždė!",
+    "Kalėdinė kolekcija pristatyta!"
+  ]
+}

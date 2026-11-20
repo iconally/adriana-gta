@@ -261,6 +261,51 @@ export const STAGES = {
       },
     },
   },
+  podiumas: {
+    id: 'podiumas',
+    nr: 5,
+    title: 'Mados šou Vingio estradoje',
+    mission: 'NENUGRIŪK PODIUME',
+    // Visi ploja (plojimai ramina Adrianą), o antras mygtukas skiriasi:
+    // fotografai (pozos metu nuotraukos skaičiuojamos), vėjas ir sniegas (trukdo).
+    slots: [
+      'fotografas', 'vejas', 'sniegas', 'fotografas', 'vejas', 'sniegas',
+      'fotografas', 'fotografas', 'vejas', 'sniegas', 'fotografas', 'vejas',
+      'sniegas', 'fotografas', 'vejas', 'sniegas', 'fotografas',
+    ],
+    fallback: 'fotografas',
+    teacherRole: 'komisija',
+    roles: {
+      fotografas: {
+        name: '', emoji: '📸', desc: 'Adriana eina podiumu pagal muziką. Plok - jai bus drąsiau! Kai telefone užsidegs žalia „POZA!“ - greitai fotografuok!',
+        buttons: [
+          { id: 'ploti', label: 'Ploti', emoji: '👏', cd: 700, ok: 'Bravo!' },
+          { id: 'foto', label: 'Fotografuoti', emoji: '📸', cd: 900, ok: 'Klik!' },
+        ],
+      },
+      vejas: {
+        name: '', emoji: '💨', desc: 'Adriana eina podiumu pagal muziką. Plok - jai bus drąsiau! Arba pūsk vėją ir pažiūrėk, ar ji išsilaikys.',
+        buttons: [
+          { id: 'ploti', label: 'Ploti', emoji: '👏', cd: 700, ok: 'Bravo!' },
+          { id: 'vejas', label: 'Pūsti vėją', emoji: '💨', cd: 2500, ok: 'Fiuuu!' },
+        ],
+      },
+      sniegas: {
+        name: '', emoji: '❄️', desc: 'Adriana eina podiumu pagal muziką. Plok - jai bus drąsiau! Arba paleisk sniegą ant podiumo - bus slidu.',
+        buttons: [
+          { id: 'ploti', label: 'Ploti', emoji: '👏', cd: 700, ok: 'Bravo!' },
+          { id: 'sniegas', label: 'Sniego patranka', emoji: '❄️', cd: 3000, ok: 'Slidu!' },
+        ],
+      },
+      komisija: {
+        name: 'Komisijos pirmininkė', emoji: '⭐', desc: 'Jūs - mados šou komisija! „Bravo!“ padrąsina Adrianą, o griežtas žvilgsnis ją sujaudina. Pabaigoje parodysite balą.',
+        buttons: [
+          { id: 'bravo', label: 'Bravo!', emoji: '🌟', cd: 5000, ok: 'Bravo!' },
+          { id: 'zvilgsnis', label: 'Griežtas žvilgsnis', emoji: '🧐', cd: 6000, ok: 'Hmm...' },
+        ],
+      },
+    },
+  },
 };
 
 // Visas dienos maršrutas žemėlapyje. "scene" - Phaser scena; null - dar kuriama
@@ -270,7 +315,7 @@ export const ROUTE = [
   { id: 'laiptai', nr: 2, title: 'Laiptai su kuprine', mission: 'UŽLIPK Į MOKYKLĄ', place: 'Mokykla', where: 'Mokykla', icon: '🎒', pos: [498, 232], scene: 'Laiptai' },
   { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', where: 'Klasė', icon: '✏️', pos: [412, 232], scene: 'Pamoka' },
   { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė', where: 'Stotelė', icon: '🚌', pos: [326, 232], scene: 'Bus' },
-  { id: 'podiumas', nr: 5, title: 'Podiumas', mission: 'NENUGRIŪK PODIUME', place: 'Mados šou', where: 'Vingio estrada', icon: '👗', pos: [570, 625], scene: null },
+  { id: 'podiumas', nr: 5, title: 'Mados šou Vingio estradoje', mission: 'NENUGRIŪK PODIUME', place: 'Mados šou', where: 'Vingio estrada', icon: '👗', pos: [570, 625], scene: 'Podiumas' },
   { id: 'pianinas', nr: 6, title: 'Pianinas', mission: 'SUGROK KALĖDAS', place: 'Piano koncertas', where: 'Filharmonija', icon: '🎹', pos: [1489, 793], scene: null },
   { id: 'kinu', nr: 7, title: 'Kinų kalba', mission: 'KINŲ KALBOS IŠŠŪKIS', place: 'Kinų kalbos pamoka', where: 'Konfucijaus institutas', icon: '🐼', pos: [1433, 692], scene: null },
   { id: 'tenisas', nr: 8, title: 'Tenisas', mission: 'ATMUŠK KAMUOLIUKUS', place: 'Teniso treniruotė', where: 'Kalnų parkas', icon: '🎾', pos: [1749, 484], scene: null },

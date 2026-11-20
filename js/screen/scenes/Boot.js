@@ -2,6 +2,7 @@ import { generateArt } from '../art.js';
 import { generateHomeArt } from '../art-home.js';
 import { generateSchoolArt } from '../art-school.js';
 import { generateClassArt } from '../art-class.js';
+import { generateShowArt } from '../art-show.js';
 import { loadAllAvatars } from '../tribune.js';
 import { ROUTE } from '../stages.js';
 
@@ -40,6 +41,7 @@ export class BootScene extends Phaser.Scene {
     generateHomeArt(this);
     generateSchoolArt(this);
     generateClassArt(this);
+    generateShowArt(this);
     loadAllAvatars(this, window.AGTA.host);
     this.scene.start('Lobby');
   }
