@@ -171,6 +171,20 @@ export const sfx = {
   whoosh() { noise(0.6, { vol: 0.12, freq: 700 }); tone(300, 0.5, { type: 'sine', vol: 0.04, slide: 200 }); },
   snowPuff() { noise(0.35, { vol: 0.14, freq: 3500 }); },
   ooo() { tone(330, 0.6, { type: 'triangle', vol: 0.12, slide: -120 }); tone(415, 0.6, { type: 'triangle', vol: 0.08, slide: -150 }); },
+  // 6 etapas: koncertas
+  piano(f, delay = 0) {
+    tone(f, 0.9, { type: 'triangle', vol: 0.22, delay });
+    tone(f * 2, 0.45, { type: 'sine', vol: 0.05, delay });
+    tone(f / 2, 0.6, { type: 'sine', vol: 0.05, delay });
+  },
+  plunk() { tone(110, 0.45, { type: 'sawtooth', vol: 0.12, slide: -25 }); tone(117, 0.45, { type: 'sawtooth', vol: 0.1, slide: -25 }); },
+  instrument(kind, f) {
+    if (kind === 'varpeliai') { tone(f * 2, 0.5, { type: 'triangle', vol: 0.06 }); tone(f * 3, 0.3, { type: 'sine', vol: 0.03 }); noise(0.05, { vol: 0.03, freq: 8000 }); }
+    else if (kind === 'smuikai') { tone(f, 0.4, { type: 'sawtooth', vol: 0.04, slide: 5 }); tone(f * 1.003, 0.4, { type: 'sawtooth', vol: 0.03 }); }
+    else if (kind === 'bugnai') { tone(115, 0.18, { type: 'sine', vol: 0.3, slide: -60 }); noise(0.1, { vol: 0.12, freq: 1500 }); }
+    else if (kind === 'trimitai') { tone(f, 0.26, { type: 'square', vol: 0.045 }); tone(f * 2, 0.2, { type: 'square', vol: 0.015 }); }
+  },
+  sour() { const f = 160 + Math.random() * 120; tone(f, 0.32, { type: 'sawtooth', vol: 0.06, slide: -70 }); tone(f * 1.07, 0.32, { type: 'sawtooth', vol: 0.05, slide: -80 }); },
   bravo() { for (let i = 0; i < 16; i++) noise(0.05, { vol: 0.1 + Math.random() * 0.06, freq: 2400 + Math.random() * 1500, delay: i * 0.07 + Math.random() * 0.03 }); },
   pop() { tone(660, 0.08, { type: 'sine', vol: 0.2, slide: 400 }); },
   hello() { tone(523, 0.08, { type: 'triangle', vol: 0.15 }); tone(784, 0.1, { type: 'triangle', vol: 0.15, delay: 0.07 }); },

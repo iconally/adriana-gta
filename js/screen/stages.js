@@ -306,6 +306,59 @@ export const STAGES = {
       },
     },
   },
+  pianinas: {
+    id: 'pianinas',
+    nr: 6,
+    title: 'Kalėdinis koncertas Filharmonijoje',
+    mission: 'SUGROK KALĖDAS',
+    // Klasė - orkestras iš 4 grupių. Kiekvienoje frazėje groja viena grupė, finale - visi.
+    slots: [
+      'varpeliai', 'smuikai', 'bugnai', 'trimitai',
+      'varpeliai', 'smuikai', 'bugnai', 'trimitai',
+      'varpeliai', 'smuikai', 'bugnai', 'trimitai',
+      'varpeliai', 'smuikai', 'bugnai', 'trimitai',
+      'varpeliai',
+    ],
+    fallback: 'varpeliai',
+    teacherRole: 'dirigente',
+    roles: {
+      varpeliai: {
+        name: '', emoji: '🔔', desc: 'Tu - orkestre, groji varpeliais! Kai telefone užsidegs žalia „GROK!“ - spausk. Kol groja kiti - tyliai. Pabaigoje - nusilenk!',
+        buttons: [
+          { id: 'groti', label: 'Groti varpeliais', emoji: '🔔', cd: 300, ok: 'Din din!' },
+          { id: 'nusilenkti', label: 'Nusilenkti', emoji: '🙇', cd: 1500, ok: 'Bravo!' },
+        ],
+      },
+      smuikai: {
+        name: '', emoji: '🎻', desc: 'Tu - orkestre, groji smuiku! Kai telefone užsidegs žalia „GROK!“ - spausk. Kol groja kiti - tyliai. Pabaigoje - nusilenk!',
+        buttons: [
+          { id: 'groti', label: 'Groti smuiku', emoji: '🎻', cd: 300, ok: 'Lia lia!' },
+          { id: 'nusilenkti', label: 'Nusilenkti', emoji: '🙇', cd: 1500, ok: 'Bravo!' },
+        ],
+      },
+      bugnai: {
+        name: '', emoji: '🥁', desc: 'Tu - orkestre, groji būgnu! Kai telefone užsidegs žalia „GROK!“ - spausk. Kol groja kiti - tyliai. Pabaigoje - nusilenk!',
+        buttons: [
+          { id: 'groti', label: 'Mušti būgną', emoji: '🥁', cd: 300, ok: 'Bum bum!' },
+          { id: 'nusilenkti', label: 'Nusilenkti', emoji: '🙇', cd: 1500, ok: 'Bravo!' },
+        ],
+      },
+      trimitai: {
+        name: '', emoji: '🎺', desc: 'Tu - orkestre, groji trimitu! Kai telefone užsidegs žalia „GROK!“ - spausk. Kol groja kiti - tyliai. Pabaigoje - nusilenk!',
+        buttons: [
+          { id: 'groti', label: 'Pūsti trimitą', emoji: '🎺', cd: 300, ok: 'Tu tu!' },
+          { id: 'nusilenkti', label: 'Nusilenkti', emoji: '🙇', cd: 1500, ok: 'Bravo!' },
+        ],
+      },
+      dirigente: {
+        name: 'Dirigentė', emoji: '🎼', desc: 'Jūs - dirigentė! „Visi kartu!“ - kelias sekundes groja visas orkestras. „Ššš!“ - nutildo tuos, kas groja ne savo metu.',
+        buttons: [
+          { id: 'visi', label: 'Visi kartu!', emoji: '🎼', cd: 12000, ok: 'Groja visi!' },
+          { id: 'tyliai', label: 'Ššš!', emoji: '🤫', cd: 6000, ok: 'Tyliau...' },
+        ],
+      },
+    },
+  },
 };
 
 // Visas dienos maršrutas žemėlapyje. "scene" - Phaser scena; null - dar kuriama
@@ -316,7 +369,7 @@ export const ROUTE = [
   { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', where: 'Klasė', icon: '✏️', pos: [412, 232], scene: 'Pamoka' },
   { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė', where: 'Stotelė', icon: '🚌', pos: [326, 232], scene: 'Bus' },
   { id: 'podiumas', nr: 5, title: 'Mados šou Vingio estradoje', mission: 'NENUGRIŪK PODIUME', place: 'Mados šou', where: 'Vingio estrada', icon: '👗', pos: [570, 625], scene: 'Podiumas' },
-  { id: 'pianinas', nr: 6, title: 'Pianinas', mission: 'SUGROK KALĖDAS', place: 'Piano koncertas', where: 'Filharmonija', icon: '🎹', pos: [1489, 793], scene: null },
+  { id: 'pianinas', nr: 6, title: 'Kalėdinis koncertas Filharmonijoje', mission: 'SUGROK KALĖDAS', place: 'Piano koncertas', where: 'Filharmonija', icon: '🎹', pos: [1489, 793], scene: 'Koncertas' },
   { id: 'kinu', nr: 7, title: 'Kinų kalba', mission: 'KINŲ KALBOS IŠŠŪKIS', place: 'Kinų kalbos pamoka', where: 'Konfucijaus institutas', icon: '🐼', pos: [1433, 692], scene: null },
   { id: 'tenisas', nr: 8, title: 'Tenisas', mission: 'ATMUŠK KAMUOLIUKUS', place: 'Teniso treniruotė', where: 'Kalnų parkas', icon: '🎾', pos: [1749, 484], scene: null },
   { id: 'robotas', nr: 9, title: 'Dovanų robotas', mission: 'UŽPROGRAMUOK ROBOTĄ', place: 'Programavimo būrelis', where: 'Baltasis tiltas', icon: '🤖', pos: [1105, 387], scene: null },

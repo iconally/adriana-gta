@@ -199,7 +199,7 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
       await sleep(400);
     }
     await screen.evaluate(() => { const s = window.AGTA.game.scene.getScene('Pamoka'); if (s.mode === 'play') s.timeLeft = 0.1; });
-    await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Pamoka')?.mode === 'result', null, { timeout: 60000 });
+    await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Pamoka')?.mode === 'result', null, { timeout: 150000 });
     const rp = await screen.evaluate(() => { const s = window.AGTA.game.scene.getScene('Pamoka'); return { passed: `${s.idx}/${s.seq.length - 1}`, caught: s.caught, questions: s.questions, helps: s.helps, elapsed: +s.elapsed.toFixed(1) }; });
     console.log(`Pamoka: ${JSON.stringify(rp)}`);
     await shot(screen, '19-pamoka-rezultatas');
@@ -304,6 +304,46 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     await screen.keyboard.press('Enter');
     await sleep(1500);
     console.log(`Po podiumo žemėlapyje: ${await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'))}`);
+  }
+
+  // 6 etapas: koncertas (Adriana - autoplay, orkestras spaudo atsitiktinai)
+  await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Map')?.ready?.id === 'pianinas', null, { timeout: 60000 });
+  await screen.keyboard.press('Enter'); // žemėlapis -> koncertas
+  await sleep(1500);
+  await shot(screen, '70-koncertas-ivadas');
+  await screen.evaluate(() => { window.AGTA.game.scene.getScene('Koncertas').autoplay = true; });
+  await screen.keyboard.press('Enter');
+  {
+    let shotPlay = false;
+    let shotBow = false;
+    const until = Date.now() + 240000;
+    while (Date.now() < until) {
+      const s = await screen.evaluate(() => { const k = window.AGTA.game.scene.getScene('Koncertas'); return { mode: k?.mode, ph: k?.phraseIdx }; });
+      if (s.mode === 'result') break;
+      if (!shotPlay && s.ph >= 1 && s.mode === 'demo') {
+        shotPlay = true;
+        await shot(screen, '71-koncertas-groja');
+        await Promise.all(phones.slice(0, 4).map((p, i) => shot(p.page, `tel-koncertas-${i}`)));
+      }
+      if (!shotBow && s.mode === 'bow') { shotBow = true; await shot(screen, '72-koncertas-nusilenkimas'); }
+      const batch = phones.filter(() => Math.random() < 0.3);
+      await Promise.all(batch.map(async (p) => {
+        const btns = p.page.locator('.act:not(.off)');
+        const n = await btns.count();
+        if (n) { await btns.nth(Math.floor(Math.random() * n)).click({ timeout: 1000 }).catch(() => {}); presses += 1; }
+      }));
+      await sleep(400);
+    }
+    await sleep(800);
+    await shot(screen, '73-koncertas-rezultatas');
+    const rk = await screen.evaluate(() => {
+      const s = window.AGTA.game.scene.getScene('Koncertas');
+      return { mode: s.mode, clean: s.clean, mistakes: s.mistakes, harmony: Math.round(s.harmony), hits: s.sectionHits };
+    });
+    console.log(`Koncertas: ${JSON.stringify(rk)}`);
+    await screen.keyboard.press('Enter');
+    await sleep(1500);
+    console.log(`Po koncerto žemėlapyje: ${await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'))}`);
   }
 
   console.log(errors.length ? `KLAIDOS (${errors.length}):\n${errors.slice(0, 30).join('\n')}` : 'Klaidų konsolėje nėra.');

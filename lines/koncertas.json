@@ -1,0 +1,72 @@
+{
+  "intro": [
+    "Patarimas: pirma klausyk ir žiūrėk, kurie klavišai užsidega - tada kartok.",
+    "Patarimas: orkestre groja tik ta grupė, kurios telefonas žalias!",
+    "Patarimas: A S D F G - tai Do Re Mi Fa Sol.",
+    "Patarimas: dirigentė gali paleisti visą orkestrą - „Visi kartu!“"
+  ],
+  "start": [
+    "Šviesos gęsta... Koncertas prasideda!",
+    "Filharmonijoje tylu. Adriana prie rojalio.",
+    "Ponios ir ponai - Kalėdų koncertas!"
+  ],
+  "listen": [
+    "Klausyk...",
+    "Įsiklausyk į melodiją...",
+    "Rojalis groja - įsimink!"
+  ],
+  "your_turn": [
+    "Dabar tu, Adriana!",
+    "Kartok!",
+    "Tavo eilė!"
+  ],
+  "phrase_ok": [
+    "Puikiai sugrota!",
+    "Kaip tikra pianistė!",
+    "Salė klausosi užgniaužusi kvapą!",
+    "Bravo!"
+  ],
+  "phrase_ok_help": [
+    "Sugrota! Rojalis truputį padėjo.",
+    "Pavyko! Toliau - dar gražiau."
+  ],
+  "wrong": [
+    "Ups! Dar kartą...",
+    "Plumpt! Nieko tokio - klausyk dar kartą.",
+    "Ne tas klavišas... bandom iš naujo!"
+  ],
+  "help": [
+    "Rojalis padeda: sek geltoną rodyklę!",
+    "Sek rodyklę - viskas bus gerai!"
+  ],
+  "section": [
+    "Dabar groja {grupe}!",
+    "{grupe}, jūsų eilė!"
+  ],
+  "sour": [
+    "Kažkas groja ne savo metu!",
+    "Netikra nata! Kas čia?",
+    "Ššš... ne jūsų eilė!"
+  ],
+  "tutti": [
+    "{dirigente}: VISI KARTU!",
+    "Groja visas orkestras!"
+  ],
+  "shush": [
+    "{dirigente}: Ššš!",
+    "Dirigentė pakėlė lazdelę - tyla!"
+  ],
+  "finale": [
+    "FINALAS! Groja visi!",
+    "Ir dabar - visas orkestras!"
+  ],
+  "bow": [
+    "Nusilenkite publikai!",
+    "Ovacijos! Visi nusilenkia!"
+  ],
+  "success": [
+    "Kalėdų koncertas įvykdytas! BIS!",
+    "Filharmonija ploja atsistojusi!",
+    "Tikras kalėdinis stebuklas!"
+  ]
+}

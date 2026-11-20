@@ -9,6 +9,7 @@ Kalėdinis klasės vakarėlio žaidimas. Adriana žaidžia dideliame ekrane, o k
 - Telefono mygtukai keičiasi pagal etapą (laukiamajame: "Labas!" ir "Pašokti").
 - 4 etapas "Bėgimas iki autobuso": Adriana šokinėja per balas, pusnis, tvoras ir draugus. Klasiokai mėto gniūžtes, moja iš autobuso, šaukia, o "vairuotojo draugai" prideda iki +5 s.
 - 5 etapas "Mados šou Vingio estradoje": Adriana eina podiumu pagal muziką (← → pakaitomis į taktą), gale - poza (TARPAS). Klasiokai ploja (ramina), fotografuoja, pučia vėją ir leidžia sniegą; mokytoja - komisija, pabaigoje parodo balą.
+- 6 etapas "Kalėdinis koncertas Filharmonijoje": rojalis pagroja frazę („Skamba varpeliai“), Adriana ją pakartoja klavišais A S D F G (Do Re Mi Fa Sol). Klasė - orkestras (varpeliai, smuikai, būgnai, trimitai): groja tik ta grupė, kurios telefonas žalias; finale - visi, pabaigoje visi nusilenkia. Mokytoja - dirigentė.
 - Vedėjo pultas (klavišas H), replikų biblioteka, garso efektai, vietinis testavimo režimas.
 
 ## Darbas su VS Code
@@ -82,6 +83,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 | → arba TARPAS | Adriana perduoda atviruką (3 etapas); jei kas užsižiopsojo 3 s - perduoda už jį |
 | TARPAS arba ↑ | Adrianos šuolis (autobusas) |
 | ← → pakaitomis į taktą | žingsniai podiumu (5 etapas); podiumo gale TARPAS - poza, kai žiedas užsidaro |
+| A S D F G (arba 1-5) | rojalio klavišai Do Re Mi Fa Sol (6 etapas) |
 | R | kartoti etapą |
 | ESC | į laukiamąjį |
 | H | vedėjo pultas |
@@ -164,6 +166,10 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/sc
 | adr_back_a, adr_back_b, adr_head_back | 180×240, 150×150 | Adriana iš nugaros ir galva iš nugaros |
 | jury_table, score_card | 340×150, 170×200 | komisijos stalas, balo kortelė (skaičius rašomas kode) |
 | flash, wind_puff, snow_puff, footprint | 128×128, 160×70, 140×90, 44×70 | blykstė, vėjo gūsis, sniegas, švytintis pėdsakas |
+| concert_bg | 1920×1080 | 6 etapo Filharmonijos scena (ložės, užuolaidos, grindys) |
+| grand_piano, piano_bench, adr_piano | 480×330, 130×70, 200×220 | rojalis, suoliukas, Adriana prie rojalio (be galvos) |
+| inst_bells, inst_violin, inst_drum, inst_trumpet | apie 100×80 | orkestro instrumentai |
+| podium_box, rose | 220×60, 40×70 | dirigentės pakyla, rožė finale |
 
 ## Struktūra
 
@@ -175,7 +181,7 @@ js/phone/join.js     telefono puslapis
 js/screen/main.js    ekrano paleidimas ir vedėjo pultas
 js/screen/host.js    žaidėjai, vardų tikrinimas, rolės
 js/screen/stages.js  etapų rolės ir mygtukai
-js/screen/scenes/    Boot, Lobby, Map, Broliai, Laiptai, Pamoka, Bus, Podiumas
+js/screen/scenes/    Boot, Lobby, Map, Broliai, Laiptai, Pamoka, Bus, Podiumas, Koncertas
 lines/               replikų biblioteka
 vendor/              Phaser 3.90, supabase-js, qrcode-generator (MIT)
 ```
