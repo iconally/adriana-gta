@@ -9,7 +9,7 @@
 // Pabaiga: eglės lemputės mirksi, fejerverkai virš Katedros, rezultatai; ENTER - fotosesija:
 // visi žmogeliukai su veidais prie eglės, mokytoja ir Adriana per vidurį, 3-2-1 📸 - nuotrauka
 // rodoma ekrane ir nusiunčiama į kiekvieno telefoną (išsaugoti / dalintis).
-// Visas etapas nuo „3-2-1“ iki rezultatų - ne ilgiau 60 s.
+// Žaidimo dalis nuo „3-2-1“ iki eglės įžiebimo - ne ilgiau 45 s.
 
 import { headText, bodyText, banner, subtitle, missionCard, snow, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
@@ -18,9 +18,9 @@ import { TREE, treeHalfWidth } from '../art-final.js';
 import { teacherLabel, isBoy, GIRL_COLORS, BOY_COLORS } from '../../common.js';
 
 const STAGE = STAGES.finalas;
-const TOTAL_S = 60;
-const DECOR_MAX_S = 24;      // iki tiek puošiam; paskui žvaigždė ir žaisliukai pakimba patys
-const FINALE_BY_S = 49;      // nuo tiek - eglė užsidega bet kokiu atveju
+const TOTAL_S = 45;
+const DECOR_MAX_S = 16;      // iki tiek puošiam; paskui žvaigždė ir žaisliukai pakimba patys
+const FINALE_BY_S = 36;      // nuo tiek - eglė užsidega bet kokiu atveju
 const COUNT_STEP = 800;
 const WIN_PRE = 250;
 const WIN_POST = 1500;
@@ -323,7 +323,7 @@ export class FinalasScene extends Phaser.Scene {
     this.say('EGLĖ PAPUOŠTA! LAUKIAM 3-2-1...', C.green);
     this.sub(this.A.lines.pick('finalas', 'ready', vars), C.yellow);
     const t = this.A.host.teachers()[0];
-    const wait = t && this.A.host.isOnline(t) ? 6000 : 2500;
+    const wait = t && this.A.host.isOnline(t) ? 4000 : 2000;
     this.readyTimer = this.time.delayedCall(wait, () => { if (this.mode === 'ready') this.syncCountdown(); });
   }
 
@@ -728,7 +728,7 @@ export class FinalasScene extends Phaser.Scene {
     const D = 1800;
     headText(this, 40, 54, STAGE.mission, 46, C.yellow).setOrigin(0, 0.5).setDepth(D);
     this.counterText = headText(this, 1500, 54, '', 34, C.white).setDepth(D);
-    this.timerText = bodyText(this, 1880, 40, '⏱ 1:00', 30, '#f1e6ff').setOrigin(1, 0.5).setDepth(D);
+    this.timerText = bodyText(this, 1880, 40, '⏱ 0:45', 30, '#f1e6ff').setOrigin(1, 0.5).setDepth(D);
     this.stateText = headText(this, 960, 54, '', 34, C.yellow).setDepth(D); // viršuje - kad neuždengtų eglės viršūnės
     this.countText = headText(this, 960, 640, '', 56, C.yellow).setDepth(1955).setAlpha(0);
   }

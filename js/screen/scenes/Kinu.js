@@ -22,9 +22,8 @@ const WORDS = [
   { ch: '雪', py: 'xuě', lt: 'Sniegas', em: '❄️' },
   { ch: '星', py: 'xīng', lt: 'Žvaigždė', em: '⭐' },
   { ch: '树', py: 'shù', lt: 'Medis', em: '🌲' },
-  { ch: '月', py: 'yuè', lt: 'Mėnulis', em: '🌙' },
-  { ch: '火', py: 'huǒ', lt: 'Ugnis', em: '🔥' },
 ];
+// (trumpinant etapą iki ~35 s palikti 3 kalėdiniai žodžiai; galima pridėti: 月 yuè - Mėnulis 🌙, 火 huǒ - Ugnis 🔥)
 // klaidinantys hieroglifai (be 木 - jis irgi „medis“)
 const DISTRACT = [
   { ch: '人', lt: 'žmogus' }, { ch: '山', lt: 'kalnas' }, { ch: '水', lt: 'vanduo' }, { ch: '日', lt: 'saulė' },
@@ -35,9 +34,9 @@ const WRONG_MEANINGS = [
   { ch: '日', lt: 'Saulė', em: '☀️' }, { ch: '马', lt: 'Arklys', em: '🐴' },
 ];
 const laoshiLabel = (name) => `Laoshi ${String(name || 'Daiva').replace(/mokytoja\s*/i, '')}`;
-const QUIZ_MS = 4500;
+const QUIZ_MS = 4000;
 const REVEAL_MS = 1100;
-const CATCH_MS = 5500;
+const CATCH_MS = 5000;
 const SPAWN_MS = 420;
 const FALL = 290; // px/s
 const SLOW_FALL = 165;

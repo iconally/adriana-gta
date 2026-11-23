@@ -7,7 +7,7 @@
 //  3) Adriana ← → nubėga ir spaudžia TARPĄ, kai kamuoliukas pasiekia aukso ratą.
 //     Atmušė - taškas Adrianai (tobulai - „ACE!“), nepataikė - taškas klasei.
 // Vienas geimas tikru teniso skaičiavimu (15 - 30 - 40, lygu, persvara), ekrane vadinamas „mačas“.
-// Visas etapas nuo „3-2-1“ iki rezultatų - ne ilgiau 60 s. Kai laiko lieka tik vienam taškui,
+// Visas etapas nuo „3-2-1“ iki rezultatų - ne ilgiau 40 s. Kai laiko lieka tik vienam taškui,
 // skelbiamas „Paskutinis taškas!“; po jo laimi pirmaujantis, o esant lygiam - paskutinio taško laimėtojas.
 // Mokytoja - teisėja ant bokštelio: „Aut! 🚩“ (kartą panaikina klasės tašką) ir
 // „Tyla! 🤫“ (šio taško balsai slapti - Adriana nemato, kur krypsta dauguma).
@@ -33,7 +33,7 @@ const PERFECT = 0.07;         // s: tobulas smūgis - ACE
 const REACH = 130;            // px: kiek toli nuo Adrianos kamuoliukas dar pasiekiamas
 const RETURN_S = 0.7;
 const POINT_MS = 1500;
-const TOTAL_S = 60;          // visas etapas nuo 3-2-1 iki rezultatų lango
+const TOTAL_S = 40;          // visas etapas nuo 3-2-1 iki rezultatų lango
 const POINT_EST = 6.4;       // s: vienas taškas (balsavimas + skrydis + pauzė)
 const FINISH_S = 3.8;        // s: pergalės užrašas iki rezultatų
 const ADR_D = -0.045;         // Adrianos linija (truputį už galinės linijos)
@@ -627,7 +627,7 @@ export class TenisasScene extends Phaser.Scene {
       headText(this, 180, 2, 'KLASĖ ⛄', 34, C.teal),
     ]);
     this.sbNote = headText(this, 1010, 112, '', 28, C.yellow).setDepth(D);
-    this.timerText = bodyText(this, 1880, 40, '⏱ 1:00', 30, '#f1e6ff').setOrigin(1, 0.5).setDepth(D);
+    this.timerText = bodyText(this, 1880, 40, '⏱ 0:40', 30, '#f1e6ff').setOrigin(1, 0.5).setDepth(D);
     this.stateText = headText(this, 1010, 160, '', 40, C.yellow).setDepth(D);
   }
 

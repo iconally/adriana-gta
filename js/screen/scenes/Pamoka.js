@@ -5,8 +5,8 @@
 // Pas ką atvirukas - tas vaikas paryškintas ekrane ir gauna žinutę telefone; jis spaudžia
 // „Perduoti“. Adriana pradeda (→ arba TARPAS) ir gali padėti, jei kas užsižiopsojo.
 // Mokytoja rašo lentoje, kartais sustoja („Hmm?“) ir atsisuka. Jei tada atvirukas
-// skrenda - PAGAVO, atvirukas grįžta vienu vaiku atgal. Laiko riba nėra - misija baigiasi,
-// kai atvirukas pasiekia mokytoją (laikas tik skaičiuojamas).
+// skrenda - PAGAVO, atvirukas grįžta vienu vaiku atgal. Misija baigiasi, kai atvirukas pasiekia
+// mokytoją; po 40 s (laikrodis skaičiuoja atgal) atvirukas nuskrenda mokytojai pats.
 // Kiekvienas vaikas turi „Perduoti“ ir vieną savo mygtuką:
 //  - paklausti mokytojos (ji iškart atsisuka!), valgyti mandariną, dainuoti, šnabždėti,
 //    čiaudėti, numesti penalą, žiovauti, kelti ranką (fonas);
@@ -27,6 +27,7 @@ const WARN = 0.8; // „Hmm?“ prieš atsisukant
 const FACE = [1.2, 2.0]; // kiek žiūri į klasę
 const CALM_MS = 1500; // ką tik pradėjusios rašyti mokytojos neatsuksi
 const QUESTION_GAP = 9000;
+const TIME_LIMIT = 40; // s: tada atvirukas nuskrenda tiesiai mokytojai
 
 // Suolų eilės: y - suolo viršus, s - mastelis (toliau - mažesni).
 const ROWS = {
@@ -76,6 +77,7 @@ export class PamokaScene extends Phaser.Scene {
     this.helps = 0;
     this.lastQuestion = -99999;
     this.elapsed = 0;
+    this.rushed = false;
     this.lastSub = 0;
     this.stats = new Map();
     this.seats = new Map(); // pid -> sėdintis vaikas
@@ -618,7 +620,7 @@ export class PamokaScene extends Phaser.Scene {
     const D = 1800;
     headText(this, 40, 54, STAGE.mission, 46, C.yellow).setOrigin(0, 0.5).setDepth(D);
     this.caughtText = bodyText(this, 40, 112, 'Pagavo: 0', 26, '#f1e6ff').setOrigin(0, 0.5).setDepth(D);
-    this.timerText = headText(this, 960, 70, '0:00', 92, C.white).setDepth(D);
+    this.timerText = headText(this, 960, 70, `0:${TIME_LIMIT}`, 92, C.white).setDepth(D);
     const w = 560;
     this.add.rectangle(960, 140, w + 8, 22, 0x000000, 0.6).setStrokeStyle(3, 0x14081f).setDepth(D);
     this.barFill = this.add.rectangle(960 - w / 2, 140, 1, 12, 0xffd23f).setOrigin(0, 0.5).setDepth(D);
@@ -631,9 +633,9 @@ export class PamokaScene extends Phaser.Scene {
   }
 
   updateHud() {
-    // laiko riba nėra - laikrodis tik skaičiuoja, kiek užtruko
-    const s = Math.floor(this.elapsed);
-    this.timerText.setText(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`);
+    // laikrodis skaičiuoja atgal nuo 0:40
+    const s = Math.ceil(Math.max(0, TIME_LIMIT - this.elapsed));
+    this.timerText.setText(`${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`).setColor(s <= 10 && this.mode === 'play' ? C.red : C.white);
     const total = Math.max(1, this.seq.length - 1);
     const done = this.flight ? this.flight.from + this.flight.t : this.idx;
     const f = Phaser.Math.Clamp(done / total, 0, 1);
@@ -643,8 +645,26 @@ export class PamokaScene extends Phaser.Scene {
     this.caughtText.setText(`Pagavo: ${this.caught}`);
   }
 
+  // Laikas baigėsi: atvirukas nuskrenda tiesiai mokytojai.
+  timeUp() {
+    this.mode = 'end';
+    this.rushed = true;
+    this.ring.setVisible(false);
+    this.holderTag.setVisible(false);
+    this.helpTag.setVisible(false);
+    this.stateText.setText('LAIKAS! ATVIRUKAS SKRENDA MOKYTOJAI').setColor(C.yellow);
+    this.maybeSub('Laikas! Atvirukas skrenda tiesiai mokytojai!', C.yellow, 0);
+    const last = this.seq.length - 1;
+    const p = this.holderPos(last);
+    this.A.sfx.throw();
+    this.tweens.add({
+      targets: this.cardImg, x: p.x, y: p.y, angle: 720, scale: 0.8 * p.s, duration: 900, ease: 'Quad.InOut',
+      onComplete: () => { this.cardImg.setAngle(0); this.idx = last; this.win(true); },
+    });
+  }
+
   // ---------------- pabaiga ----------------
-  win() {
+  win(rushed = false) {
     this.mode = 'end';
     this.updateStatus();
     this.ring.setVisible(false);
@@ -708,12 +728,14 @@ export class PamokaScene extends Phaser.Scene {
   // ---------------- ciklas ----------------
   update(_, deltaMs) {
     const dt = Math.min(deltaMs, 66) / 1000;
+    const rdt = Math.min(deltaMs, 250) / 1000; // laikrodžiui - tikras laikas (ir lėtame kompiuteryje 40 s = 40 s)
     const now = this.time.now;
     const play = this.mode === 'play';
     const t = this.teacher;
 
     if (play) {
-      this.elapsed += dt;
+      this.elapsed += rdt;
+      if (this.elapsed >= TIME_LIMIT && !this.flight) { this.timeUp(); this.updateHud(); return; }
       // mokytojos ciklas: rašo -> „Hmm?“ -> žiūri -> vėl rašo
       if (t.state === 'writing' && now >= t.until) this.teacherWarn();
       else if (t.state === 'warning' && now >= t.until) this.teacherFace();

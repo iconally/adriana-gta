@@ -21,7 +21,7 @@ const GRAVITY = 2700;
 const JUMP_V = 1180;
 const RUN_SPEED = 560;
 const GOAL_DIST = RUN_SPEED * 34;
-const TIME_LIMIT = 45;
+const TIME_LIMIT = 40;
 const MAX_BONUS = 5;
 const DOOR_PRESSES_PER_SEC = 3;
 const BUS_Y = GROUND - BUS_H + 6;
@@ -807,6 +807,7 @@ export class BusScene extends Phaser.Scene {
   // ---------------- ciklas ----------------
   update(_, deltaMs) {
     const dt = Math.min(deltaMs, 66) / 1000;
+    const rdt = Math.min(deltaMs, 250) / 1000; // laikrodžiui - tikras laikas (ir lėtame kompiuteryje 40 s = 40 s)
     const now = this.time.now;
 
     // kiemo sniego seniai: atsistato
@@ -853,8 +854,8 @@ export class BusScene extends Phaser.Scene {
 
     // laikas ir atstumas
     if (this.mode === 'play') {
-      this.timeLeft -= dt;
-      this.elapsed += dt;
+      this.timeLeft -= rdt;
+      this.elapsed += rdt;
       this.dist += speed * dt;
       this.spawnIn -= dt * this.speedMul;
       if (this.spawnIn <= 0 && this.dist < GOAL_DIST - RUN_SPEED * 3) {

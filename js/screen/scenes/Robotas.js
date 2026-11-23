@@ -9,7 +9,7 @@
 // Mokytoja - būrelio vadovė: „Padėti 🧹“ (artimiausiai neišvalytai pusniai - 5 s; jei vaikas
 // neišvalo, išvalo mokytoja) ir „Greičiau ⏩“. Atsijungusio vaiko pusnis po 5 s ištirpsta pati.
 // Kas išvalė savo pusnį - leidžia fejerverkus virš Baltojo tilto (savo spalva ir su vardu).
-// Visas etapas nuo „3-2-1“ iki rezultatų - ne ilgiau 60 s.
+// Visas etapas nuo „3-2-1“ iki rezultatų - ne ilgiau 45 s.
 
 import { headText, bodyText, banner, subtitle, missionCard, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
@@ -17,13 +17,14 @@ import { STAGES } from '../stages.js';
 import { MAT, matProj, cellU, cellD, cellCenter } from '../art-robot.js';
 
 const STAGE = STAGES.robotas;
-// Kelias nuo starto iki eglės (stulpelis c 0-7, eilė r 0-5; r = 0 - tolimiausia). 22 žingsniai.
+// Kelias nuo starto iki eglės (stulpelis c 0-7, eilė r 0-5; r = 0 - tolimiausia).
+// 18 žingsnių (➡×6 ⬆×2 ⬅×4 ⬆×2 ➡×4), viduryje 17 langelių - po vieną pusnį kiekvienam vaikui.
 const ROUTE = [
   [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [6, 4], [6, 3], [5, 3], [4, 3], [3, 3],
-  [2, 3], [1, 3], [1, 2], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [7, 0],
+  [2, 3], [2, 2], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1],
 ];
 // Aklavietės: kelio gabaliukai, kurie niekur neveda (kad žemėlapis nebūtų per lengvas).
-const SPURS = [[7, 5], [0, 3], [4, 0], [7, 2]];
+const SPURS = [[7, 5], [7, 3], [1, 3], [3, 0]];
 const DIRS = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] };
 const BLOCK = {
   U: { arrow: '⬆', col: 0x1fc2c6 },
@@ -36,7 +37,7 @@ const MAX_BLOCKS = 13;
 const DIG_HITS = 8;
 const HELP_MS = 5000;
 const STEP_MS = 300;
-const TOTAL_S = 60;
+const TOTAL_S = 45;
 const FINISH_S = 3.8;
 const BAR = { x: 960, y: 160, w: 1320, h: 100, size: 74, gap: 10 };
 const PANEL = { x: 1700, y: 300 };
@@ -747,7 +748,7 @@ export class RobotasScene extends Phaser.Scene {
     const D = 1800;
     headText(this, 40, 54, STAGE.mission, 46, C.yellow).setOrigin(0, 0.5).setDepth(D);
     this.levelText = headText(this, 1060, 54, '', 40, C.white).setDepth(D);
-    this.timerText = bodyText(this, 1880, 40, '⏱ 1:00', 30, '#f1e6ff').setOrigin(1, 0.5).setDepth(D);
+    this.timerText = bodyText(this, 1880, 40, '⏱ 0:45', 30, '#f1e6ff').setOrigin(1, 0.5).setDepth(D);
     this.stateText = headText(this, 960, 248, '', 36, C.yellow).setDepth(D);
   }
 

@@ -4,7 +4,7 @@
 // suskaidyta į 4 frazes. Eilė: 🎹 rojalis (Adriana) -> 🥁 būgnai -> 🎹 -> 🎺 trimitai ->
 // 🎹 -> 🎻 smuikai -> 🎹 -> 🔔 varpeliai -> finalas (visi) -> nusilenkimas.
 // Adriana groja pagal natų eilutę: šviečia kita nata su klavišu (A S D F G = Do Re Mi Fa Sol).
-// Visa melodija trunka ne ilgiau nei 1 min: jei Adriana per 7 s frazės nebaigia,
+// Visa melodija trunka apie 40 s: jei Adriana per 4,5 s frazės nebaigia,
 // rojalis pagroja likusias natas pats.
 //
 // Klasė - orkestras: kai groja jų grupė, telefonai žali („GROK!“), kitaip - raudoni („Tyliai“).
@@ -47,9 +47,9 @@ const LINEUP = [
   { id: 'smuikai', label: '🎻 Smuikai' },
   { id: 'varpeliai', label: '🔔 Varpeliai' },
 ];
-const MELODY_S = 60; // visa melodija - ne ilgiau nei 1 min
-const ADR_LIMIT = 7000; // tiek ms Adriana turi frazei, paskui rojalis pagelbsti
-const ORCH_MS = 3500; // kiek laiko groja orkestro grupė
+const MELODY_S = 40; // visa melodija - apie 40 s
+const ADR_LIMIT = 4500; // tiek ms Adriana turi frazei, paskui rojalis pagelbsti
+const ORCH_MS = 2500; // kiek laiko groja orkestro grupė
 // Orkestro vietos: kiekviena grupė stovi kartu.
 const FRONT = { g: 724, s: 0.72 };
 const BACK = { g: 530, s: 0.58 };
@@ -726,7 +726,7 @@ export class KoncertasScene extends Phaser.Scene {
     const melody = this.mode === 'play' || this.mode === 'orch' || this.mode === 'finale';
     const active = melody || this.mode === 'bow';
     if (active) this.elapsed += dt;
-    if (melody) this.melodyLeft = Math.max(0, this.melodyLeft - dt);
+    if (melody) this.melodyLeft = Math.max(0, this.melodyLeft - Math.min(deltaMs, 250) / 1000);
 
     // autoplay (testams): groja be klaidų
     if (this.autoplay && this.mode === 'play' && !this.assisting) {

@@ -21,8 +21,9 @@ const STAGE = STAGES.podiumas;
 const BPM = 100;
 const BEAT = 60 / BPM; // 0,6 s
 const COUNT_IN = 4; // „1, 2, 3, EINAM!“ - po jų pradedama eiti
-const STEPS_OUT = 14;
-const STEPS_BACK = 12;
+const STEPS_OUT = 10;
+const STEPS_BACK = 8;
+const RUSH_S = 20; // po tiek s (einant ir pozuojant) Adriana toliau eina pati pagal taktą - kad etapas tilptų į ~35 s
 const PERFECT = 0.09; // s nuo takto
 const GOOD = 0.18;
 const POSE_PERFECT = 0.13;
@@ -85,6 +86,7 @@ export class PodiumasScene extends Phaser.Scene {
     this.fallUntil = 0;
     this.slipUntil = 0;
     this.steps = 0;
+    this.rush = false;
     this.goodSteps = 0;
     this.perfects = 0;
     this.stumbles = 0;
@@ -781,6 +783,7 @@ export class PodiumasScene extends Phaser.Scene {
   // ---------------- ciklas ----------------
   update(_, deltaMs) {
     const dt = Math.min(deltaMs, 66) / 1000;
+    const rdt = Math.min(deltaMs, 250) / 1000; // laikrodžiui - tikras laikas (ir lėtame kompiuteryje 40 s = 40 s)
     const tnow = this.time.now;
     const live = this.mode !== 'intro';
     const now = live ? this.clock() : 0;
@@ -796,13 +799,18 @@ export class PodiumasScene extends Phaser.Scene {
 
     const moving = this.mode === 'out' || this.mode === 'back';
     if (moving || this.mode === 'pose') {
-      this.elapsed += dt;
+      this.elapsed += rdt;
       if (tnow >= this.fallUntil) this.wobble = Math.max(0, this.wobble - W.decay * dt);
     }
     this.lean -= this.lean * Math.min(1, dt * 2.5);
 
+    // muzika baigiasi - likusius žingsnius Adriana nueina pati (kad etapas neužsitęstų)
+    if (moving && !this.rush && this.elapsed > RUSH_S) {
+      this.rush = true;
+      this.say('MUZIKA BAIGIASI - SKUBAM!', C.yellow);
+    }
     // autoplay (testams): žingsniai tiksliai į taktą ir tobula poza
-    if (this.autoplay && live) {
+    if ((this.autoplay || this.rush) && live) {
       if (moving && !this.walking && tnow >= this.fallUntil) {
         const k = this.lastStepBeat + 1;
         if (k >= COUNT_IN && now >= this.heardTime(k)) this.step(this.lastFoot ? other(this.lastFoot) : 'L', this.heardTime(k));
