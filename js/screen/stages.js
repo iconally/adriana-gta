@@ -424,10 +424,10 @@ export const STAGES = {
     teacherRole: 'vadove',
     roles: {
       kasejas: {
-        name: 'Kelio valytojas', emoji: '❄️', desc: 'Ant Adrianos roboto kelio - tavo pusnis! Spausk „Kasti“, kol ją išvalysi. Kol liks bent viena pusnis, robotas eglės nepasieks!',
+        name: 'Kelio valytojas', emoji: '❄️', desc: 'Ant Adrianos roboto kelio - tavo pusnis! Spausk „Kasti“, kol ją išvalysi - be jos robotas eglės nepasieks. Išvalei? Leisk fejerverkus! 🎆',
         buttons: [
           { id: 'kasti', label: 'Kasti!', emoji: '❄️', cd: 250, ok: 'Kasu!' },
-          { id: 'ploti', label: 'Ploti', emoji: '👏', cd: 800, ok: 'Bravo!' },
+          { id: 'fejerverkas', label: 'Fejerverkas', emoji: '🎆', cd: 700, ok: 'Bum!' },
         ],
       },
       vadove: {

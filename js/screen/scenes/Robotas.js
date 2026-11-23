@@ -8,6 +8,7 @@
 // pusnies, į gilų sniegą ar nuo kilimėlio - „BUG! 🐞“: grįžta į startą, kodas lieka.
 // Mokytoja - būrelio vadovė: „Padėti 🧹“ (artimiausiai neišvalytai pusniai - 5 s; jei vaikas
 // neišvalo, išvalo mokytoja) ir „Greičiau ⏩“. Atsijungusio vaiko pusnis po 5 s ištirpsta pati.
+// Kas išvalė savo pusnį - leidžia fejerverkus virš Baltojo tilto (savo spalva ir su vardu).
 // Visas etapas nuo „3-2-1“ iki rezultatų - ne ilgiau 60 s.
 
 import { headText, bodyText, banner, subtitle, missionCard, C } from '../fx.js';
@@ -41,6 +42,9 @@ const BAR = { x: 960, y: 160, w: 1320, h: 100, size: 74, gap: 10 };
 const PANEL = { x: 1700, y: 300 };
 const ADR = { x: 115, y: 935, s: 0.62 };
 const TEACH = { x: 1800, y: 790, s: 0.5 };
+const SKY = { x: 600, y: 240, w: 720, h: 280 }; // lango į Baltąjį tiltą vieta fone
+const FW_COLORS = [0xff3ea5, 0x2de2e6, 0xffd23f, 0x3ddc84, 0xff7a3c, 0x8a5cff, 0xffffff, 0xff2bd6];
+const ORDINAL = ['', 'pirmo', 'antro', 'trečio', 'ketvirto', 'penkto', 'šešto', 'septinto', 'aštunto', 'devinto', 'dešimto'];
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -77,6 +81,9 @@ export class RobotasScene extends Phaser.Scene {
     this.stageStart = null;
     this.stageT = 0;
     this.offlineCheck = 0;
+    this.fwActive = 0;
+    this.fwSoundAt = 0;
+    this.fwNagAt = new Map();
     this.autoplay = !!this.autoplay;
     this.autoPlan = null;
     this.autoNextAt = 0;
@@ -85,6 +92,7 @@ export class RobotasScene extends Phaser.Scene {
     this.add.image(960, 540, 'robot_bg').setDepth(-100);
     this.matG = this.add.graphics().setDepth(2);
     this.drawMat();
+    this.makeSky();
     this.makeCodeBar();
     this.makePanel();
     this.makeTeacher();
@@ -127,7 +135,7 @@ export class RobotasScene extends Phaser.Scene {
     A.host.botPick = (p) => {
       if (this.mode !== 'edit' && this.mode !== 'run' && this.mode !== 'bug') return null;
       const pile = this.piles.find((x) => x.pid === p.pid);
-      if (!pile || pile.cleared) return Math.random() < 0.03 ? 'ploti' : null;
+      if (!pile || pile.cleared) return Math.random() < 0.08 ? 'fejerverkas' : null;
       if (pile.lazy && !pile.helpUntil) return null;
       return Math.random() < 0.35 ? 'kasti' : null;
     };
@@ -249,7 +257,7 @@ export class RobotasScene extends Phaser.Scene {
     const by = {};
     const left = this.remaining().length;
     for (const p of this.piles) {
-      if (p.cleared) by[p.pid] = { text: p.byTeacher ? 'Tavo pusnį išvalė mokytoja. Plok robotui! 👏' : 'Tavo pusnis išvalyta! ✅ Plok Adrianai 👏', tone: 'go' };
+      if (p.cleared) by[p.pid] = { text: p.byTeacher ? 'Tavo pusnį išvalė mokytoja. Leisk fejerverkus! 🎆' : 'Tavo pusnis išvalyta! ✅ Leisk fejerverkus 🎆', tone: 'go' };
       else if (p.helpUntil) by[p.pid] = { text: '⏳ Kask greičiau! Mokytoja padės po 5 s', tone: 'go', holder: true };
       else by[p.pid] = { text: `Kask savo pusnį! ❄️ Spausk „Kasti“ ${DIG_HITS} kartus`, tone: 'go', holder: !p.hits };
     }
@@ -415,6 +423,8 @@ export class RobotasScene extends Phaser.Scene {
       this.tweens.add({ targets: gi, scale: 0.4 * g.s, delay: k * 120, duration: 220, ease: 'Back.Out' });
     }
     for (let k = 0; k < 6; k++) this.time.delayedCall(k * 160, () => this.firework(g.x + rand(-160, 160), g.y - rand(100, 260) * g.s));
+    // didysis finalas virš Baltojo tilto
+    for (let k = 0; k < 16; k++) this.time.delayedCall(k * 110, () => this.firework2(null, true));
     this.A.sfx.win();
     this.say('VEIKIA! ✅', C.green);
     this.sub(this.A.lines.pick('robotas', 'win'), C.green);
@@ -447,6 +457,7 @@ export class RobotasScene extends Phaser.Scene {
     if (by === 'kid') {
       const st = this.stat({ pid: pile.pid, name: pile.name }, 'isvale');
       st.ms = this.time.now - this.digStart;
+      this.firework2(pile.name);
     } else this.teacherCleared += 1;
     this.tweens.add({ targets: [pile.img, pile.fig, pile.tag], scale: 0, alpha: 0, duration: 320, ease: 'Back.In' });
     const p = cellCenter(pile.c, pile.r);
@@ -493,7 +504,23 @@ export class RobotasScene extends Phaser.Scene {
     this.tribune.bounce(player.pid);
     if (this.mode === 'intro' || this.mode === 'result' || this.mode === 'count') return;
     if (role === 'vadove') { this.leaderAction(action); return; }
-    if (action === 'ploti') { this.stat(player, 'plojo'); this.A.sfx.clap(); return; }
+    if (action === 'fejerverkas') {
+      const own = this.piles.find((x) => x.pid === player.pid);
+      if (own && !own.cleared) {
+        // pirma - darbas: fejerverkai tik išvalius savo pusnį
+        const now = this.time.now;
+        if (now - (this.fwNagAt.get(player.pid) || 0) > 3000) {
+          this.fwNagAt.set(player.pid, now);
+          const p = cellCenter(own.c, own.r);
+          this.pop(p.x - 30 * p.s, p.y - 110 * p.s, 'Pirma kask! ❄️', C.orange, 24);
+          this.A.host.cue(player.pid, 'Pirma išvalyk savo pusnį! ❄️', { tone: 'go' });
+        }
+        return;
+      }
+      this.stat(player, 'fejerverkai');
+      this.firework2(player.name);
+      return;
+    }
     if (action !== 'kasti' || this.mode === 'end') return;
     const pile = this.piles.find((x) => x.pid === player.pid);
     if (pile) this.dig(pile);
@@ -544,19 +571,78 @@ export class RobotasScene extends Phaser.Scene {
     const byKids = this.piles.filter((p) => p.cleared && !p.byTeacher).length;
     const rows = [
       [`Pusnys: vaikai išvalė ${byKids} iš ${n}${this.teacherCleared ? `   ·   padėjo mokytoja: ${this.teacherCleared}` : ''}`, C.white],
-      [`Paleidimai: ${this.runs}   ·   Bugai: 🐞 ${this.bugs}`, C.white],
+      [this.won
+        ? `Adrianos kodas: ${this.code.length} žingsniai - pavyko iš ${ORDINAL[this.runs] || `${this.runs}-o`} karto!`
+        : `Paleidimai: ${this.runs}`, C.white],
     ];
     if (n && byKids === n) rows.push([`Komandinis darbas: visi ${n} išvalė kelią patys! 💪`, C.green]);
     const all = [...this.stats.values()];
     const fastest = all.filter((x) => x.ms != null).sort((a, b) => a.ms - b.ms)[0];
     if (fastest) rows.push([`Greičiausias kasėjas: ${fastest.name} (${(fastest.ms / 1000).toFixed(1).replace('.', ',')} s)`, C.teal]);
-    const clap = all.map((x) => [x, x.counts.plojo || 0]).filter(([, k]) => k > 0).sort((a, b) => b[1] - a[1])[0];
-    if (clap) rows.push([`Daugiausia plojo: ${clap[0].name} (${clap[1]})`, C.yellow]);
+    const fw = all.map((x) => [x, x.counts.fejerverkai || 0]).filter(([, k]) => k > 0).sort((a, b) => b[1] - a[1])[0];
+    if (fw) rows.push([`Daugiausia fejerverkų: ${fw[0].name} (${fw[1]}) 🎆`, C.yellow]);
     rows.forEach(([r, c], i) => box.add(bodyText(this, 0, -150 + i * 58, r, 32, c)));
     const next = headText(this, 0, 250, 'ENTER - TOLIAU', 48, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });
     box.add(next);
     this.tweens.add({ targets: box, alpha: 1, duration: 300 });
+  }
+
+  // ---------------- fejerverkai virš Baltojo tilto ----------------
+  makeSky() {
+    this.skyBox = this.add.container(0, 0).setDepth(-50);
+    const m = this.make.graphics({ add: false });
+    m.fillStyle(0xffffff);
+    m.fillRect(SKY.x + 8, SKY.y + 8, SKY.w - 16, SKY.h - 16);
+    this.skyBox.setMask(m.createGeometryMask());
+  }
+
+  // Fejerverkas: raketa kyla nuo tilto ir sprogsta vaiko spalva; virš - jo vardas.
+  firework2(name, big = false) {
+    if (this.fwActive > 14) return;
+    this.fwActive += 1;
+    let h = 0;
+    for (const ch of String(name || Math.random())) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    const col = FW_COLORS[h % FW_COLORS.length];
+    const x = rand(SKY.x + 60, SKY.x + SKY.w - 60);
+    const y = rand(SKY.y + 40, SKY.y + 140);
+    const rocket = this.add.circle(x + rand(-30, 30), SKY.y + SKY.h - 40, 4, col);
+    this.skyBox.add(rocket);
+    const now = this.time.now;
+    if (now - this.fwSoundAt > 160) { this.fwSoundAt = now; this.A.sfx.throw(); }
+    this.tweens.add({
+      targets: rocket, x, y, duration: 520, ease: 'Quad.Out', onComplete: () => {
+        rocket.destroy();
+        if (this.time.now - this.fwSoundAt > 120) { this.fwSoundAt = this.time.now; this.A.sfx.pop(); }
+        const n = big ? 24 : 18;
+        const r = big ? rand(90, 130) : rand(65, 100);
+        for (let i = 0; i < n; i++) {
+          const a = (i / n) * Math.PI * 2;
+          const d = this.add.circle(x, y, big ? 7 : 6, col).setBlendMode(Phaser.BlendModes.ADD);
+          this.skyBox.add(d);
+          // skrieja greitai, o užgęsta tik pabaigoje - kad būtų ryškiau
+          this.tweens.add({
+            targets: d, duration: 1100, onComplete: () => d.destroy(),
+            props: { x: { value: x + Math.cos(a) * r, ease: 'Quad.Out' }, y: { value: y + Math.sin(a) * r + 18, ease: 'Quad.Out' }, alpha: { value: 0, ease: 'Cubic.In' }, scale: { value: 0.4, ease: 'Cubic.In' } },
+          });
+        }
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2 + 0.4;
+          const d = this.add.circle(x, y, 4, 0xffffff);
+          this.skyBox.add(d);
+          this.tweens.add({ targets: d, x: x + Math.cos(a) * r * 0.5, y: y + Math.sin(a) * r * 0.5, alpha: 0, duration: 800, ease: 'Quad.Out', onComplete: () => d.destroy() });
+        }
+        const flash = this.add.circle(x, y, 18, 0xffffff, 0.8);
+        this.skyBox.add(flash);
+        this.tweens.add({ targets: flash, scale: 2.2, alpha: 0, duration: 260, onComplete: () => flash.destroy() });
+        if (name) {
+          const t = bodyText(this, x, y, name, 20, '#ffffff');
+          this.skyBox.add(t);
+          this.tweens.add({ targets: t, y: y - 26, alpha: 0, delay: 500, duration: 500, onComplete: () => t.destroy() });
+        }
+        this.time.delayedCall(900, () => { this.fwActive = Math.max(0, this.fwActive - 1); });
+      },
+    });
   }
 
   // ---------------- piešimas ----------------
