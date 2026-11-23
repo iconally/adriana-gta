@@ -77,7 +77,7 @@ window.addEventListener('keydown', (e) => {
   if (e.key === 'h' || e.key === 'H') togglePult();
   // F - visas ekranas, bet ne koncerte: ten F yra rojalio klavišas (Fa)
   if ((e.key === 'f' || e.key === 'F') && !game.scene.isActive('Koncertas')) game.scale.toggleFullscreen();
-  if (e.key === 'Escape') go('Lobby');
+  if (e.key === 'Escape') { auto.stop(); go('Lobby'); }
 });
 
 // ---------------- vedėjo pultas ----------------
@@ -148,6 +148,135 @@ function renderStages() {
   };
   box.appendChild(reset);
 }
+
+// ---------------- visas žaidimas automatiškai ----------------
+// Įjungus: žemėlapis -> (po kelių s) misijos kortelė -> (po kelių s) etapas -> rezultatai ->
+// (po kelių s) žemėlapis ... iki finalo nuotraukos. ENTER - nelaukti. Adrianą visada valdo žmogus.
+const AUTO_MS = { map: 4000, intro: 5000, result: 6000, photoDone: 10000 };
+const auto = {
+  on: false, paused: false, demo: false, key: '', mode: '', since: 0,
+  start(demo) {
+    this.on = true; this.paused = false; this.demo = demo; this.key = ''; this.since = Date.now();
+    host.resetProgress();
+    togglePult(false);
+    go('Map');
+    renderAuto();
+  },
+  stop() {
+    if (!this.on) return;
+    this.on = false; this.paused = false;
+    restoreEnterTexts();
+    renderAuto();
+  },
+  pause(p) {
+    this.paused = p;
+    this.since = Date.now();
+    if (p) restoreEnterTexts();
+    renderAuto();
+  },
+};
+
+function activeScene() {
+  return game.scene.getScenes(true).find((sc) => sc.scene.key !== 'Boot');
+}
+
+function sceneState(sc) {
+  if (!sc) return '';
+  if (sc.scene.key === 'Map') {
+    if (sc.nextIndex && sc.nextIndex() === -1) return 'done';
+    return sc.ready ? 'map' : 'travel';
+  }
+  return sc.mode || '';
+}
+
+// „ENTER - ...“ užrašus automatikos metu keičiam į atgalinį skaičiavimą.
+const enterTexts = new Set();
+function walkTexts(list, fn) {
+  for (const o of list) {
+    if (o.type === 'Text') fn(o);
+    if (o.list) walkTexts(o.list, fn);
+  }
+}
+function showCountdown(sc, left) {
+  walkTexts(sc.children.list, (t) => {
+    const orig = t._enterOrig || t.text;
+    const m = /^ENTER - (.+)$/.exec(orig);
+    if (!m || !t.active) return;
+    t._enterOrig = orig;
+    enterTexts.add(t);
+    const low = m[1] === m[1].toLowerCase();
+    const label = sc.scene.key === 'Map' ? 'MISIJA PRASIDEDA' : m[1] === 'PRADĖTI' ? 'PRADEDAM' : m[1];
+    t.setText(`${label}${low ? ' po' : ' PO'} ${left}...`);
+  });
+}
+function restoreEnterTexts() {
+  for (const t of enterTexts) if (t.active && t._enterOrig) t.setText(t._enterOrig);
+  enterTexts.clear();
+}
+
+function renderAuto() {
+  const badge = $('auto-badge');
+  const pauseBtn = $('p-auto-pause');
+  if (!auto.on) {
+    $('p-auto').textContent = 'Automatika išjungta';
+    badge.hidden = true;
+    pauseBtn.hidden = true;
+    return;
+  }
+  const sc = activeScene();
+  const where = sc ? (STAGES[ROUTE.find((r) => r.scene === sc.scene.key)?.id]?.title || (sc.scene.key === 'Map' ? 'Žemėlapis' : sc.scene.key)) : '';
+  $('p-auto').textContent = `${auto.demo ? 'Demo' : 'Žaidimas'}: ${auto.paused ? 'sustabdyta' : 'vyksta'} · ${where}`;
+  badge.hidden = false;
+  badge.classList.toggle('paused', auto.paused);
+  badge.textContent = auto.paused ? '⏸ AUTO' : '▶ AUTO';
+  pauseBtn.hidden = false;
+  pauseBtn.textContent = auto.paused ? '▶ Tęsti automatiką' : '⏸ Sustabdyti automatiką';
+}
+
+setInterval(() => {
+  if (!auto.on) return;
+  const sc = activeScene();
+  if (!sc) return;
+  const key = sc.scene.key;
+  const st = sceneState(sc);
+  if (key !== auto.key || st !== auto.mode) {
+    auto.key = key; auto.mode = st; auto.since = Date.now();
+    enterTexts.clear();
+    renderAuto();
+  }
+  if (auto.paused) return;
+  if (key === 'Map' && st === 'done') { auto.stop(); $('p-auto').textContent = 'Žaidimas baigtas! 🎄'; return; }
+  const wait = key === 'Map' ? (st === 'map' ? AUTO_MS.map : 0) : (AUTO_MS[st] || 0);
+  if (!wait) return;
+  const left = wait - (Date.now() - auto.since);
+  if (left > 0) { showCountdown(sc, Math.ceil(left / 1000)); return; }
+  auto.since = Date.now() + 1500; // kad nespaustų kelis kartus iš eilės
+  restoreEnterTexts();
+  sc.onEnter();
+}, 200);
+
+$('p-auto-real').onclick = () => {
+  const c = host.counts();
+  if (!host.roster.kids.length) { alert('Pirma įkelk klasę.'); return; }
+  if (c.kidsIn < c.kidsTotal && !confirm(`Prisijungė ${c.kidsIn} iš ${c.kidsTotal} vaikų. Pradėti žaidimą nuo pirmo etapo?`)) return;
+  if (c.kidsIn >= c.kidsTotal && !confirm('Pradėti žaidimą nuo pirmo etapo?')) return;
+  auto.start(false);
+};
+$('p-auto-demo').onclick = async () => {
+  if (!host.roster.kids.length) await applyRoster(loadDemoRoster());
+  if (!host.roster.kids.length) return;
+  bots.fill();
+  $('p-auto').textContent = 'Jungiami virtualūs vaikai...';
+  const t0 = Date.now();
+  while (Date.now() - t0 < 8000) {
+    const c = host.counts();
+    if (c.kidsIn >= c.kidsTotal && c.teacherIn) break;
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  auto.start(true);
+};
+$('p-auto-pause').onclick = () => auto.pause(!auto.paused);
+window.AGTA.auto = auto;
 
 async function applyRoster(promise) {
   try {

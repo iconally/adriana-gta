@@ -48,3 +48,8 @@ body { font-family: Rubik, system-ui, sans-serif; color: #fff; }
 .keys b { color: #ffd23f; }
 
 .ver { position: fixed; left: 8px; bottom: 6px; z-index: 16; font: 600 12px Rubik, sans-serif; color: rgba(255,255,255,.55); pointer-events: none; }
+
+/* Automatinio žaidimo ženkliukas (kairiame apatiniame kampe, virš versijos) */
+.auto-badge { position: fixed; left: 8px; bottom: 24px; z-index: 16; padding: 2px 8px; border-radius: 8px;
+  font: 700 12px Rubik, sans-serif; color: #fff; background: rgba(61,220,132,.55); pointer-events: none; }
+.auto-badge.paused { background: rgba(255,154,60,.8); }
