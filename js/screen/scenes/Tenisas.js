@@ -6,8 +6,9 @@
 //  2) senis muša į laimėjusią zoną, kamuoliukas skrenda ~1,2 s;
 //  3) Adriana ← → nubėga ir spaudžia TARPĄ, kai kamuoliukas pasiekia aukso ratą.
 //     Atmušė - taškas Adrianai (tobulai - „ACE!“), nepataikė - taškas klasei.
-// Vienas geimas tikru teniso skaičiavimu (15 - 30 - 40, lygu, persvara), ekrane vadinamas „mačas“; ilgiausiai 60 s:
-// laikui baigiantis laimi pirmaujantis, o esant lygiam - lemiamas taškas.
+// Vienas geimas tikru teniso skaičiavimu (15 - 30 - 40, lygu, persvara), ekrane vadinamas „mačas“.
+// Visas etapas nuo „3-2-1“ iki rezultatų - ne ilgiau 60 s. Kai laiko lieka tik vienam taškui,
+// skelbiamas „Paskutinis taškas!“; po jo laimi pirmaujantis, o esant lygiam - paskutinio taško laimėtojas.
 // Mokytoja - teisėja ant bokštelio: „Aut! 🚩“ (kartą panaikina klasės tašką) ir
 // „Tyla! 🤫“ (šio taško balsai slapti - Adriana nemato, kur krypsta dauguma).
 
@@ -32,7 +33,9 @@ const PERFECT = 0.07;         // s: tobulas smūgis - ACE
 const REACH = 130;            // px: kiek toli nuo Adrianos kamuoliukas dar pasiekiamas
 const RETURN_S = 0.7;
 const POINT_MS = 1500;
-const GAME_S = 60;
+const TOTAL_S = 60;          // visas etapas nuo 3-2-1 iki rezultatų lango
+const POINT_EST = 6.4;       // s: vienas taškas (balsavimas + skrydis + pauzė)
+const FINISH_S = 3.8;        // s: pergalės užrašas iki rezultatų
 const ADR_D = -0.045;         // Adrianos linija (truputį už galinės linijos)
 const HIT_H = 0.95;           // kamuoliuko aukštis smūgio metu
 const BOUNCE_D = 0.28;
@@ -75,7 +78,9 @@ export class TenisasScene extends Phaser.Scene {
     this.lastPoint = null;
     this.lastStrategists = [];
     this.autUsed = false;
-    this.sudden = false;
+    this.finalPoint = false;
+    this.stageT = 0;
+    this.stageStart = null;
     this.ball = null;
     // senas scenos paleidimas sunaikino kamuoliuką - kuriam iš naujo (kitaip antrą kartą jo nesimato)
     this.ballImg = null;
@@ -168,6 +173,7 @@ export class TenisasScene extends Phaser.Scene {
 
   countdown() {
     this.mode = 'count';
+    this.stageStart = this.time.now; // 60 s skaičiuojamos pagal scenos laikrodį (tą patį, kuriuo eina pauzės)
     this.tweens.add({ targets: this.card, alpha: 0, duration: 300, onComplete: () => this.card.destroy() });
     const nums = ['3', '2', '1', 'GO!'];
     nums.forEach((n, i) => {
@@ -393,18 +399,26 @@ export class TenisasScene extends Phaser.Scene {
     const a = this.adr; const k = this.klase;
     if (a >= 4 && a - k >= 2) return 'adr';
     if (k >= 4 && k - a >= 2) return 'klase';
-    if (this.sudden && a !== k) return a > k ? 'adr' : 'klase';
     return null;
   }
 
   afterPoint() {
     if (this.mode !== 'point') return;
     let w = this.winner();
-    if (!w && this.elapsed >= GAME_S) {
+    const left = TOTAL_S - this.stageT - FINISH_S;
+    if (!w && left < POINT_EST) {
+      // laikas baigėsi: laimi pirmaujantis, esant lygiam - paskutinio taško laimėtojas
       if (this.adr !== this.klase) w = this.adr > this.klase ? 'adr' : 'klase';
-      else if (!this.sudden) { this.sudden = true; this.sub(this.A.lines.pick('tenisas', 'sudden'), C.orange); }
+      else w = this.lastPoint === 'klase' ? 'klase' : 'adr';
     }
     if (w) { this.finish(w); return; }
+    if (left < 2 * POINT_EST) {
+      this.finalPoint = true;
+      this.updateScore();
+      this.maybeSub(this.A.lines.pick('tenisas', 'last'), C.orange, 0); // nustato lastSub - balsavimo replika jo neperrašys
+      this.startVote();
+      return;
+    }
     const info = this.scoreInfo();
     if (info.note === 'LYGU') this.maybeSub(this.A.lines.pick('tenisas', 'deuce'), C.yellow, 0);
     else if (info.note) this.maybeSub(this.A.lines.pick('tenisas', this.adr > this.klase ? 'adv_adr' : 'adv_klase'), C.yellow, 0);
@@ -620,7 +634,7 @@ export class TenisasScene extends Phaser.Scene {
     const s = this.scoreInfo();
     this.sbL.setText(s.l);
     this.sbR.setText(s.r);
-    this.sbNote.setText(this.sudden ? `LEMIAMAS TAŠKAS${s.note ? ' · ' + s.note : ''}` : s.note);
+    this.sbNote.setText(this.finalPoint ? `PASKUTINIS TAŠKAS${s.note ? ' · ' + s.note : ''}` : s.note);
     for (const t of [this.sbL, this.sbR]) { t.setScale(1.4); this.tweens.add({ targets: t, scale: 1, duration: 200 }); }
   }
 
@@ -683,8 +697,9 @@ export class TenisasScene extends Phaser.Scene {
     const dt = Math.min(deltaMs, 66) / 1000;
     const active = ['vote', 'serve', 'return', 'miss', 'point'].includes(this.mode);
     if (active) this.elapsed += dt;
-    const left = Math.max(0, GAME_S - this.elapsed);
-    this.timerText.setText(`⏱ ${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`).setColor(left <= 10 && active ? C.red : '#f1e6ff');
+    if (this.stageStart != null && this.mode !== 'result') this.stageT = (this.time.now - this.stageStart) / 1000;
+    const left = Math.max(0, TOTAL_S - this.stageT);
+    this.timerText.setText(`⏱ ${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`).setColor(left <= 15 && this.mode !== 'result' ? C.red : '#f1e6ff');
 
     // Adrianos judėjimas
     let dir = 0;

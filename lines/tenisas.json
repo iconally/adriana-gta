@@ -42,8 +42,9 @@
   "adv_klase": [
     "Persvara - klasė!"
   ],
-  "sudden": [
-    "Laikas baigėsi - lemiamas taškas!"
+  "last": [
+    "Laikas baigiasi - paskutinis taškas!",
+    "Paskutinis taškas! Kas laimės?"
   ],
   "aut": [
     "{teiseja}: aut! Klasės taškas neįskaitomas.",
