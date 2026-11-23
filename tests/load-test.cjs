@@ -497,13 +497,20 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     const rf = await screen.evaluate(() => {
       const s = window.AGTA.game.scene.getScene('Finalas');
       const l = [...s.orn.values()];
-      return { mode: s.mode, ornaments: `${l.filter((o) => o.hung).length}/${l.length}`, bulbs: l.reduce((k, o) => k + o.bulbs.length, 0), star: s.starTries, tries: s.tries, best: s.best };
+      return { mode: s.mode, ornaments: `${l.filter((o) => o.hung).length}/${l.length}`, star: s.starTries, tries: s.tries, best: s.best };
     });
     console.log(`Finalas: ${JSON.stringify(rf)}`);
-    await screen.keyboard.press('Enter');
+    await screen.keyboard.press('Enter'); // rezultatai -> fotosesija
+    await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Finalas')?.mode === 'photoDone', null, { timeout: 60000 });
+    await sleep(4500); // nuotrauka keliauja į telefonus (dalimis, kartojama)
+    await shot(screen, 'b3-finalas-nuotrauka');
+    const gotPhoto = await Promise.all(phones.map((p) => p.page.evaluate(() => !document.getElementById('photo')?.hidden).catch(() => false)));
+    console.log(`Nuotrauka telefonuose: ${gotPhoto.filter(Boolean).length}/${phones.length}`);
+    await shot(phones[0].page, 'tel-finalas-nuotrauka');
+    await screen.keyboard.press('Enter'); // -> žemėlapis
     await sleep(2500);
     console.log(`Po finalo žemėlapyje: ${await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'))}`);
-    await shot(screen, 'b3-zemelapis-visos-misijos');
+    await shot(screen, 'b4-zemelapis-visos-misijos');
   }
 
   console.log(errors.length ? `KLAIDOS (${errors.length}):\n${errors.slice(0, 30).join('\n')}` : 'Klaidų konsolėje nėra.');

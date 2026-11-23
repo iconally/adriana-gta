@@ -76,6 +76,20 @@ async function start() {
     clearTimeout(el._t);
     el._t = setTimeout(() => { el.hidden = true; }, d.ms || 3500);
   });
+  // Klasės nuotrauka finale: ateina dalimis, sudedam ir rodom su „Išsaugoti“ / „Dalintis“.
+  const photoParts = new Map();
+  let photoShown = '';
+  net.on('photo', (d) => {
+    if (!d || !d.id || photoShown === d.id) return;
+    const got = photoParts.get(d.id) || [];
+    got[d.i] = d.part;
+    photoParts.set(d.id, got);
+    if (got.filter(Boolean).length < d.n) return;
+    photoShown = d.id;
+    photoParts.clear();
+    showPhoto(got.join(''));
+    buzz([80, 40, 80]);
+  });
   net.on('kick', (d) => {
     if (d.pid !== state.pid) return;
     forget();
@@ -99,6 +113,28 @@ async function start() {
     hello();
   });
   buildDateSelects();
+}
+
+function showPhoto(url) {
+  const box = $('photo');
+  $('photo-img').src = url;
+  $('photo-save').href = url;
+  box.hidden = false;
+  box.scrollTop = 0;
+  $('photo-close').onclick = () => { box.hidden = true; };
+  // „Dalintis“ - tik jei telefonas moka dalintis failais
+  const share = $('photo-share');
+  share.hidden = true;
+  try {
+    const bin = atob(url.split(',')[1]);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    const file = new File([arr], 'GTA-Kaledos-2026.jpg', { type: 'image/jpeg' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      share.hidden = false;
+      share.onclick = () => navigator.share({ files: [file], title: 'GTA - Kalėdos 2026' }).catch(() => {});
+    }
+  } catch { /* nieko */ }
 }
 
 function hello() {

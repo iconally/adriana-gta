@@ -6,14 +6,16 @@
 // 2 dalis - įžiebimas „Visi kartu!“: mokytoja spaudžia „3-2-1 🎄“ (jei nespaudžia - prasideda pats),
 //   ties „DABAR!“ visi spaudžia „ĮŽIEBK! 💡“ (Adriana - TARPĄ). Kuo daugiau kartu, tuo daugiau eglės
 //   aukštų užsidega; jei kartu mažiau nei 80% - bandom dar (iš viso iki 3 kartų), po to eglė užsidega bet kokiu atveju.
-// Pabaiga: fejerverkai virš Katedros, „klasės nuotrauka“ prie eglės ir rezultatai.
+// Pabaiga: eglės lemputės mirksi, fejerverkai virš Katedros, rezultatai; ENTER - fotosesija:
+// visi žmogeliukai su veidais prie eglės, mokytoja ir Adriana per vidurį, 3-2-1 📸 - nuotrauka
+// rodoma ekrane ir nusiunčiama į kiekvieno telefoną (išsaugoti / dalintis).
 // Visas etapas nuo „3-2-1“ iki rezultatų - ne ilgiau 60 s.
 
 import { headText, bodyText, banner, subtitle, missionCard, snow, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { TREE, treeHalfWidth } from '../art-final.js';
-import { teacherLabel } from '../../common.js';
+import { teacherLabel, isBoy, GIRL_COLORS, BOY_COLORS } from '../../common.js';
 
 const STAGE = STAGES.finalas;
 const TOTAL_S = 60;
@@ -39,6 +41,8 @@ const LIGHT_ROWS = [292, 378, 468, 558, 650, 742, 832];
 
 const rand = (a, b) => a + Math.random() * (b - a);
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const tintOf = (name) => { let h = 0; for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; const c = isBoy(name) ? BOY_COLORS : GIRL_COLORS; return c[h % c.length]; };
+const PHOTO_CHUNK = 45000; // nuotrauka telefonams siunčiama dalimis (Supabase žinutės dydžio riba)
 const hashCol = (name) => { let h = 0; for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return COLORS[h % COLORS.length]; };
 
 function slotList() {
@@ -149,7 +153,8 @@ export class FinalasScene extends Phaser.Scene {
   // ---------------- eiga ----------------
   onEnter() {
     if (this.mode === 'intro') { if (Date.now() - this.bornAt > 500) this.countdown(); }
-    else if (this.mode === 'result') {
+    else if (this.mode === 'result') this.photo();
+    else if (this.mode === 'photoDone') {
       this.A.host.markDone(STAGE.id);
       this.A.go('Map');
     }
@@ -197,7 +202,7 @@ export class FinalasScene extends Phaser.Scene {
     this.A.host.lock('zaisliukas', undefined, false);
     this.A.host.lock('izziebk', null, false);
     this.phoneStatus();
-    this.say('PUOŠIAM EGLĘ! ADRIANA - ŽVAIGŽDĖ ⭐', C.yellow);
+    this.say('', C.yellow);
     this.updateCounter();
   }
 
@@ -228,13 +233,12 @@ export class FinalasScene extends Phaser.Scene {
     o.hung = true;
     const from = this.tribune.pos(o.pid);
     const box = this.add.container(from.x, from.y).setDepth(20 + o.slot.y * 0.01);
+    // žaisliukas su vardo pirmąja raide
     const ring = this.add.circle(0, 0, 31, o.col).setStrokeStyle(4, 0x14081f);
-    const key = this.textures.exists(avatarKey(o.name)) ? avatarKey(o.name) : 'dot';
-    const face = this.add.image(0, 0, key).setDisplaySize(50, 50);
-    if (key === 'dot') face.setTint(0x5a2a86);
+    const letter = headText(this, 0, 2, String(o.name).trim().charAt(0).toUpperCase(), 38, C.white);
     const shine = this.add.ellipse(-12, -14, 16, 9, 0xffffff, 0.55).setAngle(-30);
     const cap = this.add.image(0, -34, 'fn_cap');
-    box.add([ring, face, shine, cap]);
+    box.add([ring, letter, shine, cap]);
     o.box = box;
     box.setScale(0.4);
     this.tweens.add({ targets: box, x: o.slot.x, y: o.slot.y, scale: 1, duration: auto ? 450 : 650, ease: 'Cubic.Out', onComplete: () => {
@@ -262,8 +266,7 @@ export class FinalasScene extends Phaser.Scene {
   updateCounter() {
     const list = [...this.orn.values()];
     const hung = list.filter((o) => o.hung).length;
-    const bulbs = list.reduce((s, o) => s + o.bulbs.length, 0);
-    this.counterText.setText(list.length ? `🎄 ${hung}/${list.length}   💡 ${bulbs}   ⭐ ${this.starPlaced ? '✓' : '...'}` : '');
+    this.counterText.setText(list.length ? `🎄 ${hung}/${list.length}   ⭐ ${this.starPlaced ? '✓' : '...'}` : '');
   }
 
   // ---------------- Adrianos žvaigždė ----------------
@@ -413,7 +416,8 @@ export class FinalasScene extends Phaser.Scene {
     for (const o of this.orn.values()) if (!o.hung) this.hang(o, true);
     this.lightUp(LIGHT_ROWS.length);
     this.time.delayedCall(900, () => {
-      for (const o of this.orn.values()) for (const B of o.bulbs) { B.b.setAlpha(1); B.glow.setVisible(true); this.tweens.add({ targets: B.glow, alpha: { from: 0.2, to: 0.6 }, yoyo: true, repeat: -1, duration: rand(400, 800) }); }
+      for (const o of this.orn.values()) for (const B of o.bulbs) { B.b.setAlpha(1); B.glow.setVisible(true).setAlpha(0.55); }
+      this.startBlink();
       this.starGlow.setVisible(true);
       this.tweens.add({ targets: this.starGlow, scale: { from: 0.8, to: 1.25 }, alpha: { from: 0.9, to: 0.5 }, yoyo: true, repeat: -1, duration: 600 });
       this.tweens.add({ targets: this.starRays, angle: 360, repeat: -1, duration: 6000 });
@@ -426,70 +430,167 @@ export class FinalasScene extends Phaser.Scene {
     this.A.host.setStatus({ text: 'Linksmų Kalėdų! 🎄 Žiūrėk į ekraną', tone: 'go' });
     this.bigBanner('LINKSMŲ KALĖDŲ!', 'EGLĖ ĮŽIEBTA', { color: C.yellow, hold: 2200, y: 330 });
     this.adrCelebrate();
-    this.time.delayedCall(2700, () => this.photo());
+    this.time.delayedCall(2700, () => this.showResult());
   }
 
-  // „Klasės nuotrauka“: visi avatarai prie eglės, Adriana per vidurį, blykstė.
+  // Įžiebtos eglės lemputės mirksi atsitiktinai.
+  startBlink() {
+    const all = [];
+    for (const row of this.lights) for (const L of row) all.push({ ...L, tree: true });
+    for (const o of this.orn.values()) for (const B of o.bulbs) all.push({ b: B.b, glow: B.glow, col: o.col });
+    for (const L of all) { this.tweens.killTweensOf(L.glow); L.on = true; L.b.setAlpha(1); L.glow.setVisible(true).setAlpha(0.55); }
+    this.blinkTimer = this.time.addEvent({
+      delay: 110, loop: true, callback: () => {
+        for (const L of all) {
+          if (Math.random() > 0.12) continue;
+          L.on = !L.on;
+          if (L.on && L.tree) { const c = pick(LIGHT_COLS); L.b.setFillStyle(c, 1); L.glow.setFillStyle(c, 0.55); }
+          L.b.setAlpha(L.on ? 1 : 0.3);
+          L.glow.setVisible(L.on);
+        }
+      },
+    });
+  }
+
+  // ---------------- fotosesija ----------------
+  // Visi žmogeliukai su veidais prie eglės, mokytoja šalia, Adriana per vidurį; 3-2-1 📸.
   photo() {
     this.mode = 'photo';
+    if (this.autoPhoto) this.autoPhoto.remove();
+    if (this.resultBox) this.tweens.add({ targets: this.resultBox, alpha: 0, duration: 250, onComplete: () => this.resultBox.destroy() });
+    this.A.host.setStatus({ text: 'Fotosesija! Šypsokis! 📸', tone: 'go', holder: true });
     this.sub(this.A.lines.pick('finalas', 'photo'), C.white, 300);
     const kids = this.kids();
     const n = kids.length;
-    const rows = n > 9 ? 2 : 1;
-    const per = Math.ceil(n / rows);
-    const GAP = 220; // vieta Adrianai per vidurį
+    const back = Math.ceil(n / 2);
+    const GAP = 250; // vieta Adrianai ir mokytojai per vidurį
+    this.photoFigs = [];
     kids.forEach((p, i) => {
-      const row = Math.floor(i / per);
-      const k = i % per;
-      const cnt = row === rows - 1 ? n - per * (rows - 1) : per;
+      const front = i >= back;
+      const cnt = front ? n - back : back;
+      const k = front ? i - back : i;
       const half = Math.ceil(cnt / 2);
       const side = k < half ? -1 : 1;
-      const j = side < 0 ? half - 1 - k : k - half; // atstumas nuo vidurio
-      const x = 960 + side * (GAP / 2 + 48 + j * 96);
-      const y = row === 0 ? 860 : 935;
-      const from = this.tribune.pos(p.pid);
+      const j = side < 0 ? half - 1 - k : k - half;
+      const step = front ? 112 : 104;
+      const x = 960 + side * (GAP / 2 + step / 2 + j * step) + (front ? 0 : side * 30);
+      const y = front ? 1060 : 975;
+      const s = front ? 0.62 : 0.54;
+      const fig = this.add.container(side < 0 ? -120 : 2040, y).setDepth(front ? 975 : 965).setScale(s);
+      const body = this.add.image(0, 0, 'kid_body').setOrigin(0.5, 1).setTint(tintOf(p.name));
       const key = this.textures.exists(avatarKey(p.name)) ? avatarKey(p.name) : 'dot';
-      const img = this.add.image(from.x, from.y, key).setDisplaySize(64, 64).setDepth(960 + row);
-      this.tweens.add({ targets: img, x, y, displayWidth: 82, displayHeight: 82, duration: 600, delay: i * 30, ease: 'Cubic.Out' });
+      const head = this.add.image(0, -170, key).setDisplaySize(96, 96);
+      fig.add([body, head]);
+      this.tweens.add({ targets: fig, x, duration: 900, delay: j * 40, ease: 'Cubic.Out' });
+      this.tweens.add({ targets: head, y: -176, yoyo: true, repeat: -1, duration: rand(420, 620), ease: 'Sine.InOut' });
+      this.photoFigs.push(fig);
     });
+    // Adriana per vidurį priekyje, mokytoja - iškart šalia jos, prie vaikų
     this.adrBox.setDepth(990);
-    this.tweens.add({ targets: this.adrBox, x: 960, y: 1000, scale: 0.72, duration: 600, ease: 'Cubic.Out' });
-    const edge = 960 + GAP / 2 + 48 + Math.ceil(per / 2) * 96 + 40;
-    this.tweens.add({ targets: this.teachBox, x: Math.min(1840, edge), y: 925, duration: 600, ease: 'Cubic.Out' });
-    this.tweens.add({ targets: this.teachTag, x: Math.min(1840, edge), alpha: 0, duration: 600 });
-    this.time.delayedCall(1100, () => {
-      this.cameras.main.flash(250, 255, 255, 255);
-      this.A.sfx.shutter();
-      const cls = this.A.host.roster.className;
-      headText(this, 960, 150, `📸 ${cls ? `${cls} · ` : ''}KALĖDOS 2026`, 54, C.white).setDepth(1960);
-    });
-    this.time.delayedCall(2900, () => this.showResult());
+    this.tweens.add({ targets: this.adrBox, x: 935, y: 1065, scale: 0.7, duration: 800, ease: 'Cubic.Out' });
+    this.teachBox.setDepth(970);
+    this.tweens.add({ targets: this.teachBox, x: 1045, y: 1000, scale: 0.5, duration: 800, ease: 'Cubic.Out' });
+    this.tweens.add({ targets: this.teachTag, alpha: 0, duration: 300 });
+    // nuotraukai - be užrašų ir tribūnos
+    this.time.delayedCall(700, () => this.setHudVisible(false));
+    ['3', '2', '1'].forEach((t, i) => this.time.delayedCall(1100 + i * 700, () => {
+      const c = headText(this, 960, 360, t, 200, C.white).setDepth(1960).setScale(1.6).setAlpha(0);
+      this.tweens.add({ targets: c, scale: 1, alpha: 1, duration: 160 });
+      this.tweens.add({ targets: c, alpha: 0, delay: 420, duration: 150, onComplete: () => c.destroy() });
+      this.A.sfx.count();
+    }));
+    this.time.delayedCall(1100 + 3 * 700, () => this.snap());
+  }
+
+  // Užrašai (HUD) ir tribūna; po nuotraukos tribūna lieka paslėpta, kad neuždengtų žmogeliukų.
+  setHudVisible(on, tribune = on) {
+    for (const o of this.children.list) {
+      const d = o.depth;
+      if (d >= 599 && d <= 620) o.setVisible(tribune);
+      else if (d === 1800 || d === 1955) o.setVisible(on);
+    }
+    if (this._subtitle) this._subtitle.setVisible(on);
+  }
+
+  snap() {
+    const cls = this.A.host.roster.className;
+    this.caption = headText(this, 960, 62, `${cls ? `${cls} · ` : ''}KALĖDOS 2026`, 58, C.white).setDepth(1960);
+    this.caption2 = bodyText(this, 960, 118, 'GTA - Garsioji Talentingoji Adriana', 26, C.yellow).setDepth(1960);
+    this.A.sfx.shutter();
+    this.game.renderer.snapshot((img) => {
+      // mažesnė JPEG kopija - kad greitai pasiektų telefonus
+      const cv = document.createElement('canvas');
+      cv.width = 960; cv.height = 540;
+      cv.getContext('2d').drawImage(img, 0, 0, 960, 540);
+      const url = cv.toDataURL('image/jpeg', 0.78);
+      this.cameras.main.flash(260, 255, 255, 255);
+      this.time.delayedCall(350, () => this.showPhoto(url));
+    }, 'image/jpeg', 0.9);
+  }
+
+  showPhoto(url) {
+    this.mode = 'photoDone';
+    this.setHudVisible(true, false);
+    this.caption.destroy(); this.caption2.destroy();
+    // nuotrauka ekrane - kaip polaroidas
+    const key = `class_photo_${Date.now()}`;
+    const onAdd = (k) => {
+      if (k !== key) return;
+      this.textures.off('addtexture', onAdd);
+      const box = this.add.container(960, 500).setDepth(1950).setAngle(-2).setScale(0.6).setAlpha(0);
+      box.add(this.add.rectangle(0, 50, 1040, 720, 0xffffff).setStrokeStyle(4, 0x14081f));
+      box.add(this.add.image(0, 0, key).setDisplaySize(960, 540));
+      box.add(bodyText(this, 0, 318, '📸 Nuotrauka - jūsų telefonuose!', 34, '#14081f', { strokeThickness: 0 }));
+      const next = bodyText(this, 0, 368, 'ENTER - toliau', 26, '#7a6a9e', { strokeThickness: 0 });
+      box.add(next);
+      this.tweens.add({ targets: box, scale: 0.82, alpha: 1, duration: 420, ease: 'Back.Out' });
+      this.tweens.add({ targets: next, alpha: 0.35, yoyo: true, repeat: -1, duration: 650 });
+    };
+    this.textures.on('addtexture', onAdd);
+    this.events.once('shutdown', () => this.textures.off('addtexture', onAdd));
+    this.textures.addBase64(key, url);
+    this.sendPhoto(url);
+  }
+
+  // Nuotrauka - į visų telefonus (dalimis); prisijungusiems vėliau - dar kartą.
+  sendPhoto(url) {
+    const id = `p${Date.now()}`;
+    const parts = [];
+    for (let i = 0; i < url.length; i += PHOTO_CHUNK) parts.push(url.slice(i, i + PHOTO_CHUNK));
+    this.photoMsg = { id, parts };
+    const send = () => parts.forEach((part, i) => this.time.delayedCall(i * 120, () => this.A.net.send('photo', { id, i, n: parts.length, part })));
+    send();
+    this.time.delayedCall(4000, send); // dar kartą - jei kas nors praleido
+    this.A.host.setStatus({ text: 'Nuotrauka tavo telefone! 📸', tone: 'go' });
+    if (!this.photoJoinOff) this.photoJoinOff = this.A.host.on('join', () => { if (this.mode === 'photoDone') send(); });
+    this.events.once('shutdown', () => { if (this.photoJoinOff) { this.photoJoinOff(); this.photoJoinOff = null; } });
   }
 
   showResult() {
     this.mode = 'result';
+    this.timerText.setAlpha(0);
     this.A.host.setPhase('result', STAGE);
     const box = this.add.container(960, 470).setDepth(1950).setAlpha(0);
     box.add(this.add.rectangle(0, 0, 1240, 560, 0x0b0418, 0.88).setStrokeStyle(6, 0xffd23f));
     box.add(headText(this, 0, -215, 'EGLĖ ĮŽIEBTA! MISIJA ĮVYKDYTA!', 60, C.yellow));
     const list = [...this.orn.values()];
-    const bulbs = list.reduce((s, o) => s + o.bulbs.length, 0);
     const byKids = [...this.stats.values()].filter((x) => x.counts.pakabino).length;
     const rows = [
-      [`Žaisliukų ant eglės: ${list.length}${byKids < list.length ? ` (patys pakabino ${byKids})` : ''}   ·   Lempučių: ${bulbs} 💡`, C.white],
+      [`Žaisliukų ant eglės: ${list.length}${byKids < list.length ? ` (patys pakabino ${byKids})` : ''} 🎄`, C.white],
       [this.starAuto ? 'Žvaigždę nuleido dronas ⭐' : `Žvaigždę Adriana uždėjo iš ${ORDINAL[this.starTries] || `${this.starTries}-o`} karto ⭐`, C.white],
     ];
     if (this.tries) rows.push([`Įžiebimas: kartu paspaudė ${this.best} iš ${list.length}${this.tries > 1 ? ` (per ${this.tries} bandymus)` : ''}`, C.green]);
     const all = [...this.stats.values()];
-    const lamp = all.map((x) => [x, x.counts.lemputes || 0]).filter(([, k]) => k > 0).sort((a, b) => b[1] - a[1])[0];
-    if (lamp) rows.push([`Daugiausia lempučių: ${lamp[0].name} (${lamp[1]}) 💡`, C.yellow]);
     const fast = all.filter((x) => x.react != null).sort((a, b) => a.react - b.react)[0];
     if (fast) rows.push([`Greičiausias „DABAR!“: ${fast.name} (${(fast.react / 1000).toFixed(2).replace('.', ',')} s)`, C.teal]);
     rows.forEach(([r, c], i) => box.add(bodyText(this, 0, -130 + i * 56, r, 30, c)));
-    const next = headText(this, 0, 225, 'ENTER - TOLIAU', 46, C.white);
+    const next = headText(this, 0, 225, 'ENTER - FOTOSESIJA 📸', 46, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });
     box.add(next);
     this.tweens.add({ targets: box, alpha: 1, duration: 300 });
+    this.resultBox = box;
+    this.A.host.setStatus({ text: 'Tuoj fotosesija! 📸 Žiūrėk į ekraną', tone: 'go' });
+    this.autoPhoto = this.time.delayedCall(12000, () => { if (this.mode === 'result') this.photo(); });
   }
 
   // ---------------- klasė ----------------
@@ -655,7 +756,7 @@ export class FinalasScene extends Phaser.Scene {
 
   // ---------------- ciklas ----------------
   update(_, deltaMs) {
-    if (this.stageStart != null && this.mode !== 'result') this.stageT = (this.game.loop.time - this.stageStart) / 1000;
+    if (this.stageStart != null && !['result', 'photo', 'photoDone'].includes(this.mode)) this.stageT = (this.game.loop.time - this.stageStart) / 1000;
     const left = Math.max(0, TOTAL_S - this.stageT);
     this.timerText.setText(`⏱ ${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`).setColor(left <= 15 && this.mode !== 'result' ? C.red : '#f1e6ff');
     const dt = Math.min(deltaMs || 16, 66) / 1000;
