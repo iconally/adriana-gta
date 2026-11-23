@@ -229,6 +229,7 @@ function render() {
     $('role-desc').textContent = role.desc;
     const box = $('buttons');
     box.innerHTML = '';
+    box.classList.toggle('row3', role.buttons.length === 3); // 3 mygtukai (pvz. ⬅️ ⬆️ ➡️) - vienoje eilėje
     for (const b of role.buttons) box.appendChild(makeButton(b));
     buzz(60);
   }

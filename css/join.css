@@ -102,6 +102,10 @@ select {
   box-shadow: 0 7px 0 #000;
 }
 .act:nth-child(2) { background: linear-gradient(180deg, #1fc2c6, #0d7f8f); }
+.act:nth-child(3) { background: linear-gradient(180deg, #ff9a3c, #c25a12); }
+.buttons.row3 { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.buttons.row3 .act { flex-direction: column; gap: 2px; min-height: 140px; padding: 8px 4px; font-size: 22px; }
+.buttons.row3 .act .emo { font-size: 50px; }
 .act:active { transform: translateY(5px); box-shadow: 0 2px 0 #000; }
 .act.off { filter: grayscale(.8) brightness(.6); }
 .act .emo { font-size: 44px; text-shadow: none; }

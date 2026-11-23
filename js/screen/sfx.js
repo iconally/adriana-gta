@@ -193,6 +193,7 @@ export const sfx = {
   throw() { noise(0.12, { vol: 0.12, freq: 2500 }); },
   splat() { noise(0.18, { vol: 0.25, freq: 900 }); },
   tick() { tone(1200, 0.04, { type: 'square', vol: 0.08 }); },
+  pok() { tone(560, 0.07, { type: 'sine', vol: 0.25, slide: -260 }); noise(0.04, { vol: 0.14, freq: 1800 }); },
   plus() { tone(880, 0.07, { type: 'triangle', vol: 0.18 }); tone(1320, 0.1, { type: 'triangle', vol: 0.18, delay: 0.06 }); },
   horn() { tone(330, 0.35, { type: 'sawtooth', vol: 0.12 }); tone(415, 0.35, { type: 'sawtooth', vol: 0.1 }); },
   count() { tone(440, 0.15, { type: 'square', vol: 0.15 }); },

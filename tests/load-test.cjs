@@ -385,6 +385,45 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     console.log(`Po kinų kalbos žemėlapyje: ${await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'))}`);
   }
 
+  // 8 etapas: tenisas (Adriana - autoplay, telefonai balsuoja atsitiktinai)
+  await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Map')?.ready?.id === 'tenisas', null, { timeout: 60000 });
+  await screen.keyboard.press('Enter'); // žemėlapis -> tenisas
+  await sleep(1500);
+  await shot(screen, '90-tenisas-ivadas');
+  await screen.evaluate(() => { window.AGTA.game.scene.getScene('Tenisas').autoplay = true; });
+  await screen.keyboard.press('Enter');
+  {
+    let shotVote = false;
+    const until = Date.now() + 240000;
+    while (Date.now() < until) {
+      const mode = await screen.evaluate(() => window.AGTA.game.scene.getScene('Tenisas')?.mode);
+      if (mode === 'result') break;
+      if (!shotVote && mode === 'vote') {
+        shotVote = true;
+        await sleep(900);
+        await Promise.all(phones.slice(0, 2).map((p, i) => shot(p.page, `tel-tenisas-${i}`)));
+        await shot(screen, '91-tenisas-balsavimas');
+      }
+      const batch = phones.filter(() => Math.random() < 0.3);
+      await Promise.all(batch.map(async (p) => {
+        const btns = p.page.locator('.act:not(.off)');
+        const n = await btns.count();
+        if (n) { await btns.nth(Math.floor(Math.random() * n)).click({ timeout: 1000 }).catch(() => {}); presses += 1; }
+      }));
+      await sleep(400);
+    }
+    await sleep(800);
+    await shot(screen, '92-tenisas-rezultatas');
+    const rt = await screen.evaluate(() => {
+      const s = window.AGTA.game.scene.getScene('Tenisas');
+      return { mode: s.mode, adr: s.adr, klase: s.klase, served: s.served, returned: s.returned, aces: s.aces, winner: s.winnerSide };
+    });
+    console.log(`Tenisas: ${JSON.stringify(rt)}`);
+    await screen.keyboard.press('Enter');
+    await sleep(1500);
+    console.log(`Po teniso žemėlapyje: ${await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'))}`);
+  }
+
   console.log(errors.length ? `KLAIDOS (${errors.length}):\n${errors.slice(0, 30).join('\n')}` : 'Klaidų konsolėje nėra.');
   await browser.close();
   process.exit(errors.length ? 1 : 0);

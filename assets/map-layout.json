@@ -2,7 +2,7 @@
  "route": {
   "broliai": {
    "pos": [
-    726,
+    721,
     212
    ],
    "place": "Namai",
@@ -10,7 +10,7 @@
   },
   "laiptai": {
    "pos": [
-    498,
+    493,
     232
    ],
    "place": "Mokykla",
@@ -18,7 +18,7 @@
   },
   "pamoka": {
    "pos": [
-    412,
+    407,
     232
    ],
    "place": "Klasė",
@@ -26,7 +26,7 @@
   },
   "autobusas": {
    "pos": [
-    326,
+    321,
     232
    ],
    "place": "Stotelė",
@@ -34,7 +34,7 @@
   },
   "podiumas": {
    "pos": [
-    570,
+    564,
     625
    ],
    "place": "Mados šou",
@@ -42,7 +42,7 @@
   },
   "pianinas": {
    "pos": [
-    1489,
+    1541,
     793
    ],
    "place": "Piano koncertas",
@@ -50,7 +50,7 @@
   },
   "kinu": {
    "pos": [
-    1433,
+    1475,
     692
    ],
    "place": "Kinų kalbos pamoka",
@@ -58,15 +58,15 @@
   },
   "tenisas": {
    "pos": [
-    1749,
-    484
+    1754,
+    592
    ],
    "place": "Teniso treniruotė",
-   "where": "Kalnų parkas"
+   "where": "Sereikiškių parkas"
   },
   "robotas": {
    "pos": [
-    1105,
+    1103,
     387
    ],
    "place": "Programavimo būrelis",
@@ -74,7 +74,7 @@
   },
   "finalas": {
    "pos": [
-    1447,
+    1492,
     575
    ],
    "place": "Kalėdinis klasės vakarėlis",
@@ -86,7 +86,7 @@
    "id": "tv",
    "label": "TV bokštas",
    "pos": [
-    171,
+    166,
     514
    ]
   },
@@ -94,7 +94,7 @@
    "id": "pilis",
    "label": "Gedimino pilis",
    "pos": [
-    1552,
+    1615,
     534
    ]
   },
@@ -102,7 +102,7 @@
    "id": "stotis",
    "label": "Stotis",
    "pos": [
-    1336,
+    1361,
     859
    ]
   },
@@ -110,7 +110,7 @@
    "id": "dangorazdziai",
    "label": "",
    "pos": [
-    1133,
+    1132,
     332
    ]
   },
@@ -118,7 +118,7 @@
    "id": "ozas",
    "label": "Ozas",
    "pos": [
-    1194,
+    1198,
     181
    ]
   }

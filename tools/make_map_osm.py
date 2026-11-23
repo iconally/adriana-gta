@@ -34,7 +34,7 @@ ROUTE = [
     ('podiumas', 'Vingio estrada', 54.6845, 25.2405),
     ('pianinas', 'Filharmonija', 54.6772, 25.2888),
     ('kinu', 'Konfucijaus institutas', 54.6826, 25.2872),
-    ('tenisas', 'Kalnų parkas', 54.6880, 25.2985),
+    ('tenisas', 'Sereikiškių parkas', 54.6853, 25.2950),  # kortai tarp Gedimino kalno ir Vilnelės
     ('robotas', 'Baltasis tiltas', 54.6920, 25.2745),
     ('finalas', 'Katedros aikštė', 54.6857, 25.2876),
 ]

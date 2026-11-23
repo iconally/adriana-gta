@@ -1,0 +1,66 @@
+{
+  "intro": [
+    "Patarimas: klasė balsuoja, kur muš senis - Adriana mato, kur krypsta dauguma.",
+    "Patarimas: TARPAS - smūgis, kai kamuoliukas pasiekia aukso ratą.",
+    "Patarimas: vaikai gali persigalvoti paskutinę sekundę!",
+    "Patarimas: 15 - 30 - 40 - geimas! Esant 40:40 - lygu."
+  ],
+  "start": [
+    "Žaidimas prasideda! Adriana prieš Sniego senį!",
+    "Sereikiškių parke - teniso dvikova!"
+  ],
+  "vote": [
+    "Klasė tariasi...",
+    "Kur muš senis?",
+    "Senio komanda balsuoja!"
+  ],
+  "serve": [
+    "Senis muša į {kur}!",
+    "Kamuoliukas skrenda į {kur}!"
+  ],
+  "klase_point": [
+    "Taškas klasei!",
+    "Senis džiaugiasi!",
+    "Apgavote Adrianą!"
+  ],
+  "adr_point": [
+    "Adriana atmušė!",
+    "Senis nespėjo!",
+    "Puikus smūgis!"
+  ],
+  "ace": [
+    "ACE! Neatmušamas smūgis!",
+    "Ugnis! Senis net nepajudėjo!"
+  ],
+  "deuce": [
+    "Lygu!",
+    "40:40 - lygu!"
+  ],
+  "adv_adr": [
+    "Persvara - Adriana!"
+  ],
+  "adv_klase": [
+    "Persvara - klasė!"
+  ],
+  "sudden": [
+    "Laikas baigėsi - lemiamas taškas!"
+  ],
+  "aut": [
+    "{teiseja}: aut! Klasės taškas neįskaitomas.",
+    "{teiseja}: aut! Taškas žaidžiamas iš naujo."
+  ],
+  "aut_no": [
+    "{teiseja}: viskas teisinga!"
+  ],
+  "tyla": [
+    "{teiseja}: tyla! Šį kartą balsai slapti.",
+    "{teiseja}: ššš... Adriana nemato balsų!"
+  ],
+  "win_adr": [
+    "Adriana laimėjo geimą!",
+    "Geimas - Adriana!"
+  ],
+  "win_klase": [
+    "Klasė laimėjo geimą! Kitą kartą Adriana atsigriebs!"
+  ]
+}

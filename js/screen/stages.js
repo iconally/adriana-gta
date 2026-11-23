@@ -386,21 +386,48 @@ export const STAGES = {
       },
     },
   },
+  tenisas: {
+    id: 'tenisas',
+    nr: 8,
+    title: 'Tenisas',
+    mission: 'ATMUŠK KAMUOLIUKUS',
+    // Visa klasė - Sniego senio komanda: balsuoja, kur senis muš kamuoliuką.
+    slots: Array(17).fill('senio'),
+    fallback: 'senio',
+    teacherRole: 'teiseja',
+    roles: {
+      senio: {
+        name: 'Senio komanda', emoji: '⛄', desc: 'Jūs - Sniego senio komanda prieš Adrianą! Kai telefone užsidegs „Balsuok!“ - rinkis, kur senis muš kamuoliuką. Kur balsuos dauguma, ten jis ir skris. Galima persigalvoti iki paskutinės sekundės!',
+        buttons: [
+          { id: 'kaire', label: 'Kairė', emoji: '⬅️', cd: 300, ok: 'Balsas: kairė!' },
+          { id: 'centras', label: 'Centras', emoji: '⬆️', cd: 300, ok: 'Balsas: centras!' },
+          { id: 'desine', label: 'Dešinė', emoji: '➡️', cd: 300, ok: 'Balsas: dešinė!' },
+        ],
+      },
+      teiseja: {
+        name: 'Teisėja', emoji: '🧑‍⚖️', desc: 'Jūs - teisėja ant bokštelio! „Aut!“ - kartą per žaidimą panaikinate klasės tašką (padeda Adrianai). „Tyla!“ - šio taško balsai slapti, Adriana nemato, kur krypsta dauguma (padeda klasei).',
+        buttons: [
+          { id: 'aut', label: 'Aut!', emoji: '🚩', cd: 3000, ok: 'Aut!' },
+          { id: 'tyla', label: 'Tyla!', emoji: '🤫', cd: 15000, ok: 'Ššš...' },
+        ],
+      },
+    },
+  },
 };
 
 // Visas dienos maršrutas žemėlapyje. "scene" - Phaser scena; null - dar kuriama
 // (žemėlapyje toks etapas praleidžiamas). "pos" - taško vieta žemėlapyje (1920x1080).
 export const ROUTE = [
-  { id: 'broliai', nr: 1, title: 'Soskė broliukams', mission: 'NURAMINK BROLIUKUS', place: 'Namai', where: 'Namai', icon: '🏠', pos: [726, 212], scene: 'Broliai' },
-  { id: 'laiptai', nr: 2, title: 'Laiptai su kuprine', mission: 'UŽLIPK Į MOKYKLĄ', place: 'Mokykla', where: 'Mokykla', icon: '🎒', pos: [498, 232], scene: 'Laiptai' },
-  { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', where: 'Klasė', icon: '✏️', pos: [412, 232], scene: 'Pamoka' },
-  { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė', where: 'Stotelė', icon: '🚌', pos: [326, 232], scene: 'Bus' },
-  { id: 'podiumas', nr: 5, title: 'Mados šou Vingio estradoje', mission: 'NENUGRIŪK PODIUME', place: 'Mados šou', where: 'Vingio estrada', icon: '👗', pos: [570, 625], scene: 'Podiumas' },
-  { id: 'pianinas', nr: 6, title: 'Kalėdinis koncertas Filharmonijoje', mission: 'SUGROK KALĖDAS', place: 'Piano koncertas', where: 'Filharmonija', icon: '🎹', pos: [1489, 793], scene: 'Koncertas' },
-  { id: 'kinu', nr: 7, title: 'Kinų kalbos pamoka', mission: 'KINŲ KALBOS IŠŠŪKIS', place: 'Kinų kalbos pamoka', where: 'Konfucijaus institutas', icon: '🐼', pos: [1433, 692], scene: 'Kinu' },
-  { id: 'tenisas', nr: 8, title: 'Tenisas', mission: 'ATMUŠK KAMUOLIUKUS', place: 'Teniso treniruotė', where: 'Kalnų parkas', icon: '🎾', pos: [1749, 484], scene: null },
-  { id: 'robotas', nr: 9, title: 'Dovanų robotas', mission: 'UŽPROGRAMUOK ROBOTĄ', place: 'Programavimo būrelis', where: 'Baltasis tiltas', icon: '🤖', pos: [1105, 387], scene: null },
-  { id: 'finalas', nr: 10, title: 'Finalas: eglė', mission: 'UŽDEK EGLĘ', place: 'Kalėdinis klasės vakarėlis', where: 'Katedros aikštė', icon: '🎄', pos: [1447, 575], scene: null },
+  { id: 'broliai', nr: 1, title: 'Soskė broliukams', mission: 'NURAMINK BROLIUKUS', place: 'Namai', where: 'Namai', icon: '🏠', pos: [721, 212], scene: 'Broliai' },
+  { id: 'laiptai', nr: 2, title: 'Laiptai su kuprine', mission: 'UŽLIPK Į MOKYKLĄ', place: 'Mokykla', where: 'Mokykla', icon: '🎒', pos: [493, 232], scene: 'Laiptai' },
+  { id: 'pamoka', nr: 3, title: 'Kai mokytoja nusisuka', mission: 'PERDUOK ATVIRUKĄ', place: 'Klasė', where: 'Klasė', icon: '✏️', pos: [407, 232], scene: 'Pamoka' },
+  { id: 'autobusas', nr: 4, title: 'Bėgimas iki autobuso', mission: 'SPĖK Į AUTOBUSĄ', place: 'Stotelė', where: 'Stotelė', icon: '🚌', pos: [321, 232], scene: 'Bus' },
+  { id: 'podiumas', nr: 5, title: 'Mados šou Vingio estradoje', mission: 'NENUGRIŪK PODIUME', place: 'Mados šou', where: 'Vingio estrada', icon: '👗', pos: [564, 625], scene: 'Podiumas' },
+  { id: 'pianinas', nr: 6, title: 'Kalėdinis koncertas Filharmonijoje', mission: 'SUGROK KALĖDAS', place: 'Piano koncertas', where: 'Filharmonija', icon: '🎹', pos: [1541, 793], scene: 'Koncertas' },
+  { id: 'kinu', nr: 7, title: 'Kinų kalbos pamoka', mission: 'KINŲ KALBOS IŠŠŪKIS', place: 'Kinų kalbos pamoka', where: 'Konfucijaus institutas', icon: '🐼', pos: [1475, 692], scene: 'Kinu' },
+  { id: 'tenisas', nr: 8, title: 'Tenisas', mission: 'ATMUŠK KAMUOLIUKUS', place: 'Teniso treniruotė', where: 'Sereikiškių parkas', icon: '🎾', pos: [1754, 592], scene: 'Tenisas' },
+  { id: 'robotas', nr: 9, title: 'Dovanų robotas', mission: 'UŽPROGRAMUOK ROBOTĄ', place: 'Programavimo būrelis', where: 'Baltasis tiltas', icon: '🤖', pos: [1103, 387], scene: null },
+  { id: 'finalas', nr: 10, title: 'Finalas: eglė', mission: 'UŽDEK EGLĘ', place: 'Kalėdinis klasės vakarėlis', where: 'Katedros aikštė', icon: '🎄', pos: [1492, 575], scene: null },
 ];
 
 export const STAGE_ORDER = ROUTE.filter((r) => r.scene).map((r) => r.id);
