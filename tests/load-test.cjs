@@ -464,6 +464,48 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     console.log(`Po roboto žemėlapyje: ${await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'))}`);
   }
 
+  // 10 etapas: finalas - eglė (Adriana - autoplay, telefonai kabina žaisliukus ir įžiebia)
+  await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Map')?.ready?.id === 'finalas', null, { timeout: 60000 });
+  await screen.keyboard.press('Enter'); // žemėlapis -> finalas
+  await sleep(1500);
+  await shot(screen, 'b0-finalas-ivadas');
+  await screen.evaluate(() => { window.AGTA.game.scene.getScene('Finalas').autoplay = true; });
+  await screen.keyboard.press('Enter');
+  {
+    let shotDecor = false;
+    const until = Date.now() + 240000;
+    while (Date.now() < until) {
+      const mode = await screen.evaluate(() => window.AGTA.game.scene.getScene('Finalas')?.mode);
+      if (mode === 'result') break;
+      if (!shotDecor && mode === 'decor') {
+        shotDecor = true;
+        await sleep(1500);
+        await Promise.all(phones.slice(0, 2).map((p, i) => shot(p.page, `tel-finalas-${i}`)));
+        await shot(screen, 'b1-finalas-puosimas');
+      }
+      // spaudžia tai, kas dabar įjungta (puošiant - „Pakabink“, per DABAR - „ĮŽIEBK“)
+      const batch = phones.filter(() => Math.random() < 0.7);
+      await Promise.all(batch.map(async (p) => {
+        const btns = p.page.locator('.act:not(.off)');
+        const n = await btns.count();
+        if (n) { await btns.nth(Math.floor(Math.random() * n)).click({ timeout: 1000 }).catch(() => {}); presses += 1; }
+      }));
+      await sleep(300);
+    }
+    await sleep(800);
+    await shot(screen, 'b2-finalas-rezultatas');
+    const rf = await screen.evaluate(() => {
+      const s = window.AGTA.game.scene.getScene('Finalas');
+      const l = [...s.orn.values()];
+      return { mode: s.mode, ornaments: `${l.filter((o) => o.hung).length}/${l.length}`, bulbs: l.reduce((k, o) => k + o.bulbs.length, 0), star: s.starTries, tries: s.tries, best: s.best };
+    });
+    console.log(`Finalas: ${JSON.stringify(rf)}`);
+    await screen.keyboard.press('Enter');
+    await sleep(2500);
+    console.log(`Po finalo žemėlapyje: ${await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'))}`);
+    await shot(screen, 'b3-zemelapis-visos-misijos');
+  }
+
   console.log(errors.length ? `KLAIDOS (${errors.length}):\n${errors.slice(0, 30).join('\n')}` : 'Klaidų konsolėje nėra.');
   await browser.close();
   process.exit(errors.length ? 1 : 0);

@@ -439,6 +439,32 @@ export const STAGES = {
       },
     },
   },
+  finalas: {
+    id: 'finalas',
+    nr: 10,
+    title: 'Finalas: eglė',
+    mission: 'UŽDEK EGLĘ',
+    // Visa klasė puošia eglę savo žaisliukais, o paskui visi kartu ją įžiebia.
+    slots: Array(17).fill('puosejas'),
+    fallback: 'puosejas',
+    teacherRole: 'vedeja',
+    roles: {
+      puosejas: {
+        name: 'Eglės puošėjas', emoji: '🎄', desc: 'Pakabink žaisliuką su savo veidu ir pridėk lempučių! Per DABAR! - spausk ĮŽIEBK!',
+        buttons: [
+          { id: 'zaisliukas', label: 'Pakabink!', emoji: '🎄', cd: 400, ok: 'Kabinu!' },
+          { id: 'izziebk', label: 'ĮŽIEBK!', emoji: '💡', cd: 300, ok: 'Šviesa!' },
+        ],
+      },
+      vedeja: {
+        name: 'Vakarėlio vedėja', emoji: '🌟', desc: 'Jūs vedate vakarėlį! Kai eglė papuošta - „3-2-1 🎄“ pradeda bendrą įžiebimą. „Muzika 🎶“ - suskamba „Skamba varpeliai“.',
+        buttons: [
+          { id: 'skaiciuoti', label: '3-2-1', emoji: '🎄', cd: 4000, ok: 'Skaičiuojam!' },
+          { id: 'muzika', label: 'Muzika', emoji: '🎶', cd: 8000, ok: '🎶' },
+        ],
+      },
+    },
+  },
 };
 
 // Visas dienos maršrutas žemėlapyje. "scene" - Phaser scena; null - dar kuriama
@@ -453,7 +479,7 @@ export const ROUTE = [
   { id: 'kinu', nr: 7, title: 'Kinų kalbos pamoka', mission: 'KINŲ KALBOS IŠŠŪKIS', place: 'Kinų kalbos pamoka', where: 'Konfucijaus institutas', icon: '🐼', pos: [1475, 692], scene: 'Kinu' },
   { id: 'tenisas', nr: 8, title: 'Tenisas', mission: 'ATMUŠK KAMUOLIUKUS', place: 'Teniso treniruotė', where: 'Sereikiškių parkas', icon: '🎾', pos: [1754, 592], scene: 'Tenisas' },
   { id: 'robotas', nr: 9, title: 'Dovanų robotas', mission: 'UŽPROGRAMUOK ROBOTĄ', place: 'Programavimo būrelis', where: 'Baltasis tiltas', icon: '🤖', pos: [1103, 387], scene: 'Robotas' },
-  { id: 'finalas', nr: 10, title: 'Finalas: eglė', mission: 'UŽDEK EGLĘ', place: 'Kalėdinis klasės vakarėlis', where: 'Katedros aikštė', icon: '🎄', pos: [1492, 575], scene: null },
+  { id: 'finalas', nr: 10, title: 'Finalas: eglė', mission: 'UŽDEK EGLĘ', place: 'Kalėdinis klasės vakarėlis', where: 'Katedros aikštė', icon: '🎄', pos: [1492, 575], scene: 'Finalas' },
 ];
 
 export const STAGE_ORDER = ROUTE.filter((r) => r.scene).map((r) => r.id);

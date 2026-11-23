@@ -1,0 +1,42 @@
+{
+  "intro": [
+    "Patarimas: kiekvienas pakabina savo žaisliuką - jame jo veidas!",
+    "Patarimas: Adriana, spausk TARPĄ, kai dronas su žvaigžde bus virš eglės viršūnės.",
+    "Patarimas: kai ekrane bus DABAR! - visi kartu spauskite ĮŽIEBK!",
+    "Patarimas: kuo daugiau paspaus kartu, tuo ryškiau švies eglė."
+  ],
+  "start": [
+    "Puošiam eglę!",
+    "Katedros aikštėje - didžioji Kalėdų eglė!"
+  ],
+  "star_ok": [
+    "Žvaigždė vietoje! ⭐",
+    "Tiksliai į viršūnę!"
+  ],
+  "star_miss": [
+    "Oi, pro šalį! Dronas atneš kitą žvaigždę.",
+    "Beveik! Bandyk dar!"
+  ],
+  "auto_star": [
+    "Dronas pats nuleido žvaigždę - laikas bėga!"
+  ],
+  "ready": [
+    "Eglė papuošta! {mokytoja}, spauskite 3-2-1!",
+    "Visi pasiruošę? 3-2-1!"
+  ],
+  "retry": [
+    "Dar kartą - visi kartu!",
+    "Beveik! Bandom dar kartą!"
+  ],
+  "lit": [
+    "Eglė įžiebta! Linksmų Kalėdų!",
+    "Kokia graži eglė!"
+  ],
+  "music": [
+    "{mokytoja}: muzika! 🎶"
+  ],
+  "photo": [
+    "Visi į nuotrauką! 📸",
+    "Šypsokitės! 📸"
+  ]
+}

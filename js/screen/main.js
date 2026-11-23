@@ -18,6 +18,7 @@ import { KoncertasScene } from './scenes/Koncertas.js';
 import { KinuScene } from './scenes/Kinu.js';
 import { TenisasScene } from './scenes/Tenisas.js';
 import { RobotasScene } from './scenes/Robotas.js';
+import { FinalasScene } from './scenes/Finalas.js';
 import { MapScene } from './scenes/Map.js';
 import { VERSION } from '../version.js';
 import { Bots } from './bots.js';
@@ -30,7 +31,7 @@ localStorage.setItem(ROOM_KEY, room);
 
 const net = await connectNet({ side: 'screen', room, mode: netModeFromUrl() });
 const host = new Host(net, room);
-const lines = await Lines.load(['common', 'broliai', 'laiptai', 'pamoka', 'autobusas', 'podiumas', 'koncertas', 'kinu', 'tenisas', 'robotas']);
+const lines = await Lines.load(['common', 'broliai', 'laiptai', 'pamoka', 'autobusas', 'podiumas', 'koncertas', 'kinu', 'tenisas', 'robotas', 'finalas']);
 const joinUrl = `${baseUrl()}join.html?r=${room}${net.mode === 'local' ? '&net=local' : ''}`;
 
 // Palaukiam šriftų (iki 2 s), kad Phaser tekstai būtų gražūs.
@@ -49,7 +50,7 @@ const game = new Phaser.Game({
   height: 1080,
   backgroundColor: '#1a0b2e',
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-  scene: [BootScene, LobbyScene, MapScene, BroliaiScene, LaiptaiScene, PamokaScene, BusScene, PodiumasScene, KoncertasScene, KinuScene, TenisasScene, RobotasScene],
+  scene: [BootScene, LobbyScene, MapScene, BroliaiScene, LaiptaiScene, PamokaScene, BusScene, PodiumasScene, KoncertasScene, KinuScene, TenisasScene, RobotasScene, FinalasScene],
 });
 
 function go(key) {
