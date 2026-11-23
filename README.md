@@ -12,6 +12,7 @@ Kalėdinis klasės vakarėlio žaidimas. Adriana žaidžia dideliame ekrane, o k
 - 6 etapas "Kalėdinis koncertas Filharmonijoje": Adriana - tai rojalis. Eilė: 🎹 rojalis → 🥁 būgnai → 🎹 → 🎺 trimitai → 🎹 → 🎻 smuikai → 🎹 → 🔔 varpeliai → finalas (visi) → nusilenkimas; viršuje eilutė rodo, kas groja. Adriana groja „Skamba varpeliai“ pagal natų eilutę (šviečia kita nata su klavišu A S D F G). Visa melodija - ne ilgiau 1 min: jei frazė užtrunka ilgiau nei 7 s, rojalis pagroja likusias natas. Orkestro grupės telefonai žali, kai jų eilė. Mokytoja - dirigentė.
 - 7 etapas "Kinų kalbos pamoka" (Konfucijaus institutas): 5 žodžiai (雪 星 树 月 火). Kiekvienam - klasės viktorina telefonuose (2 atsakymai, Adriana spėja ← / →), tada iš kiekvieno atsakiusio vaiko žibinto krenta tas hieroglifas, kurį jis pasirinko (vienas žibintas - viena kortelė, neatsakė - nekrenta nieko). Jei teisingai neatsakė niekas - 5 teisingas korteles meta Laoshi iš viršaus. Adriana su dubeniu gaudo ← → tik teisingus. Kiekvienas hieroglifas ištariamas kiniškai (naršyklės zh-CN balsas). Laoshi Daiva (老师): „Lėčiau!“ ir „Hongbao 🧧“ (per gaudymą numeta 3 teisingus hieroglifus šalia Adrianos).
 - 8 etapas "Tenisas" (Sereikiškių parkas, kortai tarp Gedimino kalno ir Vilnelės): Adriana prieš Sniego senį. Visa klasė - senio komanda: telefonuose balsuoja, kur senis muš kamuoliuką (⬅️ ⬆️ ➡️), dauguma laimi; balsai ekrane keičiasi gyvai, galima persigalvoti. Adriana ← → nubėga ir spaudžia TARPĄ, kai kamuoliukas pasiekia aukso ratą (tobulai - ACE). Vienas geimas tikru teniso skaičiavimu (15 - 30 - 40, lygu, persvara; ekrane vadinamas „mačas“), visas etapas nuo 3-2-1 iki rezultatų - ne ilgiau 60 s: kai laiko lieka vienam taškui, skelbiamas „Paskutinis taškas!“, po jo laimi pirmaujantis, o esant lygiam - paskutinio taško laimėtojas. Teisėja Daiva po kiekvieno taško paskelbia rezultatą, o telefone turi „Aut! 🚩“ (kartą panaikina klasės tašką) ir „Tyla! 🤫“ (šio taško balsai slapti).
+- 9 etapas "Dovanų robotas" (programavimo būrelis prie Baltojo tilto): Adriana programuoja robotą rodyklėmis (↑ ↓ ← → - komandos kodo juostoje, BACKSPACE - trinti, TARPAS - ▶ paleisti). Robotas renka 🎁 dovanas ir turi pasiekti eglę; pusnis, kraštas ar per trumpas kodas - „BUG! 🐞“, robotas grįžta į startą, kodas lieka pataisyti. 3 lygiai (trumpiausi sprendimai 5, 7 ir 9 komandos), visas etapas ne ilgiau 60 s. Klasė - testuotojai: telefone spėja „✅ Veiks!“ arba „🐞 Bus klaida!“ (galima persigalvoti iki paleidimo), atspėjusieji gauna tašką. Vadovė Daiva: „Užuomina 💡“ (pašviečia kelią iki kitos dovanos) ir „Greičiau ⏩“.
 - Vedėjo pultas (klavišas H), replikų biblioteka, garso efektai, vietinis testavimo režimas.
 
 ## Darbas su VS Code
@@ -88,6 +89,7 @@ Aplanke turi būti `klase.json` ir avatarų paveikslėliai:
 | A S D F G (arba 1-5) | rojalio klavišai Do Re Mi Fa Sol (6 etapas) - spausk tą, kuris parašytas šviečiančioje natoje |
 | ← → (A D) | kinų kalba: viktorinos metu - Adrianos spėjimas, paskui - bėgioti su dubeniu (7 etapas) |
 | ← → (A D), TARPAS | tenisas: bėgti palei galinę liniją, TARPAS - smūgis, kai kamuoliukas pasiekia aukso ratą (8 etapas) |
+| ↑ ↓ ← →, BACKSPACE, TARPAS | robotas: rodyklės prideda komandas, BACKSPACE ištrina paskutinę, TARPAS (ar ENTER) - paleisti (9 etapas) |
 | R | kartoti etapą |
 | ESC | į laukiamąjį |
 | H | vedėjo pultas |
@@ -180,6 +182,9 @@ Kol kas visi paveikslėliai nupiešti kodu (`js/screen/art.js`, 1 etapo - `js/sc
 | tn_snowman, tn_snow_arm | 220×290, 210×90 | Sniego senis ir jo ranka su raketę (sukasi apie petį) |
 | tn_racket, tn_ball, tn_shadow | 80×180, 44×44, 60×24 | Adrianos raketė, kamuoliukas, jo šešėlis |
 | tn_chair, tn_chair_front | 160×300, 130×70 | teisėjos bokštelis ir jo priekinė lentelė |
+| robot_bg | 1920×1080 | 9 etapo programavimo būrelio klasė su langu į Baltąjį tiltą ir dangoraižius |
+| rb_robot, rb_robot_bug, rb_robot_joy | 150×180 | robotas: įprastas, „BUG“ (raudonos X akys), džiaugsmingas |
+| rb_gift, rb_pile, rb_goal, rb_goal_lit | 90×90, 150×90, 140×152 | dovana, pusnis (kliūtis), eglė užgesusi ir įžiebta |
 
 ## Struktūra
 
@@ -191,7 +196,7 @@ js/phone/join.js     telefono puslapis
 js/screen/main.js    ekrano paleidimas ir vedėjo pultas
 js/screen/host.js    žaidėjai, vardų tikrinimas, rolės
 js/screen/stages.js  etapų rolės ir mygtukai
-js/screen/scenes/    Boot, Lobby, Map, Broliai, Laiptai, Pamoka, Bus, Podiumas, Koncertas, Kinu, Tenisas
+js/screen/scenes/    Boot, Lobby, Map, Broliai, Laiptai, Pamoka, Bus, Podiumas, Koncertas, Kinu, Tenisas, Robotas
 lines/               replikų biblioteka
 vendor/              Phaser 3.90, supabase-js, qrcode-generator (MIT)
 ```

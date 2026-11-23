@@ -57,6 +57,7 @@ export class TenisasScene extends Phaser.Scene {
   create() {
     const A = window.AGTA;
     this.A = A;
+    this.bornAt = Date.now();
     this.mode = 'intro'; // intro -> count -> (vote -> serve -> return|miss -> point) ... -> end -> result
     A.host.setPhase('intro', STAGE);
     this.lockVotes(true, false);
@@ -164,7 +165,7 @@ export class TenisasScene extends Phaser.Scene {
 
   // ---------------- eiga ----------------
   onEnter() {
-    if (this.mode === 'intro') this.countdown();
+    if (this.mode === 'intro') { if (Date.now() - this.bornAt > 500) this.countdown(); }
     else if (this.mode === 'result') {
       this.A.host.markDone(STAGE.id);
       this.A.go('Map');
@@ -173,7 +174,7 @@ export class TenisasScene extends Phaser.Scene {
 
   countdown() {
     this.mode = 'count';
-    this.stageStart = this.time.now; // 60 s skaičiuojamos pagal scenos laikrodį (tą patį, kuriuo eina pauzės)
+    this.stageStart = this.game.loop.time; // tikras laikas (scenos laikrodis ką tik sukurtoje scenoje dar būna 0)
     this.tweens.add({ targets: this.card, alpha: 0, duration: 300, onComplete: () => this.card.destroy() });
     const nums = ['3', '2', '1', 'GO!'];
     nums.forEach((n, i) => {
@@ -697,7 +698,7 @@ export class TenisasScene extends Phaser.Scene {
     const dt = Math.min(deltaMs, 66) / 1000;
     const active = ['vote', 'serve', 'return', 'miss', 'point'].includes(this.mode);
     if (active) this.elapsed += dt;
-    if (this.stageStart != null && this.mode !== 'result') this.stageT = (this.time.now - this.stageStart) / 1000;
+    if (this.stageStart != null && this.mode !== 'result') this.stageT = (this.game.loop.time - this.stageStart) / 1000;
     const left = Math.max(0, TOTAL_S - this.stageT);
     this.timerText.setText(`⏱ ${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`).setColor(left <= 15 && this.mode !== 'result' ? C.red : '#f1e6ff');
 

@@ -413,6 +413,32 @@ export const STAGES = {
       },
     },
   },
+  robotas: {
+    id: 'robotas',
+    nr: 9,
+    title: 'Dovanų robotas',
+    mission: 'UŽPROGRAMUOK ROBOTĄ',
+    // Visa klasė - testuotojai: spėja, ar Adrianos kodas veiks.
+    slots: Array(17).fill('testuotojas'),
+    fallback: 'testuotojas',
+    teacherRole: 'vadove',
+    roles: {
+      testuotojas: {
+        name: 'Testuotojas', emoji: '🔍', desc: 'Spėk, ar Adrianos kodas veiks! Gali persigalvoti, kol robotas pajudės. Atspėjai - taškas.',
+        buttons: [
+          { id: 'veiks', label: 'Veiks!', emoji: '✅', cd: 300, ok: 'Spėjimas: veiks!' },
+          { id: 'klaida', label: 'Bus klaida!', emoji: '🐞', cd: 300, ok: 'Spėjimas: klaida!' },
+        ],
+      },
+      vadove: {
+        name: 'Būrelio vadovė', emoji: '👩‍💻', desc: 'Jūs - programavimo būrelio vadovė! „Užuomina 💡“ - kelias sekundes pašviečia kelią iki kitos dovanos. „Greičiau ⏩“ - robotas vykdo kodą dvigubai greičiau.',
+        buttons: [
+          { id: 'uzuomina', label: 'Užuomina', emoji: '💡', cd: 10000, ok: 'Užuomina!' },
+          { id: 'greiciau', label: 'Greičiau', emoji: '⏩', cd: 12000, ok: 'Greičiau!' },
+        ],
+      },
+    },
+  },
 };
 
 // Visas dienos maršrutas žemėlapyje. "scene" - Phaser scena; null - dar kuriama
@@ -426,7 +452,7 @@ export const ROUTE = [
   { id: 'pianinas', nr: 6, title: 'Kalėdinis koncertas Filharmonijoje', mission: 'SUGROK KALĖDAS', place: 'Piano koncertas', where: 'Filharmonija', icon: '🎹', pos: [1541, 793], scene: 'Koncertas' },
   { id: 'kinu', nr: 7, title: 'Kinų kalbos pamoka', mission: 'KINŲ KALBOS IŠŠŪKIS', place: 'Kinų kalbos pamoka', where: 'Konfucijaus institutas', icon: '🐼', pos: [1475, 692], scene: 'Kinu' },
   { id: 'tenisas', nr: 8, title: 'Tenisas', mission: 'ATMUŠK KAMUOLIUKUS', place: 'Teniso treniruotė', where: 'Sereikiškių parkas', icon: '🎾', pos: [1754, 592], scene: 'Tenisas' },
-  { id: 'robotas', nr: 9, title: 'Dovanų robotas', mission: 'UŽPROGRAMUOK ROBOTĄ', place: 'Programavimo būrelis', where: 'Baltasis tiltas', icon: '🤖', pos: [1103, 387], scene: null },
+  { id: 'robotas', nr: 9, title: 'Dovanų robotas', mission: 'UŽPROGRAMUOK ROBOTĄ', place: 'Programavimo būrelis', where: 'Baltasis tiltas', icon: '🤖', pos: [1103, 387], scene: 'Robotas' },
   { id: 'finalas', nr: 10, title: 'Finalas: eglė', mission: 'UŽDEK EGLĘ', place: 'Kalėdinis klasės vakarėlis', where: 'Katedros aikštė', icon: '🎄', pos: [1492, 575], scene: null },
 ];
 
