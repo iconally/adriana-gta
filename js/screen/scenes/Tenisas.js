@@ -6,7 +6,7 @@
 //  2) senis muša į laimėjusią zoną, kamuoliukas skrenda ~1,2 s;
 //  3) Adriana ← → nubėga ir spaudžia TARPĄ, kai kamuoliukas pasiekia aukso ratą.
 //     Atmušė - taškas Adrianai (tobulai - „ACE!“), nepataikė - taškas klasei.
-// Vienas geimas tikru teniso skaičiavimu (15 - 30 - 40 - geimas, lygu, persvara), ilgiausiai 60 s:
+// Vienas geimas tikru teniso skaičiavimu (15 - 30 - 40, lygu, persvara), ekrane vadinamas „mačas“; ilgiausiai 60 s:
 // laikui baigiantis laimi pirmaujantis, o esant lygiam - lemiamas taškas.
 // Mokytoja - teisėja ant bokštelio: „Aut! 🚩“ (kartą panaikina klasės tašką) ir
 // „Tyla! 🤫“ (šio taško balsai slapti - Adriana nemato, kur krypsta dauguma).
@@ -24,8 +24,8 @@ const ZONES = [
 ];
 const ZONE_BY_ID = Object.fromEntries(ZONES.map((z, i) => [z.id, i]));
 const VOTE_MS = 2600;
-const FLY1 = 0.82;            // s: nuo senio raketės iki atšokimo
-const FLY2 = 0.42;            // s: nuo atšokimo iki Adrianos raketės
+const FLY1 = 1.0;             // s: nuo senio raketės iki atšokimo
+const FLY2 = 0.48;            // s: nuo atšokimo iki Adrianos raketės
 const THIT = FLY1 + FLY2;
 const HIT_WIN = 0.2;          // s: kiek galima suklysti spaudžiant tarpą
 const PERFECT = 0.07;         // s: tobulas smūgis - ACE
@@ -77,6 +77,11 @@ export class TenisasScene extends Phaser.Scene {
     this.autUsed = false;
     this.sudden = false;
     this.ball = null;
+    // senas scenos paleidimas sunaikino kamuoliuką - kuriam iš naujo (kitaip antrą kartą jo nesimato)
+    this.ballImg = null;
+    this.ballShadow = null;
+    this.ballGlow = null;
+    this.trailT = 0;
     this.swingUntil = 0;
     this.adrX = 960;
     this.walkT = 0;
@@ -239,7 +244,6 @@ export class TenisasScene extends Phaser.Scene {
     const z = ZONES[this.zone];
     this.A.host.setStatus({ text: `Senis muša į ${z.name}! ${z.emo}`, tone: 'wait' });
     this.say(`SENIS MUŠA Į ${z.label}! ${z.arrow}`, C.teal);
-    this.maybeSub(this.A.lines.pick('tenisas', 'serve', { kur: z.name }), C.teal, 0);
     // senis pasislenka ir muša
     const u0 = Phaser.Math.Clamp((this.snowX - 960) / 368 + rand(-0.15, 0.15), -0.6, 0.6);
     this.snowX = 960 + u0 * 368;
@@ -248,15 +252,22 @@ export class TenisasScene extends Phaser.Scene {
     this.A.sfx.pok();
     const ut = z.u + rand(-0.08, 0.08);
     this.ball = { kind: 'in', t: 0, u0: u0 + 0.38, ut, hit: false };
-    this.ballImg = this.ballImg || this.add.image(0, 0, 'tn_ball').setDepth(960);
-    this.ballShadow = this.ballShadow || this.add.image(0, 0, 'tn_shadow').setDepth(330);
+    this.makeBall();
     this.ballImg.setVisible(true).setAlpha(1);
+    this.ballGlow.setVisible(true).setAlpha(0.45);
     this.ballShadow.setVisible(true).setAlpha(1);
     this.bounced = false;
     this.target = { x: proj(ut, ADR_D).x, y: proj(ut, ADR_D, HIT_H).y, gy: proj(ut, ADR_D).y };
     this.autoSwingAt = Math.random() < 0.78 ? THIT + rand(-0.06, 0.06) : null;
     // vaikų rodyklės - kas balsavo už laimėjusią zoną
     for (const [pid, m] of this.voteMarks) m.setVisible(true).setAlpha(this.votes.get(pid) === this.zone ? 1 : 0.35);
+  }
+
+  makeBall() {
+    if (this.ballImg) return;
+    this.ballShadow = this.add.image(0, 0, 'tn_shadow').setDepth(330).setVisible(false);
+    this.ballGlow = this.add.circle(0, 0, 30, 0xfff27a, 0.45).setDepth(958).setVisible(false);
+    this.ballImg = this.add.image(0, 0, 'tn_ball').setDepth(960).setVisible(false);
   }
 
   // Kamuoliuko vieta pagal laiką (u, d, h -> ekranas).
@@ -330,11 +341,12 @@ export class TenisasScene extends Phaser.Scene {
   endPoint(who, ace = false) {
     if (this.mode === 'point' || this.mode === 'end') return;
     this.mode = 'point';
-    if (this.ballImg) this.tweens.add({ targets: [this.ballImg, this.ballShadow], alpha: 0, duration: 200 });
+    if (this.ballImg) this.tweens.add({ targets: [this.ballImg, this.ballShadow, this.ballGlow], alpha: 0, duration: 200 });
     this.ball = null;
     const host = this.A.host;
     this.lastPoint = who;
     this.lastStrategists = [];
+    this.say(who === 'adr' ? (ace ? 'ACE! TAŠKAS ADRIANAI!' : 'TAŠKAS ADRIANAI!') : 'TAŠKAS KLASEI!', who === 'adr' ? C.pink : C.teal);
     if (who === 'adr') {
       this.adr += 1;
       this.A.sfx.plus();
@@ -354,6 +366,7 @@ export class TenisasScene extends Phaser.Scene {
       }
     }
     this.updateScore();
+    this.time.delayedCall(450, () => this.callScore());
     const s = this.scoreStr();
     const by = {};
     for (const p of host.list()) {
@@ -362,6 +375,18 @@ export class TenisasScene extends Phaser.Scene {
     }
     host.setStatus(who === 'klase' ? { text: `Taškas klasei! 🎉 ${s}`, tone: 'go' } : { text: `Adriana atmušė! ${s}`, tone: 'wait' }, by);
     this.time.delayedCall(POINT_MS, () => this.afterPoint());
+  }
+
+  // Teisėja garsiai paskelbia rezultatą (kaip tikra teniso teisėja).
+  callScore() {
+    if (this.mode !== 'point') return;
+    const i = this.scoreInfo();
+    const w = this.winner();
+    let text = `${i.l} : ${i.r}`;
+    if (w) text = 'MAČAS!';
+    else if (i.note === 'LYGU') text = 'LYGU!';
+    else if (i.note) text = this.adr > this.klase ? 'PERSVARA - ADRIANA!' : 'PERSVARA - KLASĖ!';
+    this.refSay(text, C.white);
   }
 
   winner() {
@@ -411,18 +436,18 @@ export class TenisasScene extends Phaser.Scene {
     this.zoneTxt.forEach((t) => t.setText(''));
     for (const m of this.voteMarks.values()) m.destroy();
     this.voteMarks.clear();
-    // tablo: laimėtas geimas 1 : 0
+    // tablo: laimėtas mačas 1 : 0
     this.sbL.setText(w === 'adr' ? '1' : '0');
     this.sbR.setText(w === 'adr' ? '0' : '1');
-    this.sbNote.setText(w === 'adr' ? 'GEIMAS - ADRIANA!' : 'GEIMAS - KLASĖ!');
-    this.A.host.setStatus({ text: w === 'adr' ? 'Geimas - Adriana! Žiūrėk į ekraną' : 'Geimas - klasė! 🎉 Žiūrėk į ekraną', tone: 'go' });
+    this.sbNote.setText(w === 'adr' ? 'MAČAS - ADRIANA!' : 'MAČAS - KLASĖ!');
+    this.A.host.setStatus({ text: w === 'adr' ? 'Mačą laimėjo Adriana! Žiūrėk į ekraną' : 'Mačą laimėjo klasė! 🎉 Žiūrėk į ekraną', tone: 'go' });
     this.A.sfx.win();
     this.say('', C.yellow);
     if (w === 'adr') {
-      this.bigBanner('GEIMAS - ADRIANA!', '+100 RESPEKTO', { color: C.yellow, hold: 2800 });
+      this.bigBanner('MAČAS - ADRIANA!', '+100 RESPEKTO', { color: C.yellow, hold: 2800 });
       this.celebrate();
     } else {
-      this.bigBanner('GEIMAS - KLASĖ!', 'PUIKI KOVA! +100 RESPEKTO', { color: C.teal, hold: 2800 });
+      this.bigBanner('MAČAS - KLASĖ!', 'PUIKI KOVA! +100 RESPEKTO', { color: C.teal, hold: 2800 });
     }
     this.time.delayedCall(1300, () => this.sub(this.A.lines.pick('tenisas', w === 'adr' ? 'win_adr' : 'win_klase'), C.yellow, 760));
     this.time.delayedCall(3600, () => this.showResult());
@@ -433,10 +458,10 @@ export class TenisasScene extends Phaser.Scene {
     this.A.host.setPhase('result', STAGE);
     const box = this.add.container(960, 500).setDepth(1950).setAlpha(0);
     box.add(this.add.rectangle(0, 0, 1240, 620, 0x0b0418, 0.9).setStrokeStyle(6, 0xffd23f));
-    box.add(headText(this, 0, -245, 'TENISO GEIMAS BAIGTAS!', 66, C.yellow));
+    box.add(headText(this, 0, -245, 'TENISO MAČAS BAIGTAS!', 66, C.yellow));
     const all = [...this.stats.values()];
     const rows = [
-      [`Geimą laimėjo: ${this.winnerSide === 'adr' ? 'Adriana' : 'klasė (Sniego senio komanda)'}   ·   Taškai ${this.adr} : ${this.klase}`, C.white],
+      [`Mačą laimėjo: ${this.winnerSide === 'adr' ? 'Adriana' : 'klasė (Sniego senio komanda)'}   ·   Taškai ${this.adr} : ${this.klase}`, C.white],
       [`Adriana atmušė: ${this.returned} iš ${this.served}   ·   ACE: ${this.aces}`, C.white],
     ];
     const best = (k) => all.map((x) => [x, x.counts[k] || 0]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1])[0];
@@ -445,7 +470,7 @@ export class TenisasScene extends Phaser.Scene {
     const fast = all.filter((x) => x.fast != null).sort((a, b) => a.fast - b.fast)[0];
     if (fast) rows.push([`Greičiausias balsuotojas: ${fast.name} (${(fast.fast / 1000).toFixed(1).replace('.', ',')} s)`, C.green]);
     const sw = best('persigalvojo');
-    if (sw) rows.push([`Dažniausiai persigalvojo: ${sw[0].name} (${sw[1]} k.)`, C.yellow]);
+    if (sw) rows.push([`Daugiausia kartų persigalvojo: ${sw[0].name} (${sw[1]})`, C.yellow]);
     rows.slice(0, 6).forEach(([r, c], i) => box.add(bodyText(this, 0, -150 + i * 54, r, 30, c)));
     const next = headText(this, 0, 250, 'ENTER - TOLIAU', 48, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });
@@ -684,14 +709,31 @@ export class TenisasScene extends Phaser.Scene {
 
     this.drawZones();
 
-    // kamuoliukas
+    // kamuoliukas: kol klasė balsuoja - senis jį muša į žemę prie savęs
+    if (this.mode === 'vote') {
+      this.makeBall();
+      const bx = this.snowBox.x + 70;
+      const by = proj(0, SNOW_D).y - 8 - Math.abs(Math.sin(this.time.now / 170)) * 46;
+      this.ballImg.setVisible(true).setAlpha(1).setPosition(bx, by).setScale(0.75);
+      this.ballGlow.setVisible(true).setAlpha(0.45).setPosition(bx, by).setScale(0.75);
+      this.ballShadow.setVisible(true).setAlpha(1).setPosition(bx, proj(0, SNOW_D).y - 4).setScale(0.5);
+    }
     const b = this.ball;
     if (b) {
       b.t += dt;
       const p = this.ballPos(b);
       const gnd = this.ballGround(b);
-      this.ballImg.setPosition(p.x, p.y).setScale(Math.max(0.45, p.s * 1.15));
+      const sc = Math.max(0.75, p.s * 1.35);
+      this.ballImg.setPosition(p.x, p.y).setScale(sc).setAngle(this.ballImg.angle + 720 * dt);
+      this.ballGlow.setPosition(p.x, p.y).setScale(sc);
       this.ballShadow.setPosition(gnd.x, gnd.y).setScale(Math.max(0.35, gnd.s));
+      // šviesus pėdsakas - kad kamuoliuką būtų lengva sekti akimis
+      this.trailT += dt;
+      if (this.trailT > 0.03 && this.ballImg.visible) {
+        this.trailT = 0;
+        const f = this.add.circle(p.x, p.y, 11 * sc, 0xfff27a, 0.6).setDepth(957);
+        this.tweens.add({ targets: f, alpha: 0, scale: 0.3, duration: 260, onComplete: () => f.destroy() });
+      }
       if (b.kind === 'in') {
         if (!this.bounced && b.t >= FLY1) { this.bounced = true; this.A.sfx.tick(); }
         // laiko ratas: didelis ratas traukiasi iki aukso rato
@@ -709,7 +751,7 @@ export class TenisasScene extends Phaser.Scene {
         }
         if (this.autoplay && this.autoSwingAt != null && b.t >= this.autoSwingAt) { this.autoSwingAt = null; this.swing(); }
         if (!b.hit && b.t > THIT + HIT_WIN + 0.02 && this.mode === 'serve') this.miss();
-        if (b.t > THIT + 0.9) { this.ballImg.setVisible(false); this.ballShadow.setVisible(false); }
+        if (b.t > THIT + 0.9) { this.ballImg.setVisible(false); this.ballGlow.setVisible(false); this.ballShadow.setVisible(false); }
       } else {
         if (b.ace && Math.random() < 0.8) {
           const f = this.add.circle(p.x + rand(-8, 8), p.y + rand(-8, 8), rand(6, 12), pick([0xff7a3c, 0xffd23f, 0xff3ea5]), 0.9).setDepth(955);

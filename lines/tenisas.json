@@ -3,7 +3,7 @@
     "Patarimas: klasė balsuoja, kur muš senis - Adriana mato, kur krypsta dauguma.",
     "Patarimas: TARPAS - smūgis, kai kamuoliukas pasiekia aukso ratą.",
     "Patarimas: vaikai gali persigalvoti paskutinę sekundę!",
-    "Patarimas: 15 - 30 - 40 - geimas! Esant 40:40 - lygu."
+    "Patarimas: 15 - 30 - 40 - pergalė! Esant 40:40 - lygu."
   ],
   "start": [
     "Žaidimas prasideda! Adriana prieš Sniego senį!",
@@ -57,10 +57,10 @@
     "{teiseja}: ššš... Adriana nemato balsų!"
   ],
   "win_adr": [
-    "Adriana laimėjo geimą!",
-    "Geimas - Adriana!"
+    "Adriana laimėjo mačą!",
+    "Mačas - Adriana!"
   ],
   "win_klase": [
-    "Klasė laimėjo geimą! Kitą kartą Adriana atsigriebs!"
+    "Klasė laimėjo mačą! Kitą kartą Adriana atsigriebs!"
   ]
 }
