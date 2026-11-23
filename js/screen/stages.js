@@ -418,22 +418,22 @@ export const STAGES = {
     nr: 9,
     title: 'Dovanų robotas',
     mission: 'UŽPROGRAMUOK ROBOTĄ',
-    // Visa klasė - testuotojai: spėja, ar Adrianos kodas veiks.
-    slots: Array(17).fill('testuotojas'),
-    fallback: 'testuotojas',
+    // Kelio valytojai: kiekvienas vaikas turi savo pusnį ant vienintelio kelio iki eglės.
+    slots: Array(17).fill('kasejas'),
+    fallback: 'kasejas',
     teacherRole: 'vadove',
     roles: {
-      testuotojas: {
-        name: 'Testuotojas', emoji: '🔍', desc: 'Spėk, ar Adrianos kodas veiks! Gali persigalvoti, kol robotas pajudės. Atspėjai - taškas.',
+      kasejas: {
+        name: 'Kelio valytojas', emoji: '❄️', desc: 'Ant Adrianos roboto kelio - tavo pusnis! Spausk „Kasti“, kol ją išvalysi. Kol liks bent viena pusnis, robotas eglės nepasieks!',
         buttons: [
-          { id: 'veiks', label: 'Veiks!', emoji: '✅', cd: 300, ok: 'Spėjimas: veiks!' },
-          { id: 'klaida', label: 'Bus klaida!', emoji: '🐞', cd: 300, ok: 'Spėjimas: klaida!' },
+          { id: 'kasti', label: 'Kasti!', emoji: '❄️', cd: 250, ok: 'Kasu!' },
+          { id: 'ploti', label: 'Ploti', emoji: '👏', cd: 800, ok: 'Bravo!' },
         ],
       },
       vadove: {
-        name: 'Būrelio vadovė', emoji: '👩‍💻', desc: 'Jūs - programavimo būrelio vadovė! „Užuomina 💡“ - kelias sekundes pašviečia kelią iki kitos dovanos. „Greičiau ⏩“ - robotas vykdo kodą dvigubai greičiau.',
+        name: 'Būrelio vadovė', emoji: '👩‍💻', desc: 'Jūs - programavimo būrelio vadovė! „Padėti 🧹“ - pažymi artimiausią neišvalytą pusnį: jei jos vaikas per 5 s neišvalo, išvalote jūs. „Greičiau ⏩“ - robotas vykdo kodą dvigubai greičiau.',
         buttons: [
-          { id: 'uzuomina', label: 'Užuomina', emoji: '💡', cd: 10000, ok: 'Užuomina!' },
+          { id: 'padeti', label: 'Padėti', emoji: '🧹', cd: 2500, ok: 'Padedu!' },
           { id: 'greiciau', label: 'Greičiau', emoji: '⏩', cd: 12000, ok: 'Greičiau!' },
         ],
       },

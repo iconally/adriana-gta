@@ -1,12 +1,14 @@
 // 9 etapas: "Dovanų robotas" (programavimo būrelis prie Baltojo tilto).
-// Adriana programuoja robotą: rodyklės ↑ ↓ ← → prideda komandas į kodo juostą,
-// BACKSPACE ištrina paskutinę, TARPAS (ar ENTER) - ▶ PALEISTI. Robotas vykdo kodą žingsnis po žingsnio,
-// renka 🎁 dovanas ir turi pasiekti eglę. Atsitrenkė į pusnį, nuvažiavo nuo kilimėlio ar kodas
-// baigėsi per anksti - „BUG! 🐞“: robotas grįžta į startą, kodas lieka - pataisyk ir bandyk dar.
-// 3 lygiai, visas etapas nuo „3-2-1“ iki rezultatų - ne ilgiau 60 s.
-// Klasė - testuotojai: kol Adriana rašo kodą, spėja telefone „✅ Veiks!“ arba „🐞 Bus klaida!“
-// (galima persigalvoti iki paleidimo). Atspėjo - taškas.
-// Mokytoja - būrelio vadovė: „Užuomina 💡“ (pašviečia kelią iki kitos dovanos) ir „Greičiau ⏩“.
+// Vienas sudėtingesnis žemėlapis: vingiuotas kelias iki eglės su keliomis aklavietėmis.
+// Kelio valytojai: kiekvienas prisijungęs vaikas turi savo pusnį ant to kelio. Šalia pusnies -
+// besmegenis su vaiko veidu ir kastuvu; vaikas spaudžia „Kasti ❄️“, besmegenis kasa, pusnis mažėja,
+// po 8 kasimų pusnis ir besmegenis dingsta. Kelias vienas, todėl reikia išvalyti VISAS pusnis.
+// Adriana programuoja robotą: rodyklės - komandos (vienodos iš eilės sujungiamos: ➡×4),
+// BACKSPACE - ištrinti paskutinę, TARPAS (ar ENTER) - ▶ PALEISTI. Robotas, užvažiavęs ant neišvalytos
+// pusnies, į gilų sniegą ar nuo kilimėlio - „BUG! 🐞“: grįžta į startą, kodas lieka.
+// Mokytoja - būrelio vadovė: „Padėti 🧹“ (artimiausiai neišvalytai pusniai - 5 s; jei vaikas
+// neišvalo, išvalo mokytoja) ir „Greičiau ⏩“. Atsijungusio vaiko pusnis po 5 s ištirpsta pati.
+// Visas etapas nuo „3-2-1“ iki rezultatų - ne ilgiau 60 s.
 
 import { headText, bodyText, banner, subtitle, missionCard, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
@@ -14,12 +16,13 @@ import { STAGES } from '../stages.js';
 import { MAT, matProj, cellU, cellD, cellCenter } from '../art-robot.js';
 
 const STAGE = STAGES.robotas;
-// Lygiai: stulpelis c (0-7), eilė r (0 - tolimiausia, 4 - arčiausia). Trumpiausi sprendimai: 5, 7, 9 komandos.
-const LEVELS = [
-  { start: [1, 2], goal: [6, 2], piles: [], gifts: [[3, 2]] },
-  { start: [2, 3], goal: [5, 3], piles: [[3, 2], [3, 3], [3, 4], [4, 3]], gifts: [[3, 1]] },
-  { start: [1, 4], goal: [6, 0], piles: [[2, 3], [2, 4], [4, 1], [4, 0], [3, 1], [5, 3]], gifts: [[2, 2], [5, 2]] },
+// Kelias nuo starto iki eglės (stulpelis c 0-7, eilė r 0-5; r = 0 - tolimiausia). 22 žingsniai.
+const ROUTE = [
+  [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [6, 4], [6, 3], [5, 3], [4, 3], [3, 3],
+  [2, 3], [1, 3], [1, 2], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1], [7, 0],
 ];
+// Aklavietės: kelio gabaliukai, kurie niekur neveda (kad žemėlapis nebūtų per lengvas).
+const SPURS = [[7, 5], [0, 3], [4, 0], [7, 2]];
 const DIRS = { U: [0, -1], D: [0, 1], L: [-1, 0], R: [1, 0] };
 const BLOCK = {
   U: { arrow: '⬆', col: 0x1fc2c6 },
@@ -27,13 +30,15 @@ const BLOCK = {
   L: { arrow: '⬅', col: 0xff3ea5 },
   R: { arrow: '➡', col: 0x8a5cff },
 };
-const MAX_CODE = 14;
-const STEP_MS = 330;
-const MIN_VOTE_MS = 3000;   // testuotojams bent tiek laiko spėti, net jei Adriana labai greita
+const MAX_STEPS = 40;
+const MAX_BLOCKS = 13;
+const DIG_HITS = 8;
+const HELP_MS = 5000;
+const STEP_MS = 300;
 const TOTAL_S = 60;
 const FINISH_S = 3.8;
 const BAR = { x: 960, y: 160, w: 1320, h: 100, size: 74, gap: 10 };
-const VOTE = { x: 1700, y: 300 };
+const PANEL = { x: 1700, y: 300 };
 const ADR = { x: 115, y: 935, s: 0.62 };
 const TEACH = { x: 1800, y: 790, s: 0.5 };
 
@@ -41,6 +46,9 @@ const rand = (a, b) => a + Math.random() * (b - a);
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const key = (c, r) => `${c},${r}`;
 const leaderLabel = (name) => `Vadovė ${String(name || 'Daiva').replace(/mokytoja\s*/i, '')}`;
+const START = ROUTE[0];
+const GOAL = ROUTE[ROUTE.length - 1];
+const ROAD = new Set([...ROUTE, ...SPURS].map(([c, r]) => key(c, r)));
 
 export class RobotasScene extends Phaser.Scene {
   constructor() { super('Robotas'); }
@@ -49,51 +57,47 @@ export class RobotasScene extends Phaser.Scene {
     const A = window.AGTA;
     this.A = A;
     this.bornAt = Date.now();
-    this.mode = 'intro'; // intro -> count -> (edit -> run -> bug|levelok)... -> end -> result
+    this.mode = 'intro'; // intro -> count -> (edit -> run -> bug)... -> end -> result
     A.host.setPhase('intro', STAGE);
-    this.lockVotes(true, false);
 
     // Phaser naudoja tą patį scenos objektą, todėl visą būseną nustatom iš naujo.
-    this.level = 0;
     this.code = [];
     this.blocks = [];
-    this.levelObjs = [];
-    this.giftObjs = new Map();
-    this.collected = new Set();
-    this.giftsTotal = LEVELS.reduce((n, l) => n + l.gifts.length, 0);
-    this.giftsGot = 0;
-    this.levelsDone = 0;
+    this.piles = [];            // { pid, name, idx, c, r, hits, cleared, ... }
+    this.pileAt = new Map();    // "c,r" -> pusnis
     this.runs = 0;
     this.bugs = 0;
-    this.votes = new Map();
-    this.voteMarks = new Map();
-    this.vRight = 0;
-    this.vTotal = 0;
+    this.won = false;
     this.fast = false;
     this.stepIdx = 0;
-    this.editStart = 0;
-    this.runQueued = false;
+    this.digStart = 0;
+    this.teacherCleared = 0;
     this.stats = new Map();
     this.lastSub = 0;
     this.stageStart = null;
     this.stageT = 0;
+    this.offlineCheck = 0;
     this.autoplay = !!this.autoplay;
     this.autoPlan = null;
     this.autoNextAt = 0;
-    this.autoMistake = new Set();
+    this.autoMistake = false;
 
     this.add.image(960, 540, 'robot_bg').setDepth(-100);
     this.matG = this.add.graphics().setDepth(2);
-    this.hintG = this.add.graphics().setDepth(3);
+    this.drawMat();
     this.makeCodeBar();
-    this.makeVotePanel();
+    this.makePanel();
     this.makeTeacher();
     this.makeAdriana();
     this.makeHud();
+    const gp = cellCenter(...GOAL);
+    this.goalImg = this.add.image(gp.x, gp.y, 'rb_goal').setOrigin(0.5, 0.85).setScale(0.95 * gp.s).setDepth(100 + gp.y * 0.1);
     this.robot = this.add.container(0, 0);
     this.robotImg = this.add.image(0, 0, 'rb_robot').setOrigin(0.5, 0.92);
-    this.robot.add(this.robotImg);
-    this.buildLevel(0, false);
+    this.robotGift = this.add.image(0, -70, 'rb_gift').setScale(0.42);
+    this.robot.add([this.robotImg, this.robotGift]);
+    this.placeRobot(...START);
+    this.makePiles();
 
     this.tribune = new Tribune(this, A.host, { y: 1006, maxSize: 64 });
     this.card = missionCard(this, {
@@ -101,36 +105,34 @@ export class RobotasScene extends Phaser.Scene {
       mission: STAGE.mission,
       title: `${STAGE.title} - programavimo būrelis prie Baltojo tilto`,
       tip: A.lines.pick('robotas', 'intro'),
-      controls: 'Adriana: ← ↑ → ↓ - rašyk kodą, BACKSPACE - trinti, TARPAS - ▶ paleisti.   Klasė: spėk telefone - ✅ veiks ar 🐞 bus klaida?',
+      controls: 'Klasė: kask savo pusnį telefone (❄️ 8 kartus) - be visų robotas eglės nepasieks!   Adriana: ← ↑ → ↓ - kodas, BACKSPACE - trinti, TARPAS - ▶ paleisti.',
     });
     this.card.setDepth(1900);
 
     const kb = this.input.keyboard;
-    const arrow = (d) => (e) => { if (!e.repeat) this.addBlock(d); };
+    const arrow = (d) => (e) => { if (!e.repeat) this.addStep(d); };
     kb.on('keydown-UP', arrow('U'));
     kb.on('keydown-DOWN', arrow('D'));
     kb.on('keydown-LEFT', arrow('L'));
     kb.on('keydown-RIGHT', arrow('R'));
-    kb.on('keydown-BACKSPACE', () => this.delBlock());
+    kb.on('keydown-BACKSPACE', () => this.delStep());
     kb.on('keydown-ENTER', () => { if (this.mode === 'edit') this.run(); else this.onEnter(); });
     kb.on('keydown-SPACE', () => { if (this.mode === 'intro') this.onEnter(); else this.run(); });
     kb.on('keydown-R', () => this.scene.restart());
+    // atsarginis „Padėti“ vedėjai (jei mokytojos telefonas neprisijungęs)
+    kb.on('keydown-P', () => { if (['edit', 'run', 'bug'].includes(this.mode)) this.leaderAction('padeti'); });
 
     const offs = [A.host.on('press', (e) => this.onPress(e))];
-    // Virtualūs testuotojai „skaito“ kodą: jei jis jau veda iki eglės - dažniau spėja „veiks“.
+    // Virtualūs vaikai kasa patys; vienas „užsižiopsojęs“ pradeda kasti tik kai mokytoja paragina.
     A.host.botPick = (p) => {
-      if (this.mode !== 'edit' || A.host.roles[p.pid] !== 'testuotojas') return null;
-      const cur = this.votes.get(p.pid);
-      const guess = () => {
-        const ok = this.simulate(this.code).ok;
-        return Math.random() < 0.8 ? (ok ? 'veiks' : 'klaida') : (ok ? 'klaida' : 'veiks');
-      };
-      if (!cur) return Math.random() < 0.2 ? guess() : null;
-      if (Math.random() < 0.03) { const g = guess(); return g !== cur ? g : null; }
-      return null;
+      if (this.mode !== 'edit' && this.mode !== 'run' && this.mode !== 'bug') return null;
+      const pile = this.piles.find((x) => x.pid === p.pid);
+      if (!pile || pile.cleared) return Math.random() < 0.03 ? 'ploti' : null;
+      if (pile.lazy && !pile.helpUntil) return null;
+      return Math.random() < 0.35 ? 'kasti' : null;
     };
     A.host.botFilter = (p, btn) => {
-      if (btn === 'uzuomina') return this.mode === 'edit' && Math.random() < 0.08;
+      if (btn === 'padeti') return this.mode !== 'count' && this.piles.some((x) => !x.cleared && x.lazy && !x.helpUntil) && Math.random() < 0.6;
       if (btn === 'greiciau') return this.mode === 'run' && Math.random() < 0.15;
       return false;
     };
@@ -138,15 +140,8 @@ export class RobotasScene extends Phaser.Scene {
       offs.forEach((f) => f());
       A.host.botFilter = null;
       A.host.botPick = null;
-      A.host.lock('veiks', undefined, false);
-      A.host.lock('klaida', undefined, false);
       A.host.setStatus(null);
     });
-  }
-
-  lockVotes(locked, sync = true) {
-    this.A.host.lock('veiks', locked ? null : undefined, false);
-    this.A.host.lock('klaida', locked ? null : undefined, sync);
   }
 
   // ---------------- eiga ----------------
@@ -161,170 +156,171 @@ export class RobotasScene extends Phaser.Scene {
   countdown() {
     this.mode = 'count';
     this.stageStart = this.game.loop.time; // tikras laikas (scenos laikrodis ką tik sukurtoje scenoje dar būna 0)
+    this.makePiles(); // pusnys - tiek, kiek vaikų prisijungę dabar
     this.tweens.add({ targets: this.card, alpha: 0, duration: 300, onComplete: () => this.card.destroy() });
-    const nums = ['3', '2', '1', 'RUN!'];
+    const nums = ['3', '2', '1', 'KASAM!'];
     nums.forEach((n, i) => {
       this.time.delayedCall(i * 700, () => {
-        const t = headText(this, 960, 470, n, 240, i === nums.length - 1 ? C.yellow : C.white).setDepth(1960);
+        const t = headText(this, 960, 470, n, i === nums.length - 1 ? 180 : 240, i === nums.length - 1 ? C.yellow : C.white).setDepth(1960);
         t.setScale(1.8).setAlpha(0);
         this.tweens.add({ targets: t, scale: 1, alpha: 1, duration: 200, ease: 'Back.Out' });
         this.tweens.add({ targets: t, alpha: 0, delay: 480, duration: 200, onComplete: () => t.destroy() });
         if (i === nums.length - 1) {
           this.A.sfx.go();
           this.A.host.setPhase('play', STAGE);
+          this.digStart = this.time.now;
           this.sub(this.A.lines.pick('robotas', 'start'), C.yellow);
-          this.time.delayedCall(400, () => this.startEdit(true));
+          this.time.delayedCall(300, () => this.startEdit());
         } else this.A.sfx.count();
       });
     });
   }
 
-  // Kilimėlis ir jo daiktai lygiui.
-  buildLevel(i, animate = true) {
-    this.level = i;
-    this.autoPlan = null;
-    const L = LEVELS[i];
-    for (const o of this.levelObjs) o.destroy();
-    this.levelObjs = [];
-    this.giftObjs.clear();
-    this.collected = new Set();
-    this.hintG.clear();
-    // langeliai
+  // Kilimėlis: kelias (tamsus) ir gilus sniegas aplink.
+  drawMat() {
     const g = this.matG;
     g.clear();
     const corner = (c, r) => matProj(cellU(c), cellD(r));
     for (let r = 0; r < MAT.rows; r++) {
       for (let c = 0; c < MAT.cols; c++) {
-        const isStart = c === L.start[0] && r === L.start[1];
-        g.fillStyle(isStart ? 0x8affc1 : (c + r) % 2 ? 0xdbe9ff : 0xeef5ff, 1);
-        const a = corner(c, r); const b = corner(c + 1, r); const d = corner(c + 1, r + 1); const e = corner(c, r + 1);
-        g.fillPoints([a, b, d, e], true);
+        const road = ROAD.has(key(c, r));
+        const isStart = c === START[0] && r === START[1];
+        g.fillStyle(isStart ? 0x3ddc84 : road ? ((c + r) % 2 ? 0x34406e : 0x3a487a) : ((c + r) % 2 ? 0xeaf2ff : 0xf6faff), 1);
+        g.fillPoints([corner(c, r), corner(c + 1, r), corner(c + 1, r + 1), corner(c, r + 1)], true);
       }
     }
-    g.lineStyle(2, 0x6f8fd6, 0.8);
+    g.lineStyle(2, 0x9fb4e6, 0.6);
     for (let c = 0; c <= MAT.cols; c++) g.lineBetween(corner(c, 0).x, corner(c, 0).y, corner(c, MAT.rows).x, corner(c, MAT.rows).y);
     for (let r = 0; r <= MAT.rows; r++) g.lineBetween(corner(0, r).x, corner(0, r).y, corner(MAT.cols, r).x, corner(MAT.cols, r).y);
+    // kelio vidurio brūkšneliai
+    g.lineStyle(3, 0xffd23f, 0.55);
+    for (let i = 0; i < ROUTE.length - 1; i++) {
+      const a = cellCenter(...ROUTE[i]); const b = cellCenter(...ROUTE[i + 1]);
+      g.lineBetween(a.x + (b.x - a.x) * 0.3, a.y + (b.y - a.y) * 0.3, a.x + (b.x - a.x) * 0.7, a.y + (b.y - a.y) * 0.7);
+    }
     g.lineStyle(8, 0x2de2e6, 1);
     g.strokePoints([corner(0, 0), corner(MAT.cols, 0), corner(MAT.cols, MAT.rows), corner(0, MAT.rows)], true);
-    const sp = cellCenter(...L.start);
-    const startTxt = bodyText(this, sp.x, sp.y + 30 * sp.s, 'START', Math.round(18 * sp.s), '#14081f', { strokeThickness: 0 }).setDepth(4);
-    this.levelObjs.push(startTxt);
-    const put = (tex, c, r, s) => {
+    const sp = cellCenter(...START);
+    if (!this.startTxt) this.startTxt = bodyText(this, sp.x, sp.y + 26 * sp.s, 'START', Math.round(17 * sp.s), '#14081f', { strokeThickness: 0 }).setDepth(4);
+  }
+
+  // Pusnys: po vieną kiekvienam prisijungusiam vaikui, tolygiai išdėstytos ant kelio.
+  makePiles() {
+    for (const p of this.piles) { p.img.destroy(); p.fig.destroy(); if (p.tag) p.tag.destroy(); if (p.helpTxt) p.helpTxt.destroy(); }
+    this.piles = [];
+    this.pileAt.clear();
+    const host = this.A.host;
+    const kids = Phaser.Utils.Array.Shuffle(host.list().filter((p) => !host.isTeacher(p.name)));
+    const inner = ROUTE.length - 2; // be starto ir eglės
+    const n = Math.min(kids.length, inner);
+    const lazyIdx = n >= 5 ? Math.floor(Math.random() * n) : -1;
+    for (let k = 0; k < n; k++) {
+      const idx = 1 + Math.floor(((k + 0.5) * inner) / n);
+      const [c, r] = ROUTE[idx];
+      const kid = kids[k];
       const p = cellCenter(c, r);
-      const img = this.add.image(p.x, p.y, tex).setOrigin(0.5, 0.85).setScale(s * p.s).setDepth(100 + p.y * 0.1);
-      this.levelObjs.push(img);
-      return img;
-    };
-    for (const [c, r] of L.piles) put('rb_pile', c, r, 0.95);
-    for (const [c, r] of L.gifts) this.giftObjs.set(key(c, r), put('rb_gift', c, r, 0.8));
-    this.goalImg = put('rb_goal', L.goal[0], L.goal[1], 0.85);
-    this.placeRobot(...L.start);
-    this.robotImg.setTexture('rb_robot');
-    if (animate) {
-      for (const o of this.levelObjs) { const s = o.scale; o.setScale(0); this.tweens.add({ targets: o, scale: s, duration: 260, ease: 'Back.Out' }); }
+      const s = p.s;
+      const img = this.add.image(p.x + 16 * s, p.y + 6 * s, 'rb_pile').setOrigin(0.5, 0.8).setScale(0.62 * s).setDepth(100 + p.y * 0.1 + 0.02);
+      const fig = this.add.container(p.x - 44 * s, p.y + 10 * s).setScale(0.82 * s).setDepth(100 + p.y * 0.1 + 0.01);
+      const body = this.add.image(0, 0, 'rb_digger').setOrigin(0.5, 1);
+      const avKey = this.textures.exists(avatarKey(kid.name)) ? avatarKey(kid.name) : 'dot';
+      const head = this.add.image(0, -86, avKey).setDisplaySize(46, 46);
+      if (avKey === 'dot') head.setTint(0x5a2a86);
+      const shovel = this.add.image(26, -58, 'rb_shovel').setOrigin(0.5, 0.08).setAngle(-25);
+      fig.add([body, head, shovel]);
+      const tag = bodyText(this, p.x - 44 * s, p.y + 20 * s, kid.name, Math.round(15 * s), C.white).setDepth(100 + p.y * 0.1 + 0.03);
+      const pile = { pid: kid.pid, name: kid.name, idx, c, r, hits: 0, cleared: false, img, fig, shovel, tag, base: 0.62 * s, lazy: !!kid.bot && k === lazyIdx, helpUntil: 0, helpTxt: null };
+      this.piles.push(pile);
+      this.pileAt.set(key(c, r), pile);
     }
-    this.levelText.setText(`LYGIS ${i + 1}/${LEVELS.length}   ·   🎁 ${this.giftsGot}/${this.giftsTotal}`);
+    this.updatePanel();
   }
 
   placeRobot(c, r) {
     this.rc = c; this.rr = r;
     const p = cellCenter(c, r);
-    this.robot.setPosition(p.x, p.y).setScale(0.78 * p.s).setDepth(100 + p.y * 0.1 + 0.05).setAlpha(1);
+    this.robot.setPosition(p.x, p.y).setScale(0.72 * p.s).setDepth(100 + p.y * 0.1 + 0.05).setAlpha(1);
   }
 
-  startEdit(first = false) {
-    this.mode = 'edit';
-    this.votes = new Map();
-    for (const m of this.voteMarks.values()) m.destroy();
-    this.voteMarks.clear();
-    this.lockVotes(false, false);
+  remaining() { return this.piles.filter((p) => !p.cleared); }
+
+  phoneStatus() {
     const host = this.A.host;
     const by = {};
-    for (const p of host.list()) if (host.isTeacher(p.name)) by[p.pid] = { text: `Lygis ${this.level + 1}/${LEVELS.length} · 💡 užuomina, ⏩ greičiau`, tone: 'go' };
-    host.setStatus({ text: 'Ar Adrianos kodas veiks? Spėk! ✅ / 🐞', tone: 'go', holder: true }, by);
-    this.updateVotes();
-    this.say(this.code.length ? 'PATAISYK KODĄ IR PALEISK!' : 'RAŠYK KODĄ: ← ↑ → ↓', C.yellow);
-    if (first) this.time.delayedCall(1600, () => this.maybeSub(this.A.lines.pick('robotas', 'level', { n: this.level + 1 }), C.teal, 0));
-    this.autoNextAt = this.time.now + 500;
-    this.editStart = this.time.now;
-    this.runQueued = false;
+    const left = this.remaining().length;
+    for (const p of this.piles) {
+      if (p.cleared) by[p.pid] = { text: p.byTeacher ? 'Tavo pusnį išvalė mokytoja. Plok robotui! 👏' : 'Tavo pusnis išvalyta! ✅ Plok Adrianai 👏', tone: 'go' };
+      else if (p.helpUntil) by[p.pid] = { text: '⏳ Kask greičiau! Mokytoja padės po 5 s', tone: 'go', holder: true };
+      else by[p.pid] = { text: `Kask savo pusnį! ❄️ Spausk „Kasti“ ${DIG_HITS} kartus`, tone: 'go', holder: !p.hits };
+    }
+    for (const p of host.list()) if (host.isTeacher(p.name)) by[p.pid] = { text: `Liko pusnių: ${left} iš ${this.piles.length} · 🧹 Padėti tam, kas nekasa`, tone: 'go' };
+    const all = this.mode === 'run' ? { text: 'Robotas važiuoja... 🤖', tone: 'wait' } : { text: left ? 'Kaskite pusnis! ❄️' : 'Kelias išvalytas! 🎉', tone: 'go' };
+    host.setStatus(all, by);
   }
 
-  addBlock(d) {
+  startEdit() {
+    this.mode = 'edit';
+    this.phoneStatus();
+    this.say(this.code.length ? 'PATAISYK KODĄ IR PALEISK!' : 'RAŠYK KODĄ: ← ↑ → ↓', C.yellow);
+    this.autoNextAt = this.time.now + 600;
+  }
+
+  // ---------------- kodas ----------------
+  blocksOf(code) {
+    const out = [];
+    code.forEach((d, i) => {
+      const last = out[out.length - 1];
+      if (last && last.d === d) { last.n += 1; last.to = i; } else out.push({ d, n: 1, from: i, to: i });
+    });
+    return out;
+  }
+
+  addStep(d) {
     if (this.mode !== 'edit') return;
-    if (this.runQueued) { this.runQueued = false; this.say('RAŠYK KODĄ: ← ↑ → ↓', C.yellow); }
-    if (this.code.length >= MAX_CODE) { this.A.sfx.sour(); return; }
+    const bl = this.blocksOf([...this.code, d]);
+    if (this.code.length >= MAX_STEPS || bl.length > MAX_BLOCKS) { this.A.sfx.sour(); return; }
     this.code.push(d);
     this.A.sfx.click();
     this.redrawBar(true);
   }
 
-  delBlock() {
+  delStep() {
     if (this.mode !== 'edit' || !this.code.length) return;
-    if (this.runQueued) { this.runQueued = false; this.say('RAŠYK KODĄ: ← ↑ → ↓', C.yellow); }
     this.code.pop();
     this.A.sfx.pop();
     this.redrawBar();
   }
 
-  // Kodo vykdymas be animacijos (botams ir automatiniam režimui).
+  // Kodo vykdymas be animacijos (automatiniam režimui).
   simulate(code) {
-    const L = LEVELS[this.level];
-    const piles = new Set(L.piles.map(([c, r]) => key(c, r)));
-    let [c, r] = L.start;
+    let [c, r] = START;
     for (let i = 0; i < code.length; i++) {
       const [dc, dr] = DIRS[code[i]];
-      const nc = c + dc; const nr = r + dr;
-      if (nc < 0 || nr < 0 || nc >= MAT.cols || nr >= MAT.rows) return { ok: false, at: i, why: 'wall' };
-      if (piles.has(key(nc, nr))) return { ok: false, at: i, why: 'pile' };
-      c = nc; r = nr;
-      if (c === L.goal[0] && r === L.goal[1]) return { ok: true, at: i };
+      c += dc; r += dr;
+      if (c < 0 || r < 0 || c >= MAT.cols || r >= MAT.rows) return { ok: false, at: i, why: 'wall' };
+      if (!ROAD.has(key(c, r))) return { ok: false, at: i, why: 'snow' };
+      const pile = this.pileAt.get(key(c, r));
+      if (pile && !pile.cleared) return { ok: false, at: i, why: 'pile' };
+      if (c === GOAL[0] && r === GOAL[1]) return { ok: true, at: i };
     }
     return { ok: false, at: code.length, why: 'end' };
   }
 
-  // Trumpiausias kelias (užuominai ir automatiniam režimui).
-  path(from, to) {
-    const L = LEVELS[this.level];
-    const piles = new Set(L.piles.map(([c, r]) => key(c, r)));
-    const q = [[from[0], from[1], []]];
-    const seen = new Set([key(...from)]);
-    while (q.length) {
-      const [c, r, p] = q.shift();
-      if (c === to[0] && r === to[1]) return p;
-      for (const [d, [dc, dr]] of Object.entries(DIRS)) {
-        const nc = c + dc; const nr = r + dr;
-        if (nc < 0 || nr < 0 || nc >= MAT.cols || nr >= MAT.rows || piles.has(key(nc, nr)) || seen.has(key(nc, nr))) continue;
-        seen.add(key(nc, nr));
-        q.push([nc, nr, [...p, d]]);
-      }
+  routeCode() {
+    const out = [];
+    for (let i = 1; i < ROUTE.length; i++) {
+      const dc = ROUTE[i][0] - ROUTE[i - 1][0]; const dr = ROUTE[i][1] - ROUTE[i - 1][1];
+      out.push(Object.keys(DIRS).find((d) => DIRS[d][0] === dc && DIRS[d][1] === dr));
     }
-    return [];
+    return out;
   }
 
   run() {
     if (this.mode !== 'edit') return;
     if (!this.code.length) { this.pop(BAR.x, BAR.y + 80, 'Pirma parašyk kodą!', C.orange, 34); this.A.sfx.sour(); return; }
-    // per greitai - testuotojai dar nespėjo: robotas pajudės, kai baigsis spėjimo laikas
-    const wait = MIN_VOTE_MS - (this.time.now - this.editStart);
-    if (wait > 120) {
-      if (!this.runQueued) {
-        this.runQueued = true;
-        this.say('TESTUOTOJAI DAR SPĖJA... ⏳', C.pink);
-        this.time.delayedCall(wait, () => { if (this.runQueued && this.mode === 'edit') { this.runQueued = false; this.run(); } });
-      }
-      return;
-    }
-    this.runQueued = false;
     this.mode = 'run';
     this.runs += 1;
-    this.lockVotes(true, false);
-    this.hintG.clear();
-    const host = this.A.host;
-    const by = {};
-    for (const [pid, v] of this.votes) by[pid] = { text: `Robotas vykdo kodą... Tavo spėjimas: ${v === 'veiks' ? '✅ veiks' : '🐞 klaida'}`, tone: 'wait' };
-    host.setStatus({ text: 'Robotas vykdo kodą... 🤖', tone: 'wait' }, by);
-    this.updateVotes();
+    this.phoneStatus();
     this.say(`▶ VYKDOMA${this.fast ? '  ⏩ x2' : ''}`, C.green);
     this.maybeSub(this.A.lines.pick('robotas', 'run'), C.green, 2000);
     this.stepIdx = 0;
@@ -336,65 +332,65 @@ export class RobotasScene extends Phaser.Scene {
 
   step() {
     if (this.mode !== 'run') return;
-    const L = LEVELS[this.level];
     const i = this.stepIdx;
     if (i >= this.code.length) { this.bug('end', i); return; }
-    this.markBlock(i, 'run');
+    this.markStep(i, 'run');
     const [dc, dr] = DIRS[this.code[i]];
     const nc = this.rc + dc; const nr = this.rr + dr;
     const off = nc < 0 || nr < 0 || nc >= MAT.cols || nr >= MAT.rows;
-    const pile = !off && L.piles.some(([c, r]) => c === nc && r === nr);
+    const snow = !off && !ROAD.has(key(nc, nr));
+    const pile = !off && this.pileAt.get(key(nc, nr));
+    const blocked = pile && !pile.cleared;
     const ms = this.stepMs();
-    if (off || pile) {
+    if (off || blocked) {
       // pajuda link kliūties ir atšoka
       const p0 = cellCenter(this.rc, this.rr);
       const p1 = off ? { x: p0.x + dc * 60, y: p0.y + dr * 40 } : cellCenter(nc, nr);
-      this.tweens.add({ targets: this.robot, x: p0.x + (p1.x - p0.x) * 0.4, y: p0.y + (p1.y - p0.y) * 0.4, duration: ms * 0.5, yoyo: true, onComplete: () => this.bug(off ? 'wall' : 'pile', i) });
+      this.tweens.add({ targets: this.robot, x: p0.x + (p1.x - p0.x) * 0.4, y: p0.y + (p1.y - p0.y) * 0.4, duration: ms * 0.5, yoyo: true, onComplete: () => this.bug(off ? 'wall' : 'pile', i, pile) });
       return;
     }
     const p = cellCenter(nc, nr);
     this.A.sfx.step();
-    this.tweens.add({ targets: this.robot, x: p.x, y: p.y, scale: 0.78 * p.s, duration: ms * 0.85, ease: 'Sine.InOut' });
-    this.tweens.add({ targets: this.robotImg, y: -14, duration: ms * 0.42, yoyo: true });
+    if (snow) {
+      // įklimpsta giliame sniege
+      this.tweens.add({ targets: this.robot, x: p.x, y: p.y + 14 * p.s, scale: 0.72 * p.s, duration: ms * 0.85, ease: 'Sine.Out', onComplete: () => { this.rc = nc; this.rr = nr; this.bug('snow', i); } });
+      return;
+    }
+    this.tweens.add({ targets: this.robot, x: p.x, y: p.y, scale: 0.72 * p.s, duration: ms * 0.85, ease: 'Sine.InOut' });
+    this.tweens.add({ targets: this.robotImg, y: -12, duration: ms * 0.42, yoyo: true });
     this.time.delayedCall(ms * 0.88, () => {
       if (this.mode !== 'run') return;
       this.rc = nc; this.rr = nr;
       this.robot.setDepth(100 + p.y * 0.1 + 0.05);
-      const g = this.giftObjs.get(key(nc, nr));
-      if (g && !this.collected.has(key(nc, nr))) {
-        this.collected.add(key(nc, nr));
-        this.giftsGot += 1;
-        this.A.sfx.plus();
-        this.tweens.add({ targets: g, y: g.y - 80, alpha: 0, scale: g.scale * 1.4, duration: 400 });
-        this.pop(p.x, p.y - 120 * p.s, '+🎁', C.yellow, 44);
-        this.maybeSub(this.A.lines.pick('robotas', 'gift'), C.yellow, 1500);
-        this.levelText.setText(`LYGIS ${this.level + 1}/${LEVELS.length}   ·   🎁 ${this.giftsGot}/${this.giftsTotal}`);
-      }
-      if (nc === L.goal[0] && nr === L.goal[1]) { this.levelOk(); return; }
+      if (nc === GOAL[0] && nr === GOAL[1]) { this.success(); return; }
       this.stepIdx += 1;
       this.time.delayedCall(ms * 0.12, () => this.step());
     });
   }
 
-  bug(why, i) {
+  bug(why, i, pile) {
     if (this.mode !== 'run') return;
     this.mode = 'bug';
     this.bugs += 1;
     this.fast = false;
     this.robotImg.setTexture('rb_robot_bug');
-    this.markBlock(Math.min(i, this.code.length - 1), 'bug');
+    this.markStep(Math.min(i, this.code.length - 1), 'bug');
     this.A.sfx.fail();
     this.cameras.main.shake(160, 0.004);
     const p = cellCenter(this.rc, this.rr);
     this.pop(p.x, p.y - 150 * p.s, 'BUG! 🐞', C.red, 60);
-    this.say(why === 'end' ? 'KODAS BAIGĖSI PER ANKSTI 🐞' : 'BUG! 🐞', C.red);
-    this.sub(this.A.lines.pick('robotas', why === 'end' ? 'bug_end' : why === 'wall' ? 'bug_wall' : 'bug_pile'), C.orange);
-    this.resolveVotes(false);
+    const texts = { end: 'KODAS BAIGĖSI PER ANKSTI 🐞', snow: 'ĮKLIMPO SNIEGE 🐞', wall: 'NUO KILIMĖLIO! 🐞', pile: 'PUSNIS KELYJE! 🐞' };
+    this.say(texts[why], C.red);
+    if (why === 'pile' && pile) {
+      this.sub(`${pile.name}, kask! Tavo pusnis dar kelyje! ❄️`, C.orange);
+      this.tweens.add({ targets: pile.fig, angle: { from: -12, to: 12 }, yoyo: true, repeat: 3, duration: 90, onComplete: () => pile.fig.setAngle(0) });
+      this.A.host.cue(pile.pid, 'Robotas atsitrenkė į tavo pusnį - kask! ❄️', { tone: 'go' });
+    } else this.sub(this.A.lines.pick('robotas', `bug_${why}`), C.orange);
     this.time.delayedCall(1300, () => {
       if (this.mode !== 'bug') return;
       this.tweens.add({
         targets: this.robot, alpha: 0, duration: 180, onComplete: () => {
-          this.placeRobot(...LEVELS[this.level].start);
+          this.placeRobot(...START);
           this.robotImg.setTexture('rb_robot');
           this.robot.setAlpha(0);
           this.tweens.add({ targets: this.robot, alpha: 1, duration: 180 });
@@ -405,92 +401,83 @@ export class RobotasScene extends Phaser.Scene {
     });
   }
 
-  levelOk() {
-    this.mode = 'levelok';
-    this.fast = false;
-    this.levelsDone += 1;
+  success() {
+    this.mode = 'win';
+    this.won = true;
     this.robotImg.setTexture('rb_robot_joy');
     this.goalImg.setTexture('rb_goal_lit');
     this.tweens.add({ targets: this.goalImg, scale: this.goalImg.scale * 1.2, yoyo: true, duration: 200, repeat: 1 });
+    // dovanos po egle
+    const g = cellCenter(...GOAL);
+    this.tweens.add({ targets: this.robotGift, alpha: 0, duration: 200 });
+    for (let k = 0; k < 4; k++) {
+      const gi = this.add.image(g.x + (k - 1.5) * 26 * g.s, g.y + 8 * g.s, 'rb_gift').setScale(0).setDepth(this.goalImg.depth + 0.01);
+      this.tweens.add({ targets: gi, scale: 0.4 * g.s, delay: k * 120, duration: 220, ease: 'Back.Out' });
+    }
+    for (let k = 0; k < 6; k++) this.time.delayedCall(k * 160, () => this.firework(g.x + rand(-160, 160), g.y - rand(100, 260) * g.s));
     this.A.sfx.win();
     this.say('VEIKIA! ✅', C.green);
-    this.sub(this.A.lines.pick('robotas', 'level_ok'), C.green);
+    this.sub(this.A.lines.pick('robotas', 'win'), C.green);
     this.celebrate();
-    const g = cellCenter(...LEVELS[this.level].goal);
-    for (let k = 0; k < 5; k++) this.time.delayedCall(k * 160, () => this.firework(g.x + rand(-120, 120), g.y - rand(120, 260) * g.s));
-    this.resolveVotes(true);
-    this.time.delayedCall(1700, () => {
-      if (this.mode !== 'levelok') return;
-      if (this.level + 1 >= LEVELS.length) { this.finish('win'); return; }
-      this.code = [];
-      this.redrawBar();
-      this.buildLevel(this.level + 1);
-      this.startEdit(true);
-    });
+    this.time.delayedCall(1200, () => this.finish('win'));
   }
 
-  resolveVotes(worked) {
-    const host = this.A.host;
-    let right = 0;
-    const by = {};
-    for (const [pid, v] of this.votes) {
-      const ok = (v === 'veiks') === worked;
-      const p = host.players.get(pid);
-      if (ok) { right += 1; if (p) this.stat(p, 'atspejo'); this.tribune.bounce(pid); }
-      by[pid] = ok ? { text: `Atspėjai! 🎉 ${worked ? 'Kodas veikė' : 'Buvo klaida'}`, tone: 'go' } : { text: `Neatspėjai... ${worked ? 'Kodas veikė' : 'Buvo klaida'}`, tone: 'wait' };
+  // ---------------- pusnių kasimas ----------------
+  dig(pile, by = 'kid') {
+    if (pile.cleared) return;
+    if (by === 'kid') {
+      pile.hits += 1;
+      pile.lastHitAt = this.time.now;
+      this.tweens.killTweensOf(pile.shovel);
+      pile.shovel.setAngle(-25);
+      this.tweens.add({ targets: pile.shovel, angle: 55, duration: 110, yoyo: true });
+      const left = Math.max(0, 1 - pile.hits / DIG_HITS);
+      pile.img.setScale(pile.base * (0.35 + 0.65 * left));
+      for (let k = 0; k < 4; k++) {
+        const f = this.add.circle(pile.img.x + rand(-20, 20), pile.img.y - 20, rand(3, 6), 0xffffff).setDepth(1500);
+        this.tweens.add({ targets: f, x: f.x + rand(-50, 50), y: f.y - rand(30, 70), alpha: 0, duration: 420, onComplete: () => f.destroy() });
+      }
+      this.A.sfx.snowPuff();
+      if (pile.hits < DIG_HITS) return;
     }
-    for (const [pid, m] of this.voteMarks) m.setAlpha((this.votes.get(pid) === 'veiks') === worked ? 1 : 0.3);
-    this.vRight += right;
-    this.vTotal += this.votes.size;
-    host.setStatus({ text: worked ? 'Kodas veikė! ✅' : 'Buvo klaida! 🐞', tone: worked ? 'go' : 'wait' }, by);
-    if (this.votes.size) this.voteResult.setText(`Atspėjo ${right} iš ${this.votes.size}!`).setColor(right * 2 >= this.votes.size ? C.green : C.orange);
+    pile.cleared = true;
+    pile.byTeacher = by !== 'kid';
+    pile.helpUntil = 0;
+    if (pile.helpTxt) { pile.helpTxt.destroy(); pile.helpTxt = null; }
+    if (by === 'kid') {
+      const st = this.stat({ pid: pile.pid, name: pile.name }, 'isvale');
+      st.ms = this.time.now - this.digStart;
+    } else this.teacherCleared += 1;
+    this.tweens.add({ targets: [pile.img, pile.fig, pile.tag], scale: 0, alpha: 0, duration: 320, ease: 'Back.In' });
+    const p = cellCenter(pile.c, pile.r);
+    this.pop(p.x, p.y - 70 * p.s, by === 'kid' ? '✅' : by === 'sun' ? '☀️' : '🧹', C.green, 44);
+    this.A.sfx.plus();
+    this.tribune.bounce(pile.pid);
+    const left = this.remaining().length;
+    if (!left) {
+      this.say('KELIAS IŠVALYTAS! 🎉', C.green);
+      this.maybeSub(this.A.lines.pick('robotas', 'all_clear'), C.green, 0);
+      this.A.sfx.bravo();
+    } else if (left <= 3) this.maybeSub(`Liko ${left}: ${this.remaining().map((x) => x.name).join(', ')}!`, C.yellow, 1500);
+    this.updatePanel();
+    this.phoneStatus();
   }
 
-  celebrate() {
-    this.adrBody.setTexture('adr_pose');
-    this.tweens.add({ targets: this.adrBox, y: ADR.y - 24, yoyo: true, duration: 180, repeat: 1 });
-    this.time.delayedCall(1000, () => this.adrBody.setTexture('adr_walk_a'));
-  }
-
-  finish(why) {
-    if (this.mode === 'end' || this.mode === 'result') return;
-    this.mode = 'end';
-    this.lockVotes(true);
-    this.hintG.clear();
-    for (const m of this.voteMarks.values()) m.destroy();
-    this.voteMarks.clear();
-    this.A.host.setStatus({ text: 'Misija baigta! Žiūrėk į ekraną', tone: 'go' });
-    this.A.sfx.win();
-    this.say('', C.yellow);
-    if (why === 'win') {
-      this.bigBanner('ROBOTAS ATNEŠĖ DOVANAS!', '+100 RESPEKTO', { color: C.yellow, hold: 2800 });
-      this.celebrate();
-    } else {
-      this.bigBanner('LAIKAS!', `Įveikta lygių: ${this.levelsDone} iš ${LEVELS.length} · +100 RESPEKTO`, { color: C.teal, hold: 2800 });
-    }
-    this.time.delayedCall(1300, () => this.sub(this.A.lines.pick('robotas', why === 'win' ? 'win' : 'timeout'), C.yellow, 760));
-    this.time.delayedCall(FINISH_S * 1000 - 200, () => this.showResult());
-  }
-
-  showResult() {
-    this.mode = 'result';
-    this.A.host.setPhase('result', STAGE);
-    const box = this.add.container(960, 500).setDepth(1950).setAlpha(0);
-    box.add(this.add.rectangle(0, 0, 1240, 620, 0x0b0418, 0.9).setStrokeStyle(6, 0xffd23f));
-    box.add(headText(this, 0, -245, 'ROBOTAS UŽPROGRAMUOTAS!', 66, C.yellow));
-    const rows = [
-      [`Lygiai: ${this.levelsDone} iš ${LEVELS.length}   ·   Dovanos: 🎁 ${this.giftsGot} iš ${this.giftsTotal}`, C.white],
-      [`Paleidimai: ${this.runs}   ·   Bugai: 🐞 ${this.bugs}`, C.white],
-    ];
-    if (this.vTotal) rows.push([`Testuotojai atspėjo: ${this.vRight} iš ${this.vTotal}`, C.green]);
-    const all = [...this.stats.values()];
-    const best = all.map((x) => [x, x.counts.atspejo || 0]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1])[0];
-    if (best) rows.push([`Geriausias testuotojas: ${best[0].name} (atspėjo ${best[1]} k.)`, C.teal]);
-    rows.forEach(([r, c], i) => box.add(bodyText(this, 0, -150 + i * 58, r, 32, c)));
-    const next = headText(this, 0, 250, 'ENTER - TOLIAU', 48, C.white);
-    this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });
-    box.add(next);
-    this.tweens.add({ targets: box, alpha: 1, duration: 300 });
+  // Mokytoja (ar saulė - atsijungusiam vaikui) pažymi artimiausią neišvalytą pusnį: 5 s vaikui, paskui išvalo pati.
+  help(by = 'teacher') {
+    // artimiausia pusnis, kurios vaikas nekasa (2 s nespaudė); jei visi kasa - tiesiog artimiausia
+    const now = this.time.now;
+    const open = this.remaining().filter((p) => !p.helpUntil).sort((a, b) => a.idx - b.idx);
+    const cand = open.find((p) => !p.lastHitAt || now - p.lastHitAt > 2000) || open[0];
+    if (!cand) return false;
+    cand.helpUntil = now + HELP_MS;
+    cand.helpBy = by;
+    const p = cellCenter(cand.c, cand.r);
+    cand.helpTxt = headText(this, p.x - 20 * p.s, p.y - 120 * p.s, '⏳ 5', 34, C.yellow).setDepth(1550);
+    this.tweens.add({ targets: cand.fig, y: cand.fig.y - 10, yoyo: true, repeat: 2, duration: 120 });
+    this.A.host.cue(cand.pid, by === 'sun' ? 'Tavo pusnis tirpsta pati ☀️' : '⏳ Kask greičiau! Mokytoja padės po 5 s', { tone: 'go' });
+    this.phoneStatus();
+    return true;
   }
 
   // ---------------- klasė ----------------
@@ -504,33 +491,21 @@ export class RobotasScene extends Phaser.Scene {
 
   onPress({ player, action, role }) {
     this.tribune.bounce(player.pid);
-    if (this.mode === 'intro' || this.mode === 'result') return;
+    if (this.mode === 'intro' || this.mode === 'result' || this.mode === 'count') return;
     if (role === 'vadove') { this.leaderAction(action); return; }
-    if ((action !== 'veiks' && action !== 'klaida') || this.mode !== 'edit') return;
-    if (this.votes.get(player.pid) === action) return;
-    this.votes.set(player.pid, action);
-    this.A.sfx.click();
-    const pos = this.tribune.pos(player.pid);
-    let m = this.voteMarks.get(player.pid);
-    if (!m) { m = headText(this, pos.x, pos.y - 18, '', 28, C.white).setDepth(620); this.voteMarks.set(player.pid, m); }
-    m.setText(action === 'veiks' ? '✅' : '🐞').setPosition(pos.x, pos.y - 18).setAlpha(1).setScale(1.5);
-    this.tweens.add({ targets: m, scale: 1, duration: 160 });
-    this.updateVotes();
+    if (action === 'ploti') { this.stat(player, 'plojo'); this.A.sfx.clap(); return; }
+    if (action !== 'kasti' || this.mode === 'end') return;
+    const pile = this.piles.find((x) => x.pid === player.pid);
+    if (pile) this.dig(pile);
   }
 
   leaderAction(action) {
     const vars = { vadove: leaderLabel(this.teacherName) };
-    if (action === 'uzuomina' && (this.mode === 'edit' || this.mode === 'run')) {
-      const L = LEVELS[this.level];
-      const next = L.gifts.find(([c, r]) => !this.collected.has(key(c, r))) || L.goal;
-      const steps = this.path(L.start, next);
-      let [c, r] = L.start;
-      const cells = [];
-      for (const d of steps) { c += DIRS[d][0]; r += DIRS[d][1]; cells.push([c, r]); }
-      this.showHint(cells);
-      this.teacherSay('💡', C.yellow);
-      this.A.sfx.twinkle();
-      this.maybeSub(this.A.lines.pick('robotas', 'hint', vars), C.yellow, 1500);
+    if (action === 'padeti' && this.mode !== 'end') {
+      if (this.help('teacher')) {
+        this.teacherSay('🧹', C.yellow);
+        this.maybeSub(this.A.lines.pick('robotas', 'help', vars), C.yellow, 1500);
+      } else this.teacherSay('👍', C.green);
     } else if (action === 'greiciau') {
       this.fast = true;
       this.teacherSay('⏩', C.teal);
@@ -539,20 +514,49 @@ export class RobotasScene extends Phaser.Scene {
     }
   }
 
-  showHint(cells) {
-    const g = this.hintG;
-    g.clear();
-    const corner = (c, r) => matProj(cellU(c), cellD(r));
-    g.fillStyle(0xffd23f, 0.55);
-    g.lineStyle(4, 0xffb03a, 1);
-    for (const [c, r] of cells) {
-      const pts = [corner(c, r), corner(c + 1, r), corner(c + 1, r + 1), corner(c, r + 1)];
-      g.fillPoints(pts, true);
-      g.strokePoints(pts, true);
+  celebrate() {
+    this.adrBody.setTexture('adr_pose');
+    this.tweens.add({ targets: this.adrBox, y: ADR.y - 24, yoyo: true, duration: 180, repeat: 1 });
+    this.time.delayedCall(1000, () => this.adrBody.setTexture('adr_walk_a'));
+  }
+
+  finish(why) {
+    if (this.mode === 'end' || this.mode === 'result') return;
+    this.mode = 'end';
+    this.A.host.setStatus({ text: 'Misija baigta! Žiūrėk į ekraną', tone: 'go' });
+    if (why === 'win') {
+      this.bigBanner('DOVANOS PO EGLE!', '+100 RESPEKTO', { color: C.yellow, hold: 2400 });
+    } else {
+      this.A.sfx.win();
+      this.bigBanner('LAIKAS!', `Išvalyta pusnių: ${this.piles.length - this.remaining().length} iš ${this.piles.length} · +100 RESPEKTO`, { color: C.teal, hold: 2600 });
+      this.time.delayedCall(1300, () => this.sub(this.A.lines.pick('robotas', 'timeout'), C.yellow, 760));
     }
-    g.setAlpha(1);
-    this.tweens.killTweensOf(g);
-    this.tweens.add({ targets: g, alpha: 0.35, yoyo: true, repeat: 3, duration: 300, onComplete: () => g.clear().setAlpha(1) });
+    this.time.delayedCall(why === 'win' ? 2600 : FINISH_S * 1000 - 200, () => this.showResult());
+  }
+
+  showResult() {
+    this.mode = 'result';
+    this.A.host.setPhase('result', STAGE);
+    const box = this.add.container(960, 500).setDepth(1950).setAlpha(0);
+    box.add(this.add.rectangle(0, 0, 1240, 620, 0x0b0418, 0.9).setStrokeStyle(6, 0xffd23f));
+    box.add(headText(this, 0, -245, this.won ? 'ROBOTAS PASIEKĖ EGLĘ!' : 'ROBOTAS UŽPROGRAMUOTAS!', 66, C.yellow));
+    const n = this.piles.length;
+    const byKids = this.piles.filter((p) => p.cleared && !p.byTeacher).length;
+    const rows = [
+      [`Pusnys: vaikai išvalė ${byKids} iš ${n}${this.teacherCleared ? `   ·   padėjo mokytoja: ${this.teacherCleared}` : ''}`, C.white],
+      [`Paleidimai: ${this.runs}   ·   Bugai: 🐞 ${this.bugs}`, C.white],
+    ];
+    if (n && byKids === n) rows.push([`Komandinis darbas: visi ${n} išvalė kelią patys! 💪`, C.green]);
+    const all = [...this.stats.values()];
+    const fastest = all.filter((x) => x.ms != null).sort((a, b) => a.ms - b.ms)[0];
+    if (fastest) rows.push([`Greičiausias kasėjas: ${fastest.name} (${(fastest.ms / 1000).toFixed(1).replace('.', ',')} s)`, C.teal]);
+    const clap = all.map((x) => [x, x.counts.plojo || 0]).filter(([, k]) => k > 0).sort((a, b) => b[1] - a[1])[0];
+    if (clap) rows.push([`Daugiausia plojo: ${clap[0].name} (${clap[1]})`, C.yellow]);
+    rows.forEach(([r, c], i) => box.add(bodyText(this, 0, -150 + i * 58, r, 32, c)));
+    const next = headText(this, 0, 250, 'ENTER - TOLIAU', 48, C.white);
+    this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });
+    box.add(next);
+    this.tweens.add({ targets: box, alpha: 1, duration: 300 });
   }
 
   // ---------------- piešimas ----------------
@@ -561,7 +565,8 @@ export class RobotasScene extends Phaser.Scene {
     this.add.rectangle(b.x, b.y, b.w, b.h, 0x0b0418, 0.88).setStrokeStyle(4, 0x2de2e6).setDepth(1500);
     headText(this, b.x - b.w / 2 + 70, b.y, 'KODAS', 30, C.teal).setDepth(1501);
     this.barHint = bodyText(this, b.x + 40, b.y, '← ↑ → ↓ - rašyk kodą   ·   BACKSPACE - trinti   ·   TARPAS - ▶ PALEISTI', 26, '#9b8cc6').setDepth(1501);
-    this.runBtn = headText(this, b.x + b.w / 2 - 80, b.y, '▶', 52, C.green).setDepth(1501);
+    this.stepsText = bodyText(this, b.x + b.w / 2 - 120, b.y, '', 22, '#9b8cc6').setDepth(1501);
+    headText(this, b.x + b.w / 2 - 50, b.y, '▶', 48, C.green).setDepth(1501);
   }
 
   redrawBar(popLast = false) {
@@ -569,54 +574,55 @@ export class RobotasScene extends Phaser.Scene {
     this.blocks = [];
     const b = BAR;
     const x0 = b.x - b.w / 2 + 150;
-    this.code.forEach((d, i) => {
+    const groups = this.blocksOf(this.code);
+    groups.forEach((g, i) => {
       const box = this.add.container(x0 + i * (b.size + b.gap) + b.size / 2, b.y).setDepth(1502);
-      const bg = this.add.rectangle(0, 0, b.size, b.size, BLOCK[d].col).setStrokeStyle(4, 0x14081f);
-      const t = headText(this, 0, 2, BLOCK[d].arrow, 46, C.white);
+      const bg = this.add.rectangle(0, 0, b.size, b.size, BLOCK[g.d].col).setStrokeStyle(4, 0x14081f);
+      const t = headText(this, 0, g.n > 1 ? -8 : 2, BLOCK[g.d].arrow, g.n > 1 ? 38 : 46, C.white);
       box.add([bg, t]);
+      if (g.n > 1) box.add(headText(this, 0, 24, `×${g.n}`, 24, C.yellow));
       box.bg = bg;
+      box.from = g.from;
+      box.to = g.to;
       this.blocks.push(box);
-      if (popLast && i === this.code.length - 1) { box.setScale(0.3); this.tweens.add({ targets: box, scale: 1, duration: 140, ease: 'Back.Out' }); }
+      if (popLast && i === groups.length - 1) { box.setScale(0.7); this.tweens.add({ targets: box, scale: 1, duration: 120, ease: 'Back.Out' }); }
     });
     this.barHint.setVisible(!this.code.length);
+    this.stepsText.setText(this.code.length ? `${this.code.length} žingsn.` : '');
   }
 
-  markBlock(i, state) {
-    this.blocks.forEach((bl, j) => {
-      if (j === i) {
+  markStep(i, state) {
+    this.blocks.forEach((bl) => {
+      const on = i >= bl.from && i <= bl.to;
+      if (on) {
         bl.bg.setStrokeStyle(state === 'bug' ? 8 : 6, state === 'bug' ? 0xff4d5e : 0xffffff);
-        bl.setScale(1.15);
-      } else if (state === 'run') { bl.bg.setStrokeStyle(4, 0x14081f); bl.setScale(1).setAlpha(j < i ? 0.55 : 1); }
+        bl.setScale(1.12).setAlpha(1);
+      } else if (state === 'run') { bl.bg.setStrokeStyle(4, 0x14081f); bl.setScale(1).setAlpha(bl.to < i ? 0.55 : 1); }
     });
   }
 
-  makeVotePanel() {
-    const v = VOTE;
+  makePanel() {
+    const v = PANEL;
     const box = this.add.container(v.x, v.y).setDepth(1400);
-    box.add(this.add.rectangle(0, 0, 360, 150, 0x0b0418, 0.88).setStrokeStyle(4, 0xff3ea5));
-    box.add(headText(this, 0, -50, 'TESTUOTOJAI', 30, C.pink));
-    this.vOk = bodyText(this, -80, -6, '✅ 0', 34, C.green);
-    this.vBug = bodyText(this, 80, -6, '🐞 0', 34, C.orange);
-    this.vBar = this.add.graphics();
-    this.voteResult = bodyText(this, 0, 50, 'Spėkite telefone!', 22, '#d9c8ff');
-    box.add([this.vOk, this.vBug, this.vBar, this.voteResult]);
+    box.add(this.add.rectangle(0, 0, 360, 150, 0x0b0418, 0.88).setStrokeStyle(4, 0x2de2e6));
+    box.add(headText(this, 0, -50, 'KELIO VALYTOJAI', 28, C.teal));
+    this.pCount = bodyText(this, 0, -12, '', 28, C.white);
+    this.pBar = this.add.graphics();
+    this.pWho = bodyText(this, 0, 48, '', 18, C.yellow, { wordWrap: { width: 340 } });
+    box.add([this.pCount, this.pBar, this.pWho]);
   }
 
-  updateVotes() {
-    let ok = 0;
-    for (const v of this.votes.values()) if (v === 'veiks') ok += 1;
-    const bad = this.votes.size - ok;
-    this.vOk.setText(`✅ ${ok}`);
-    this.vBug.setText(`🐞 ${bad}`);
-    const g = this.vBar;
+  updatePanel() {
+    const n = this.piles.length;
+    const left = this.remaining();
+    this.pCount.setText(n ? `Išvalyta ${n - left.length} iš ${n} ❄️` : 'Laukiam vaikų...');
+    const g = this.pBar;
     g.clear();
-    const W = 300; const x0 = -150; const y = 22;
-    const tot = Math.max(1, ok + bad);
-    g.fillStyle(0x3ddc84, 1); g.fillRect(x0, y, (W * ok) / tot, 12);
-    g.fillStyle(0xff9a3c, 1); g.fillRect(x0 + (W * ok) / tot, y, (W * bad) / tot, 12);
-    if (!ok && !bad) { g.fillStyle(0x3a2a5e, 1); g.fillRect(x0, y, W, 12); }
-    if (this.mode === 'edit') this.voteResult.setText('Spėkite telefone!').setColor('#d9c8ff');
-    else if (this.mode === 'run') this.voteResult.setText('Spėjimai užfiksuoti 🔒').setColor('#d9c8ff');
+    g.fillStyle(0x3a2a5e, 1); g.fillRect(-150, 12, 300, 12);
+    if (n) { g.fillStyle(0x3ddc84, 1); g.fillRect(-150, 12, (300 * (n - left.length)) / n, 12); }
+    const names = left.map((p) => p.name);
+    this.pWho.setText(!n ? '' : left.length ? `Dar kasa: ${names.slice(0, 5).join(', ')}${names.length > 5 ? ` +${names.length - 5}` : ''}` : 'Kelias išvalytas! 🎉').setColor(left.length ? C.yellow : C.green);
+    this.levelText.setText(n ? `PUSNYS: liko ${left.length} iš ${n}` : '');
   }
 
   makeTeacher() {
@@ -693,30 +699,50 @@ export class RobotasScene extends Phaser.Scene {
   }
 
   // ---------------- ciklas ----------------
-  update(_, deltaMs) {
+  update() {
     if (this.stageStart != null && this.mode !== 'result') this.stageT = (this.game.loop.time - this.stageStart) / 1000;
     const left = Math.max(0, TOTAL_S - this.stageT);
     this.timerText.setText(`⏱ ${Math.floor(left / 60)}:${String(Math.floor(left % 60)).padStart(2, '0')}`).setColor(left <= 15 && this.mode !== 'result' ? C.red : '#f1e6ff');
-    if (this.stageStart != null && ['edit', 'run', 'bug', 'levelok'].includes(this.mode) && this.stageT >= TOTAL_S - FINISH_S) this.finish('time');
+    const playing = ['edit', 'run', 'bug'].includes(this.mode);
+    if (this.stageStart != null && playing && this.stageT >= TOTAL_S - FINISH_S) this.finish('time');
 
-    // automatinis režimas (testams): rašo trumpiausią kodą; pirmą kartą kartais su klaida
-    if (this.autoplay && this.mode === 'edit' && this.time.now >= this.autoNextAt) {
-      this.autoNextAt = this.time.now + 260;
-      const L = LEVELS[this.level];
-      if (!this.autoPlan) {
-        const plan = this.path(L.start, L.goal);
-        if (!this.autoMistake.has(this.level) && Math.random() < 0.5) {
-          this.autoMistake.add(this.level);
-          if (Math.random() < 0.5) plan.pop(); else plan[Math.floor(plan.length / 2)] = plan[Math.floor(plan.length / 2)] === 'U' ? 'R' : 'U';
+    // mokytojos (ar saulės) 5 s atskaita
+    const now = this.time.now;
+    for (const p of this.piles) {
+      if (p.cleared || !p.helpUntil) continue;
+      const s = Math.ceil((p.helpUntil - now) / 1000);
+      if (p.helpTxt) p.helpTxt.setText(`${p.helpBy === 'sun' ? '☀️' : '⏳'} ${Math.max(0, s)}`);
+      if (now >= p.helpUntil) this.dig(p, p.helpBy === 'sun' ? 'sun' : 'teacher');
+    }
+    // atsijungusio vaiko pusnis ištirpsta pati
+    if (playing && now > this.offlineCheck) {
+      this.offlineCheck = now + 1000;
+      const host = this.A.host;
+      for (const p of this.piles) {
+        if (p.cleared || p.helpUntil) continue;
+        const pl = host.players.get(p.pid);
+        if (!pl || !host.isOnline(pl)) {
+          p.helpUntil = now + HELP_MS; p.helpBy = 'sun';
+          const c = cellCenter(p.c, p.r);
+          p.helpTxt = headText(this, c.x - 20 * c.s, c.y - 120 * c.s, '☀️ 5', 34, C.yellow).setDepth(1550);
         }
+      }
+    }
+
+    // automatinis režimas (testams): parašo kelią (kartais su klaida), paleidžia, kai kelias išvalytas
+    if (this.autoplay && this.mode === 'edit' && now >= this.autoNextAt) {
+      this.autoNextAt = now + 240;
+      if (!this.autoPlan) {
+        const plan = this.routeCode();
+        if (!this.autoMistake && Math.random() < 0.6) { this.autoMistake = true; plan[9] = plan[9] === 'L' ? 'U' : 'L'; }
         this.autoPlan = plan;
       }
       const plan = this.autoPlan;
       const prefixOk = this.code.every((d, i) => plan[i] === d);
-      if (!prefixOk) this.delBlock();
-      else if (this.code.length < plan.length) this.addBlock(plan[this.code.length]);
-      else { this.autoMistake.add(this.level); this.run(); }
+      if (!prefixOk) this.delStep();
+      else if (this.code.length < plan.length) this.addStep(plan[this.code.length]);
+      else if (!this.remaining().length || this.autoMistake === true) { if (this.autoMistake === true) this.autoMistake = 'done'; this.run(); }
     }
-    if (this.autoplay && this.mode === 'bug') this.autoPlan = this.path(LEVELS[this.level].start, LEVELS[this.level].goal);
+    if (this.autoplay && this.mode === 'bug') this.autoPlan = this.routeCode();
   }
 }

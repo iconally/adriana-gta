@@ -1,26 +1,22 @@
 {
   "intro": [
-    "Patarimas: rodyklės prideda komandas, TARPAS - paleidžia robotą.",
-    "Patarimas: suklydai? BACKSPACE ištrina paskutinę komandą.",
-    "Patarimas: testuotojai spėja, ar kodas veiks - kaip tikroje programuotojų komandoje!",
-    "Patarimas: pusnys - kliūtys. Robotas jų neperlips!"
+    "Patarimas: kol klasė kasa pusnis, Adriana jau gali rašyti kodą.",
+    "Patarimas: vienodos rodyklės iš eilės susijungia: ➡×4.",
+    "Patarimas: kelias vienas - be VISŲ išvalytų pusnių robotas eglės nepasieks!",
+    "Patarimas: tamsūs langeliai - kelias, balti - gilus sniegas. Saugokis aklaviečių!"
   ],
   "start": [
-    "Robotas įjungtas! Rašyk kodą!",
-    "Programavimo būrelis prasideda!"
-  ],
-  "level": [
-    "Lygis {n}: nuvesk robotą iki eglės!",
-    "Lygis {n}: surink dovanas ir įžiebk eglę!"
+    "Kaskite pusnis! Adriana, rašyk kodą!",
+    "Kelio valytojai - į darbą!"
   ],
   "run": [
     "Paleidžiam!",
     "Robotas vykdo kodą...",
     "Žiūrim, ar veiks!"
   ],
-  "bug_pile": [
-    "BUG! Robotas atsitrenkė į pusnį!",
-    "Oi! Pusnis kelyje!"
+  "bug_snow": [
+    "BUG! Robotas įklimpo giliame sniege!",
+    "Oi! Ten ne kelias!"
   ],
   "bug_wall": [
     "BUG! Robotas nori nuvažiuoti nuo kilimėlio!"
@@ -33,22 +29,19 @@
     "Pataisyk kodą ir bandyk dar!",
     "Programuotojai klysta - ir taiso!"
   ],
-  "level_ok": [
-    "Eglė įžiebta! Lygis įveiktas!",
-    "Veikia! Kitas lygis!"
+  "all_clear": [
+    "Visos pusnys išvalytos! Kelias atviras!",
+    "Kelias švarus - Adriana, leisk robotą!"
   ],
-  "gift": [
-    "Dovana paimta! 🎁",
-    "Dar viena dovana! 🎁"
-  ],
-  "hint": [
-    "{vadove}: užuomina - žiūrėk į šviečiančius langelius!"
+  "help": [
+    "{vadove}: kas nekasa? Padėsiu po 5 sekundžių!"
   ],
   "fast": [
     "{vadove}: greičiau! ⏩"
   ],
   "win": [
-    "Visos eglės įžiebtos! Linksmų Kalėdų!"
+    "Dovanos po egle! Linksmų Kalėdų!",
+    "Robotas atvežė dovanas!"
   ],
   "timeout": [
     "Laikas! Puikiai paprogramavai!"

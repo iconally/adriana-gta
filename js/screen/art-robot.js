@@ -39,7 +39,7 @@ function seeded(seed) {
 
 // ---------------- kilimėlio perspektyva ----------------
 // Kilimėlis: COLS x ROWS langelių. u - skersai (-1..1), d - gylis (0 artimas kraštas, 1 tolimas).
-export const MAT = { cols: 8, rows: 5, cx: 960, H: -415, N: 950, ZF: 1.4, HW: 760 };
+export const MAT = { cols: 8, rows: 6, cx: 960, H: -821.7, N: 955, ZF: 1.3, HW: 760 };
 export const matZ = (d) => 1 + (MAT.ZF - 1) * d;
 export function matProj(u, d) {
   const z = matZ(d);
@@ -289,4 +289,23 @@ export function generateRobotArt(scene) {
   };
   tex(scene, 'rb_goal', 140, 152, tree(false));
   tex(scene, 'rb_goal_lit', 140, 152, tree(true));
+
+  // ---------- besmegenis kasėjas (galva - vaiko avataras, dedama kode) ----------
+  tex(scene, 'rb_digger', 80, 92, (c) => {
+    shape(c, (p) => p.arc(40, 64, 26, 0, Math.PI * 2), '#f4f7ff', 5);
+    shape(c, (p) => p.arc(40, 28, 19, 0, Math.PI * 2), '#f4f7ff', 5);
+    shape(c, (p) => rr(p, 20, 6, 40, 11, 5), PINK, 4);
+    c.fillStyle = OUT;
+    for (const y of [26, 40, 60, 74]) { c.beginPath(); c.arc(40, y, 3.2, 0, Math.PI * 2); c.fill(); }
+    c.strokeStyle = '#5a3420'; c.lineWidth = 4;
+    c.beginPath(); c.moveTo(22, 30); c.lineTo(6, 18); c.stroke();
+  });
+  // ---------- kastuvas (sukasi apie rankenos viršų) ----------
+  tex(scene, 'rb_shovel', 34, 84, (c) => {
+    c.strokeStyle = '#7a4a1c'; c.lineWidth = 6;
+    c.beginPath(); c.moveTo(17, 6); c.lineTo(17, 56); c.stroke();
+    c.strokeStyle = OUT; c.lineWidth = 3;
+    c.beginPath(); c.moveTo(9, 6); c.lineTo(25, 6); c.stroke();
+    shape(c, (p) => { p.moveTo(5, 54); p.lineTo(29, 54); p.lineTo(27, 78); p.quadraticCurveTo(17, 84, 7, 78); p.closePath(); }, TEAL, 4);
+  });
 }

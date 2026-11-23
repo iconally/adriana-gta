@@ -424,7 +424,7 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     console.log(`Po teniso žemėlapyje: ${await screen.evaluate(() => window.AGTA.game.scene.isActive('Map'))}`);
   }
 
-  // 9 etapas: dovanų robotas (Adriana - autoplay, telefonai spėja atsitiktinai)
+  // 9 etapas: dovanų robotas (Adriana - autoplay, telefonai kasa pusnis atsitiktinai)
   await screen.waitForFunction(() => window.AGTA.game.scene.getScene('Map')?.ready?.id === 'robotas', null, { timeout: 60000 });
   await screen.keyboard.press('Enter'); // žemėlapis -> robotas
   await sleep(1500);
@@ -443,11 +443,12 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
         await Promise.all(phones.slice(0, 2).map((p, i) => shot(p.page, `tel-robotas-${i}`)));
         await shot(screen, 'a1-robotas-kodas');
       }
-      const batch = phones.filter(() => Math.random() < 0.3);
+      // vaikai dažniausiai kasa (pirmas mygtukas „Kasti“), kartais ploja
+      const batch = phones.filter(() => Math.random() < 0.7);
       await Promise.all(batch.map(async (p) => {
         const btns = p.page.locator('.act:not(.off)');
         const n = await btns.count();
-        if (n) { await btns.nth(Math.floor(Math.random() * n)).click({ timeout: 1000 }).catch(() => {}); presses += 1; }
+        if (n) { await btns.nth(Math.random() < 0.85 ? 0 : Math.floor(Math.random() * n)).click({ timeout: 1000 }).catch(() => {}); presses += 1; }
       }));
       await sleep(400);
     }
@@ -455,7 +456,7 @@ const shot = (page, name) => page.screenshot({ path: `${SHOTS}/${name}.png` });
     await shot(screen, 'a2-robotas-rezultatas');
     const rr = await screen.evaluate(() => {
       const s = window.AGTA.game.scene.getScene('Robotas');
-      return { mode: s.mode, levels: s.levelsDone, gifts: s.giftsGot, runs: s.runs, bugs: s.bugs, testers: `${s.vRight}/${s.vTotal}` };
+      return { mode: s.mode, won: s.won, piles: s.piles.length, left: s.remaining().length, teacher: s.teacherCleared, runs: s.runs, bugs: s.bugs };
     });
     console.log(`Robotas: ${JSON.stringify(rr)}`);
     await screen.keyboard.press('Enter');
