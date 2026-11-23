@@ -129,10 +129,10 @@ function showPhoto(url) {
     const bin = atob(url.split(',')[1]);
     const arr = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-    const file = new File([arr], 'GTA-Kaledos-2026.jpg', { type: 'image/jpeg' });
+    const file = new File([arr], 'Kaledos-2026.jpg', { type: 'image/jpeg' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       share.hidden = false;
-      share.onclick = () => navigator.share({ files: [file], title: 'GTA - Kalėdos 2026' }).catch(() => {});
+      share.onclick = () => navigator.share({ files: [file], title: 'Klasės kalėdinė nuotrauka' }).catch(() => {});
     }
   } catch { /* nieko */ }
 }

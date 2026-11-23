@@ -460,36 +460,49 @@ export class FinalasScene extends Phaser.Scene {
     if (this.resultBox) this.tweens.add({ targets: this.resultBox, alpha: 0, duration: 250, onComplete: () => this.resultBox.destroy() });
     this.A.host.setStatus({ text: 'Fotosesija! Šypsokis! 📸', tone: 'go', holder: true });
     this.sub(this.A.lines.pick('finalas', 'photo'), C.white, 300);
-    const kids = this.kids();
+    // Susiglaudę trimis eilėmis; priekyje per vidurį - Adriana ir mokytoja šalia jos.
+    const kids = Phaser.Utils.Array.Shuffle(this.kids());
     const n = kids.length;
-    const back = Math.ceil(n / 2);
-    const GAP = 250; // vieta Adrianai ir mokytojai per vidurį
+    const nBack = Math.ceil(n / 3);
+    const nMid = Math.ceil((n - nBack) / 2);
+    const rowsDef = [
+      { cnt: nBack, y: 942, s: 0.5, step: 80, gap: 130, depth: 962 },
+      { cnt: nMid, y: 1000, s: 0.56, step: 86, gap: 170, depth: 972 }, // tarpas - kad matytųsi Adrianos ir mokytojos veidai
+      { cnt: n - nBack - nMid, y: 1062, s: 0.62, step: 98, gap: 230, depth: 982 }, // tarpas Adrianai ir mokytojai
+    ];
+    const poses = ['cheer', 'wave', 'hips', 'tada', 'peace', 'jump'];
+    const spots = [];
+    for (const R of rowsDef) {
+      for (let k = 0; k < R.cnt; k++) {
+        let x;
+        if (R.gap) {
+          const half = Math.ceil(R.cnt / 2);
+          const side = k < half ? -1 : 1;
+          const j = side < 0 ? half - 1 - k : k - half;
+          x = 960 + side * (R.gap / 2 + R.step / 2 + j * R.step);
+        } else x = 960 + (k - (R.cnt - 1) / 2) * R.step + (R.off || 0);
+        spots.push({ x: x + rand(-6, 6), y: R.y + rand(-6, 6), s: R.s * rand(0.95, 1.05), depth: R.depth + rand(0, 0.9) });
+      }
+    }
     this.photoFigs = [];
     kids.forEach((p, i) => {
-      const front = i >= back;
-      const cnt = front ? n - back : back;
-      const k = front ? i - back : i;
-      const half = Math.ceil(cnt / 2);
-      const side = k < half ? -1 : 1;
-      const j = side < 0 ? half - 1 - k : k - half;
-      const step = front ? 112 : 104;
-      const x = 960 + side * (GAP / 2 + step / 2 + j * step) + (front ? 0 : side * 30);
-      const y = front ? 1060 : 975;
-      const s = front ? 0.62 : 0.54;
-      const fig = this.add.container(side < 0 ? -120 : 2040, y).setDepth(front ? 975 : 965).setScale(s);
-      const body = this.add.image(0, 0, 'kid_body').setOrigin(0.5, 1).setTint(tintOf(p.name));
+      const sp = spots[i];
+      const pose = poses[i % poses.length];
+      const fig = this.add.container(sp.x < 960 ? -120 : 2040, sp.y).setDepth(sp.depth).setScale(sp.s).setAngle(rand(-4, 4));
+      const body = this.add.image(0, 0, `fn_kid_${pose}`).setOrigin(0.5, 1).setTint(tintOf(p.name));
       const key = this.textures.exists(avatarKey(p.name)) ? avatarKey(p.name) : 'dot';
-      const head = this.add.image(0, -170, key).setDisplaySize(96, 96);
+      const head = this.add.image(0, -170, key).setDisplaySize(96, 96).setAngle(rand(-10, 10));
       fig.add([body, head]);
-      this.tweens.add({ targets: fig, x, duration: 900, delay: j * 40, ease: 'Cubic.Out' });
-      this.tweens.add({ targets: head, y: -176, yoyo: true, repeat: -1, duration: rand(420, 620), ease: 'Sine.InOut' });
+      this.tweens.add({ targets: fig, x: sp.x, duration: 900, delay: rand(0, 300), ease: 'Cubic.Out' });
+      if (pose === 'jump' || pose === 'tada') this.tweens.add({ targets: body, y: -14, yoyo: true, repeat: -1, duration: rand(260, 380), ease: 'Sine.Out' });
+      else this.tweens.add({ targets: head, y: -176, yoyo: true, repeat: -1, duration: rand(420, 620), ease: 'Sine.InOut' });
       this.photoFigs.push(fig);
     });
-    // Adriana per vidurį priekyje, mokytoja - iškart šalia jos, prie vaikų
+    // Adriana ir mokytoja - priekyje per vidurį, tarp vaikų
     this.adrBox.setDepth(990);
-    this.tweens.add({ targets: this.adrBox, x: 935, y: 1065, scale: 0.7, duration: 800, ease: 'Cubic.Out' });
-    this.teachBox.setDepth(970);
-    this.tweens.add({ targets: this.teachBox, x: 1045, y: 1000, scale: 0.5, duration: 800, ease: 'Cubic.Out' });
+    this.tweens.add({ targets: this.adrBox, x: 905, y: 1072, scale: 0.66, duration: 800, ease: 'Cubic.Out' });
+    this.teachBox.setDepth(986);
+    this.tweens.add({ targets: this.teachBox, x: 1020, y: 1060, scale: 0.5, duration: 800, ease: 'Cubic.Out' });
     this.tweens.add({ targets: this.teachTag, alpha: 0, duration: 300 });
     // nuotraukai - be užrašų ir tribūnos
     this.time.delayedCall(700, () => this.setHudVisible(false));
@@ -513,9 +526,6 @@ export class FinalasScene extends Phaser.Scene {
   }
 
   snap() {
-    const cls = this.A.host.roster.className;
-    this.caption = headText(this, 960, 62, `${cls ? `${cls} · ` : ''}KALĖDOS 2026`, 58, C.white).setDepth(1960);
-    this.caption2 = bodyText(this, 960, 118, 'GTA - Garsioji Talentingoji Adriana', 26, C.yellow).setDepth(1960);
     this.A.sfx.shutter();
     this.game.renderer.snapshot((img) => {
       // mažesnė JPEG kopija - kad greitai pasiektų telefonus
@@ -531,7 +541,6 @@ export class FinalasScene extends Phaser.Scene {
   showPhoto(url) {
     this.mode = 'photoDone';
     this.setHudVisible(true, false);
-    this.caption.destroy(); this.caption2.destroy();
     // nuotrauka ekrane - kaip polaroidas
     const key = `class_photo_${Date.now()}`;
     const onAdd = (k) => {

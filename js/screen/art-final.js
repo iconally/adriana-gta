@@ -214,6 +214,40 @@ export function generateFinalArt(scene) {
     c.fillStyle = YEL; c.beginPath(); c.arc(120, 62, 5, 0, Math.PI * 2); c.fill();
   });
 
+  // ---------- vaikai nuotraukai: skirtingos pozos (spalva - tint kode, galva - avataras) ----------
+  const LEGS = { stand: [[48, 96, 40, 140], [72, 96, 82, 140]], jump: [[48, 96, 28, 134], [72, 96, 94, 134]], cross: [[50, 96, 66, 140], [70, 96, 54, 140]] };
+  const POSES = {
+    cheer: { arms: [[34, 34, 10, 8], [86, 34, 110, 8]], legs: 'stand' },      // abi rankos aukštyn
+    wave: { arms: [[34, 34, 22, 62, 30, 86], [86, 34, 112, 6]], legs: 'stand' }, // moja viena ranka
+    hips: { arms: [[34, 34, 12, 58, 30, 76], [86, 34, 108, 58, 90, 76]], legs: 'stand' }, // rankos ant šonų
+    tada: { arms: [[34, 34, 4, 42], [86, 34, 116, 42]], legs: 'jump' },         // „ta-da!“
+    peace: { arms: [[34, 34, 28, 72], [86, 34, 106, 20, 98, 0]], legs: 'cross' }, // ranka su „V“
+    jump: { arms: [[34, 34, 6, 14], [86, 34, 114, 14]], legs: 'jump' },         // šuolis
+  };
+  for (const [name, P] of Object.entries(POSES)) {
+    tex(scene, `fn_kid_${name}`, 120, 150, (c) => {
+      for (const [x1, y1, x2, y2] of LEGS[P.legs]) {
+        c.lineWidth = 24; c.strokeStyle = OUT;
+        c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+        c.lineWidth = 14; c.strokeStyle = '#3b3b5c';
+        c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+      }
+      shape(c, (x) => rr(x, 30, 22, 60, 82, 18), '#f2f2f2');
+      for (const pts of P.arms) {
+        for (const [w, col] of [[20, OUT], [11, '#f2f2f2']]) {
+          c.lineWidth = w; c.strokeStyle = col;
+          c.beginPath(); c.moveTo(pts[0], pts[1]);
+          for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]);
+          c.stroke();
+        }
+      }
+      if (name === 'peace') { // „V“ pirštai
+        c.strokeStyle = OUT; c.lineWidth = 5;
+        c.beginPath(); c.moveTo(98, 2); c.lineTo(92, -8 + 12); c.moveTo(98, 2); c.lineTo(106, -6 + 12); c.stroke();
+      }
+    });
+  }
+
   // ---------- žaisliuko kepurėlė ----------
   tex(scene, 'fn_cap', 30, 26, (c) => {
     c.strokeStyle = '#d9c38a'; c.lineWidth = 3; c.beginPath(); c.arc(15, 7, 5, Math.PI, 0); c.stroke();
