@@ -97,14 +97,16 @@ export function generateArt(scene) {
     c.fillRect(0, h - 70, w, 70);
     // Gedimino kalnas ir pilis
     c.beginPath(); c.moveTo(120, h - 60); c.quadraticCurveTo(300, h - 230, 480, h - 60); c.fill();
-    c.fillRect(268, h - 300, 70, 120);
-    c.fillRect(262, h - 312, 82, 16);
-    for (let i = 0; i < 4; i++) c.fillRect(262 + i * 22, h - 326, 12, 16);
-    c.fillRect(300, h - 380, 4, 70);
-    c.fillStyle = '#ffd23f'; c.fillRect(304, h - 380, 30, 7);
-    c.fillStyle = '#2ea44f'; c.fillRect(304, h - 373, 30, 7);
-    c.fillStyle = '#e2333a'; c.fillRect(304, h - 366, 30, 7);
-    c.fillStyle = '#ffcf6b'; c.fillRect(290, h - 270, 10, 14); c.fillRect(312, h - 240, 10, 14);
+    // bokštas stovi ant kalno viršūnės (kalno paviršius po juo ~ h - 142), ne ore
+    const t = 46;
+    c.fillRect(268, h - 300 + t, 70, 124);
+    c.fillRect(262, h - 312 + t, 82, 16);
+    for (let i = 0; i < 4; i++) c.fillRect(262 + i * 22, h - 326 + t, 12, 16);
+    c.fillRect(300, h - 380 + t, 4, 70);
+    c.fillStyle = '#ffd23f'; c.fillRect(304, h - 380 + t, 30, 7);
+    c.fillStyle = '#2ea44f'; c.fillRect(304, h - 373 + t, 30, 7);
+    c.fillStyle = '#e2333a'; c.fillRect(304, h - 366 + t, 30, 7);
+    c.fillStyle = '#ffcf6b'; c.fillRect(290, h - 270 + t, 10, 14); c.fillRect(312, h - 240 + t, 10, 14);
     c.fillStyle = base;
     // Katedros varpinė
     c.fillRect(560, h - 300, 64, 240);
