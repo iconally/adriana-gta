@@ -54,13 +54,31 @@
     <section id="s-role" class="screen" hidden>
       <div class="me-mini"><img id="role-avatar" alt=""><span id="role-me"></span></div>
       <div id="status" class="status" hidden></div>
-      <div class="role-card">
+      <div id="next" class="next-card" hidden>
+        <div id="next-lbl" class="next-lbl"></div>
+        <div id="next-icon" class="role-emoji"></div>
+        <h2 id="next-title"></h2>
+        <p id="next-mission" class="mis"></p>
+        <div id="next-dots" class="dots"></div>
+        <div id="next-teacher" class="teach" hidden></div>
+      </div>
+      <div id="role-card" class="role-card">
         <div id="role-emoji" class="role-emoji"></div>
         <h2 id="role-name"></h2>
         <p id="role-desc"></p>
       </div>
       <p id="role-state" class="state"></p>
+      <p id="role-hint" class="small-hint" hidden>Kol laukiam - gali pasisveikinti:</p>
       <div id="buttons" class="buttons"></div>
+    </section>
+    <section id="s-result" class="screen" hidden>
+      <div class="me-mini"><img id="res-avatar" alt=""><span id="res-me"></span></div>
+      <div id="res-head" class="res-head"></div>
+      <p id="res-sub" class="res-sub"></p>
+      <div id="res-aw"></div>
+      <div id="res-mine" class="mine" hidden></div>
+      <p id="res-rest" class="rest" hidden></p>
+      <p id="res-foot" class="foot"></p>
     </section>
   </main>
 
@@ -75,6 +93,7 @@
     <button id="photo-close" class="link">Uždaryti ✕</button>
   </div>
 
+  <div id="confetti" class="conf"></div>
   <footer id="ver" class="ver"></footer>
   <script type="module" src="js/phone/join.js"></script>
 </body>

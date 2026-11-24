@@ -3,7 +3,7 @@
 
 import { headText, bodyText, subtitle, snow, C } from '../fx.js';
 import { Tribune } from '../tribune.js';
-import { LOBBY, ROUTE } from '../stages.js';
+import { LOBBY, ROUTE, STAGES } from '../stages.js';
 
 const LAST = ROUTE.length - 1;
 // Orientyrų piktogramų ribos žemėlapyje (žr. tools/make_map_osm.py): viršus, apačia, x poslinkis, pusė pločio.
@@ -23,7 +23,7 @@ export class MapScene extends Phaser.Scene {
   create() {
     const A = window.AGTA;
     this.A = A;
-    A.host.setPhase('lobby', LOBBY);
+    A.host.setPhase('lobby', LOBBY, { map: this.phoneInfo() });
 
     this.add.image(960, 540, 'map').setDisplaySize(1920, 1080).setDepth(-100);
     this.layout = this.cache.json.get('mapLayout') || null;
@@ -73,6 +73,20 @@ export class MapScene extends Phaser.Scene {
     this.tweens.add({ targets: t, scale: 1, duration: 260, ease: 'Back.Out' });
     this.tweens.add({ targets: t, alpha: 0, y: t.y - 30, delay: 1300, duration: 400, onComplete: () => t.destroy() });
     this.A.sfx.pop();
+  }
+
+  // Ką rodo telefonai žemėlapio metu: kita misija, įvykdyti etapai, mokytojos būsima rolė.
+  phoneInfo() {
+    const done = ROUTE.map((r) => this.A.host.done.has(r.id));
+    const r = ROUTE[this.nextIndex()];
+    if (!r) return { next: null, done };
+    const st = STAGES[r.id];
+    const t = st && st.teacherRole && st.roles[st.teacherRole];
+    return {
+      next: { nr: r.nr, title: r.title, mission: r.mission, icon: r.icon },
+      done,
+      teacher: t ? { emoji: t.emoji, name: t.name, desc: t.desc } : null,
+    };
   }
 
   nextIndex() {

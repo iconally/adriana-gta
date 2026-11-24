@@ -13,6 +13,7 @@ import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { BUS_WINDOWS, BUS_DOOR, BUS_H } from '../art.js';
 import { shuffle, isBoy, GIRL_COLORS, BOY_COLORS } from '../../common.js';
+import { phoneResult } from '../results.js';
 
 const STAGE = STAGES.autobusas;
 const GROUND = 862; // Adrianos pėdų linija
@@ -371,7 +372,7 @@ export class BusScene extends Phaser.Scene {
 
   // ---------------- klasiokų veiksmai ----------------
   stat(player, key) {
-    const st = this.stats.get(player.pid) || { name: player.name, counts: {}, hits: 0 };
+    const st = this.stats.get(player.pid) || { pid: player.pid, name: player.name, counts: {}, hits: 0 };
     st.counts[key] = (st.counts[key] || 0) + 1;
     this.stats.set(player.pid, st);
     return st;
@@ -797,6 +798,18 @@ export class BusScene extends Phaser.Scene {
     if (skater) rows.push([`Ledo žvaigždė: ${skater[0].name}`, C.teal]);
     const loud = best((x) => x.counts.skubek || 0);
     if (loud) rows.push([`Garsiausiai šaukė: ${loud[0].name}`, C.teal]);
+    phoneResult(this, {
+      head: ok ? 'SPĖJO!' : 'BEVEIK SPĖJO!', ok,
+      rows: (p, st) => [
+        st?.counts.iAdriana && ['❄️ Gniūžtės į Adrianą', st.counts.iAdriana],
+        st?.counts.iAdriana && ['🎯 Pataikei', st.hits],
+      ],
+      awards: [
+        sniper && [sniper[0].pid, '🎯', 'Taikliausias metikas!'],
+        skater && [skater[0].pid, '⛸️', 'Ledo žvaigždė!'],
+        loud && [loud[0].pid, '📣', 'Garsiausiai šaukei!'],
+      ],
+    });
     rows.slice(0, 5).forEach(([r, c], i) => box.add(bodyText(this, 0, -130 + i * 56, r, 30, c)));
     const next = headText(this, 0, 240, 'ENTER - TOLIAU', 48, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });

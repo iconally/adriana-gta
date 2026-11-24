@@ -16,6 +16,7 @@ import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { TREE, treeHalfWidth } from '../art-final.js';
 import { teacherLabel, isBoy, GIRL_COLORS, BOY_COLORS } from '../../common.js';
+import { phoneResult, sec } from '../results.js';
 
 const STAGE = STAGES.finalas;
 const TOTAL_S = 45;
@@ -597,6 +598,14 @@ export class FinalasScene extends Phaser.Scene {
     const all = [...this.stats.values()];
     const fast = all.filter((x) => x.react != null).sort((a, b) => a.react - b.react)[0];
     if (fast) rows.push([`Greičiausias „DABAR!“: ${fast.name} (${(fast.react / 1000).toFixed(2).replace('.', ',')} s)`, C.teal]);
+    phoneResult(this, {
+      head: 'EGLĖ ĮŽIEBTA!', last: true, foot: 'Tuoj fotosesija! 📸 Žiūrėk į ekraną',
+      rows: (p, st) => [
+        this.orn.get(p.pid) && (st?.counts.pakabino ? ['🎄 Pakabinai savo žaisliuką', '✓'] : ['🎄 Tavo žaisliukas ant eglės', '✓']),
+        st?.react != null && ['⚡ Tavo „DABAR!“', sec(st.react, 2)],
+      ],
+      awards: [fast && [fast.pid, '⚡', 'Greičiausiai paspaudei „DABAR!“']],
+    });
     rows.forEach(([r, c], i) => box.add(bodyText(this, 0, -130 + i * 56, r, 30, c)));
     const next = headText(this, 0, 225, 'ENTER - FOTOSESIJA 📸', 46, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });
@@ -610,7 +619,7 @@ export class FinalasScene extends Phaser.Scene {
   // ---------------- klasė ----------------
   stat(who, k) {
     const id = who.pid || who.name;
-    const st = this.stats.get(id) || { name: who.name, counts: {} };
+    const st = this.stats.get(id) || { pid: who.pid, name: who.name, counts: {} };
     st.counts[k] = (st.counts[k] || 0) + 1;
     this.stats.set(id, st);
     return st;

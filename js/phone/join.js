@@ -40,6 +40,7 @@ const state = {
   synced: false,
   waitingClaim: false,
   lastRoleKey: '',
+  lastResKey: '',
 };
 
 if (!room) {
@@ -247,6 +248,8 @@ function render() {
   const roleId = s.roles?.map?.[state.pid];
   const role = roleId ? s.roles.defs[roleId] : null;
 
+  if (s.phase === 'result' && renderResult(s)) return;
+  state.lastResKey = '';
   if (s.phase === 'result' || !role) {
     $('wait-text').textContent = s.phase === 'result' ? 'Misija baigta! Žiūrėk į ekraną.' : 'Žiūrėk į ekraną!';
     $('me-name').textContent = state.me.name;
@@ -276,6 +279,13 @@ function render() {
     play: 'Spausk!',
   }[s.phase] || '';
   $('role-state').className = `state ${s.phase}`;
+  // žemėlapio metu - kita misija vietoj laukiamojo kortelės
+  const map = s.info?.map;
+  $('next').hidden = !map;
+  $('role-card').hidden = !!map;
+  $('role-hint').hidden = !map;
+  $('buttons').classList.toggle('mini', !!map);
+  if (map) renderMap(map);
   // nuolatinė žinutė viršuje (pvz. „ATVIRUKAS PAS TAVE!“)
   const st = s.status;
   const mine = st ? (st.by && state.pid in st.by ? st.by[state.pid] : st.all) : null;
@@ -296,6 +306,111 @@ function render() {
     btn.classList.toggle('locked', locked);
   }
   ui.show('s-role');
+}
+
+// ---------------- žemėlapis: kita misija ----------------
+function renderMap(m) {
+  const teacher = (m.tp || []).includes(state.pid);
+  const n = m.next;
+  $('next').classList.toggle('fin', !n);
+  $('next-lbl').textContent = n ? `KITA MISIJA · ${n.nr} IŠ ${m.done.length}` : 'VISOS MISIJOS ĮVYKDYTOS!';
+  $('next-icon').textContent = n ? n.icon : '🎄';
+  $('next-title').textContent = n ? n.title : (teacher ? 'Ačiū, kad žaidėte!' : 'Ačiū, kad žaidei!');
+  $('next-mission').textContent = n ? n.mission : 'LINKSMŲ KALĖDŲ!';
+  const dots = $('next-dots');
+  dots.innerHTML = '';
+  m.done.forEach((d, i) => {
+    const el = document.createElement('i');
+    if (d) el.className = 'd';
+    else if (n && i === n.nr - 1) el.className = 'n';
+    dots.appendChild(el);
+  });
+  const tb = $('next-teacher');
+  tb.hidden = !(teacher && n && m.teacher);
+  if (!tb.hidden) {
+    tb.innerHTML = '<b></b> <span></span>';
+    tb.firstChild.textContent = `Jūsų rolė: ${m.teacher.emoji} ${m.teacher.name}.`;
+    tb.lastChild.textContent = m.teacher.desc;
+  }
+  $('role-state').textContent = n ? `Adriana keliauja - ${teacher ? 'žiūrėkite' : 'žiūrėk'} į ekraną!` : 'Žaidimas baigtas! 🎉';
+  $('role-state').className = 'state';
+  $('role-hint').textContent = n
+    ? (teacher ? 'Kol laukiame - galite pasisveikinti:' : 'Kol laukiam - gali pasisveikinti:')
+    : (teacher ? 'Galite pasisveikinti ir pašokti:' : 'Gali pasisveikinti ir pašokti:');
+}
+
+// ---------------- po misijos: asmeninis rezultatas ----------------
+function renderResult(s) {
+  const res = s.info?.result;
+  const mine = res?.per?.[state.pid];
+  if (!mine) return false;
+  state.lastRoleKey = '';
+  const key = JSON.stringify([res.nr, res.head, mine]);
+  if (key === state.lastResKey) { ui.show('s-result'); return true; }
+  state.lastResKey = key;
+  $('res-avatar').src = state.me.avatar;
+  $('res-me').textContent = state.me.name;
+  const [head, ok] = mine.h || [res.head, res.ok];
+  const h = $('res-head');
+  h.textContent = ok ? `${head} 🎉` : head;
+  h.className = `res-head${ok ? '' : ' no'}${head.length > 18 ? ' long' : head.length > 11 ? ' mid' : ''}`;
+  $('res-sub').textContent = `${res.nr}. ${res.title}`;
+  const aw = $('res-aw');
+  aw.innerHTML = '';
+  for (const a of mine.aw) {
+    const d = document.createElement('div');
+    d.className = 'award';
+    d.innerHTML = '<span class="ai"></span><span></span>';
+    d.firstChild.textContent = a.i;
+    d.lastChild.textContent = a.t;
+    aw.appendChild(d);
+  }
+  const box = $('res-mine');
+  box.innerHTML = '';
+  box.hidden = !mine.rows.length;
+  if (mine.rows.length) {
+    const t = document.createElement('div');
+    t.className = 't';
+    t.textContent = mine.t ? 'JŪSŲ MISIJA' : 'TAVO MISIJA';
+    box.appendChild(t);
+    for (const [label, v] of mine.rows) {
+      const r = document.createElement('div');
+      r.className = 'row';
+      r.innerHTML = '<span></span><span class="v"></span>';
+      r.firstChild.textContent = label;
+      r.lastChild.textContent = v;
+      box.appendChild(r);
+    }
+  }
+  let txt = '';
+  if (!mine.aw.length) {
+    if (mine.t) txt = mine.rows.length ? 'Ačiū, kad žaidėte! 💪' : 'Šį kartą jūsų mygtukai pailsėjo 🙂';
+    else if (!mine.rows.length) txt = res.last ? 'Ačiū, kad buvai kartu! 🎄' : 'Šį kartą tavo mygtukai pailsėjo - kitoje misijoje spausk drąsiai! 💪';
+    else txt = res.last ? 'Ačiū, kad žaidei! 💪' : 'Ačiū, kad žaidei! 💪\nKitoje misijoje gal būtent tu gausi 🏆';
+  }
+  const rest = $('res-rest');
+  rest.textContent = txt;
+  rest.hidden = !txt;
+  $('res-foot').textContent = res.foot || '';
+  ui.show('s-result');
+  if (mine.aw.length) { confetti(); buzz([80, 60, 80, 60, 200]); } else buzz(60);
+  return true;
+}
+
+function confetti() {
+  const box = $('confetti');
+  box.innerHTML = '';
+  const cols = ['#ffd23f', '#ff3ea5', '#2de2e6', '#3ddc84', '#ff9a3c'];
+  for (let i = 0; i < 40; i++) {
+    const c = document.createElement('i');
+    c.style.left = `${Math.random() * 100}%`;
+    c.style.background = cols[i % cols.length];
+    c.style.animationDuration = `${2.4 + Math.random() * 2}s`;
+    c.style.animationDelay = `${Math.random() * 0.8}s`;
+    box.appendChild(c);
+  }
+  clearTimeout(confetti.t);
+  confetti.t = setTimeout(() => { box.innerHTML = ''; }, 5500);
 }
 
 function makeButton(def) {

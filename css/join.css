@@ -144,3 +144,49 @@ select {
 .photo-btns { display: grid; gap: 12px; margin: 18px 0 8px; }
 .photo-btns .btn { display: block; text-decoration: none; }
 .photo .link { margin-top: 6px; }
+
+/* Žemėlapio metu: kita misija */
+.next-card {
+  margin: 12px 0; padding: 14px 16px 16px; border-radius: 20px; border: 3px solid #000; box-shadow: 0 6px 0 #000;
+  background: linear-gradient(160deg, rgba(255, 210, 63, .30), rgba(255, 62, 165, .25)), #2a0d45;
+}
+.next-lbl { font: 400 18px Anton, Impact, sans-serif; letter-spacing: 2px; color: var(--yellow); }
+.next-card .role-emoji { font-size: 58px; }
+.next-card h2 { margin: 4px 0 2px; font-size: 30px; line-height: 1.1; }
+.next-card .mis { font: 400 20px Anton, Impact, sans-serif; letter-spacing: 1px; color: var(--teal); margin: 4px 0 0; }
+.next-card.fin h2 { font-size: 34px; }
+.dots { display: flex; justify-content: center; gap: 7px; margin: 12px 0 2px; }
+.dots i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #000; background: #4a2a6a; display: block; }
+.dots i.d { background: var(--yellow); }
+.dots i.n { background: var(--pink); box-shadow: 0 0 10px var(--pink); }
+.teach { margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: rgba(0, 0, 0, .35); border: 2px dashed var(--teal); font-size: 16px; color: #f1e6ff; text-align: left; }
+.teach b { color: var(--teal); }
+.small-hint { color: var(--muted); font-size: 16px; margin: 2px 0 0; }
+.buttons.mini { grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.buttons.mini .act { min-height: 78px; font-size: 24px; gap: 8px; }
+.buttons.mini .act .emo { font-size: 32px; }
+
+/* Po misijos: asmeninis rezultatas */
+.res-head { font: 400 52px Anton, Impact, sans-serif; line-height: 1.08; color: var(--yellow); margin: 8px 0 2px; text-shadow: 3px 3px 0 #000; }
+.res-head.mid { font-size: 42px; }
+.res-head.long { font-size: 30px; }
+.res-head.no { color: var(--orange); }
+.res-sub { color: var(--muted); font-size: 17px; margin: 0 0 6px; }
+.award {
+  margin: 12px 0 8px; padding: 14px 12px; border-radius: 18px; border: 4px solid #000; box-shadow: 0 6px 0 #000;
+  background: linear-gradient(180deg, #ffe07a, #ffb703); color: #14081f;
+  font: 400 26px Anton, Impact, sans-serif; line-height: 1.15; letter-spacing: .5px;
+  animation: cuepulse 600ms ease-out 2;
+}
+.award .ai { font-size: 30px; margin-right: 6px; }
+.mine { margin: 12px 0; padding: 12px 14px; border-radius: 18px; border: 3px solid #000; box-shadow: 0 6px 0 #000; background: #2a0d45; text-align: left; }
+.mine .t { font: 400 18px Anton, Impact, sans-serif; letter-spacing: 2px; color: var(--teal); text-align: center; margin-bottom: 6px; }
+.mine .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; padding: 7px 2px; border-top: 1px solid rgba(255, 255, 255, .12); }
+.mine .t + .row { border-top: 0; }
+.mine .row .v { font: 400 26px Anton, Impact, sans-serif; color: var(--yellow); white-space: nowrap; }
+.rest { color: #f1e6ff; font-size: 19px; margin: 16px 4px; line-height: 1.35; white-space: pre-line; }
+.foot { color: var(--muted); font-size: 16px; margin-top: 10px; }
+.conf { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 40; }
+.conf i { position: absolute; top: -20px; width: 9px; height: 14px; border-radius: 2px; animation: fall linear forwards; }
+@keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+

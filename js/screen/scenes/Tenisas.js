@@ -16,6 +16,7 @@ import { headText, bodyText, banner, subtitle, missionCard, snow, C } from '../f
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { proj } from '../art-tennis.js';
+import { phoneResult } from '../results.js';
 
 const STAGE = STAGES.tenisas;
 const ZONES = [
@@ -486,6 +487,20 @@ export class TenisasScene extends Phaser.Scene {
     if (fast) rows.push([`Greičiausias balsuotojas: ${fast.name} (${(fast.fast / 1000).toFixed(1).replace('.', ',')} s)`, C.green]);
     const sw = best('persigalvojo');
     if (sw) rows.push([`Daugiausia kartų persigalvojo: ${sw[0].name} (${sw[1]})`, C.yellow]);
+    phoneResult(this, {
+      head: 'MAČAS BAIGTAS!',
+      headFor: (p, role, teacher) => (teacher ? null : this.winnerSide === 'adr' ? ['ADRIANA LAIMĖJO!', false] : ['JŪS LAIMĖJOTE!', true]),
+      rows: (p, st, role, teacher) => (teacher ? [this.autUsed && ['🚩 „Aut!“ - atėmėte klasės tašką', '✓']] : [
+        st?.counts.balsavo && ['🗳️ Balsavai', `${st.counts.balsavo} k.`],
+        st?.counts.strateg && ['⭐ Tavo balsas atnešė taškų', st.counts.strateg],
+        st?.counts.persigalvojo && ['🔄 Persigalvojai', `${st.counts.persigalvojo} k.`],
+      ]),
+      awards: [
+        strat && [strat[0].pid, '🧠', 'Gudriausias strategas!'],
+        fast && [fast.pid, '⚡', 'Greičiausiai balsavai!'],
+        sw && [sw[0].pid, '🔄', 'Daugiausia kartų persigalvojai!'],
+      ],
+    });
     rows.slice(0, 6).forEach(([r, c], i) => box.add(bodyText(this, 0, -150 + i * 54, r, 30, c)));
     const next = headText(this, 0, 250, 'ENTER - TOLIAU', 48, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });
@@ -496,7 +511,7 @@ export class TenisasScene extends Phaser.Scene {
   // ---------------- klasė ----------------
   stat(who, key) {
     const id = who.pid || who.name;
-    const st = this.stats.get(id) || { name: who.name, counts: {} };
+    const st = this.stats.get(id) || { pid: who.pid, name: who.name, counts: {} };
     st.counts[key] = (st.counts[key] || 0) + 1;
     this.stats.set(id, st);
     return st;

@@ -16,6 +16,8 @@ Kalėdinis klasės vakarėlio žaidimas. Adriana žaidžia dideliame ekrane, o k
 - 10 etapas "Finalas: eglė" (Katedros aikštė): vaikai telefone „Pakabink! 🎄“ - į didžiąją eglę nuskrenda jų žaisliukas su vardo pirmąja raide, kiti paspaudimai prideda lempučių. Adriana virš eglės skraidančiu dronu numeta žvaigždę ant viršūnės (TARPAS). Kai eglė papuošta, mokytoja spaudžia „3-2-1 🎄“ (jei ne - prasideda pats), ties „DABAR!“ visi kartu spaudžia „ĮŽIEBK! 💡“; kuo daugiau kartu, tuo daugiau eglės aukštų užsidega (iki 3 bandymų). Įžiebus lemputės mirksi atsitiktinai, virš Katedros - fejerverkai, tada rezultatai. ENTER - fotosesija: visi žmogeliukai su veidais susiglaudę laisva krūvele prie eglės skirtingomis pozomis, Adriana ir mokytoja per vidurį, 3-2-1 📸 (nuotraukoje - be užrašų); nuotrauka rodoma ekrane ir atkeliauja į kiekvieno telefoną (mygtukai „Išsaugoti“ ir „Dalintis“). Žaidimo dalis - ne ilgiau 45 s.
 - Visas žaidimas automatiškai (vedėjo pultas → „Visas žaidimas“): „▶ Žaisti visą žaidimą“ - nuo pirmo etapo, perėjimai patys: žemėlapis ~4 s → misijos kortelė ~5 s → etapas → rezultatai ~6 s → žemėlapis ... → finalo nuotrauka (~10 s). Laukimo metu vietoj „ENTER - ...“ rodomas atgalinis skaičiavimas; ENTER - nelaukti. „👀 Demo“ - tas pats su virtualiais vaikais ir mokytoja, Adrianą valdai tu. „⏸ Sustabdyti automatiką“ - perėjimai sustoja (žaidimas vyksta toliau), ESC - automatika išjungiama. Kampe rodomas ženkliukas „▶ AUTO“. Atskirų etapų mygtukai lieka - testuoti konkretų etapą.
 - Etapų trukmė (nuo 3-2-1 iki pergalės užrašo): Broliai 30 s, Laiptai 40 s, Pamoka ≤ 40 s (tada atvirukas nuskrenda mokytojai pats), Autobusas ≤ 40 s (+ durų laikytojų sekundės), Podiumas ~15-30 s (jei Adriana stovi, po 20 s eina pati), Koncertas ~30 s, Kinų kalba ~33 s (3 žodžiai), Tenisas ≤ 40 s, Robotas ≤ 45 s, Finalas ≤ 36 s iki įžiebimo. Laikrodžiai skaičiuoja tikrą laiką ir lėtame kompiuteryje.
+- Telefonai žemėlapio metu: kortelė „KITA MISIJA · 5 IŠ 10“ (pavadinimas, misija, 10 taškelių - kiek etapų įvykdyta), „Adriana keliauja - žiūrėk į ekraną!“ ir maži mygtukai „Labas!“ / „Pašokti“ (avataras žemėlapio apačioje pašoka). Mokytoja iš anksto mato savo kito etapo rolę. Po paskutinio etapo - „Visos misijos įvykdytos! Ačiū, kad žaidei!“.
+- Telefonai po misijos: kiekvienas mato savo rezultatą - antraštė kaip ekrane, 🏆 apdovanojimai (tie patys, kas ekrane; su konfeti ir vibracija) ir „Tavo misija“ - 2-3 jo skaičiai (pvz. gniūžtės ir pataikymai, greičiausias perdavimas, per kiek sekundžių išvalė pusnį). Be apdovanojimo - „Ačiū, kad žaidei! 💪“, nieko nespaudęs - švelnus „mygtukai pailsėjo“. Tekstai - `js/screen/results.js` ir kiekvieno etapo `showResult()`.
 - Vedėjo pultas (klavišas H), replikų biblioteka, garso efektai, vietinis testavimo režimas.
 
 ## Darbas su VS Code
@@ -113,6 +115,18 @@ NET=supabase BASE_URL=https://<vartotojas>.github.io/adriana-gta/ node tests/loa
 
 Ekrano nuotraukos išsaugomos `shots/` aplanke.
 
+### Telefonų vaizdų galerija
+
+Ką mato vaikai ir mokytoja kiekviename žingsnyje: prisijungimas, laukiamasis, žemėlapis, o kiekvienam etapui - prieš etapą, per žaidimą (kiekviena rolė ir kiekviena skirtinga telefono būsena), iškart paspaudus mygtuką, rezultatai (vaikas su apdovanojimu, be jo, nieko nespaudęs, mokytoja ir didžiojo ekrano rezultatų langas), finale - nuotrauka telefone, pabaigoje - žemėlapis įvykdžius visas misijas.
+
+```bash
+python3 -m http.server 8765          # kitame terminale
+node tests/phone-gallery.cjs         # ~25-35 min
+ONLY=Pamoka,Kinu node tests/phone-gallery.cjs   # tik kai kurie etapai
+```
+
+Atsidaryk `shots/telefonai/index.html` (paspaudus nuotrauką - padidėja). `shots/` į GitHub nekeliamas.
+
 ## Replikos
 
 `lines/<etapas>.json`. Vardą įterpia `{vardas}`. Vardas visada rašomas vardininku, todėl replikas verta kurti taip, kad vardas būtų sakinio veikėjas ("{vardas} laiko duris!"), o ne kreipinys.
@@ -205,6 +219,7 @@ js/phone/join.js     telefono puslapis
 js/screen/main.js    ekrano paleidimas ir vedėjo pultas
 js/screen/host.js    žaidėjai, vardų tikrinimas, rolės
 js/screen/stages.js  etapų rolės ir mygtukai
+js/screen/results.js asmeniniai rezultatai telefonuose po misijos
 js/screen/scenes/    Boot, Lobby, Map, Broliai, Laiptai, Pamoka, Bus, Podiumas, Koncertas, Kinu, Tenisas, Robotas, Finalas
 lines/               replikų biblioteka
 vendor/              Phaser 3.90, supabase-js, qrcode-generator (MIT)

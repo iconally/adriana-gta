@@ -15,6 +15,7 @@ import { headText, bodyText, banner, subtitle, missionCard, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { isBoy, GIRL_COLORS, BOY_COLORS } from '../../common.js';
+import { phoneResult } from '../results.js';
 
 const STAGE = STAGES.pianinas;
 const NOTE_F = { C: 523.25, D: 587.33, E: 659.25, F: 698.46, G: 783.99 };
@@ -395,6 +396,20 @@ export class KoncertasScene extends Phaser.Scene {
     if (sour) rows.push([`Netikriausia nata: ${sour[0].name}`, C.red]);
     const bow = best('nusilenkti');
     if (bow) rows.push([`Gražiausiai nusilenkė: ${bow[0].name}`, '#f1e6ff']);
+    const host = this.A.host;
+    phoneResult(this, {
+      head: `PUBLIKA: ${this.stars()}`,
+      rows: (p, st) => [
+        st?.counts.taiku && ['🎯 Grojai savo eilėje', st.counts.taiku],
+        st?.counts.netikra && ['🙊 Grojai ne laiku', st.counts.netikra],
+      ],
+      awards: [
+        ...(bestSec ? host.list().filter((p) => host.roles[p.pid] === bestSec).map((p) => [p.pid, SECTIONS[bestSec].emoji, 'Tavo grupė grojo geriausiai!']) : []),
+        hit && [hit[0].pid, '🎯', 'Daugiausiai pataikei į savo eilę!'],
+        sour && [sour[0].pid, '😜', 'Netikriausia nata!'],
+        bow && [bow[0].pid, '🙇', 'Gražiausiai nusilenkei!'],
+      ],
+    });
     rows.slice(0, 6).forEach(([r, c], i) => box.add(bodyText(this, 0, -150 + i * 54, r, 30, c)));
     const next = headText(this, 0, 250, 'ENTER - TOLIAU', 48, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });
@@ -453,7 +468,7 @@ export class KoncertasScene extends Phaser.Scene {
 
   stat(who, key) {
     const id = who.pid || who.name;
-    const st = this.stats.get(id) || { name: who.name, counts: {} };
+    const st = this.stats.get(id) || { pid: who.pid, name: who.name, counts: {} };
     st.counts[key] = (st.counts[key] || 0) + 1;
     this.stats.set(id, st);
     return st;

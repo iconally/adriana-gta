@@ -15,6 +15,7 @@ import { headText, bodyText, banner, subtitle, missionCard, C } from '../fx.js';
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { MAT, matProj, cellU, cellD, cellCenter } from '../art-robot.js';
+import { phoneResult, sec } from '../results.js';
 
 const STAGE = STAGES.robotas;
 // Kelias nuo starto iki eglės (stulpelis c 0-7, eilė r 0-5; r = 0 - tolimiausia).
@@ -495,7 +496,7 @@ export class RobotasScene extends Phaser.Scene {
   // ---------------- klasė ----------------
   stat(who, k) {
     const id = who.pid || who.name;
-    const st = this.stats.get(id) || { name: who.name, counts: {} };
+    const st = this.stats.get(id) || { pid: who.pid, name: who.name, counts: {} };
     st.counts[k] = (st.counts[k] || 0) + 1;
     this.stats.set(id, st);
     return st;
@@ -582,6 +583,23 @@ export class RobotasScene extends Phaser.Scene {
     if (fastest) rows.push([`Greičiausias kasėjas: ${fastest.name} (${(fastest.ms / 1000).toFixed(1).replace('.', ',')} s)`, C.teal]);
     const fw = all.map((x) => [x, x.counts.fejerverkai || 0]).filter(([, k]) => k > 0).sort((a, b) => b[1] - a[1])[0];
     if (fw) rows.push([`Daugiausia fejerverkų: ${fw[0].name} (${fw[1]}) 🎆`, C.yellow]);
+    const team = n && byKids === n ? this.piles.map((p) => [p.pid, '💪', 'Visi išvalėte kelią patys!']) : [];
+    phoneResult(this, {
+      head: this.won ? 'ROBOTAS PASIEKĖ EGLĘ!' : 'ROBOTAS UŽPROGRAMUOTAS!',
+      rows: (p, st, role, teacher) => {
+        if (teacher) return [this.teacherCleared && ['🧹 Išvalėte pusnių', this.teacherCleared]];
+        const pile = this.piles.find((x) => x.pid === p.pid);
+        const fire = st?.counts.fejerverkai && ['🎆 Paleidai fejerverkų', st.counts.fejerverkai];
+        if (!pile || !pile.cleared) return [fire];
+        if (pile.byTeacher) return [['🧹 Tavo pusnį išvalė mokytoja', ''], fire];
+        return [st?.ms != null ? ['❄️ Išvalei pusnį per', sec(st.ms)] : ['❄️ Išvalei savo pusnį', '✓'], fire];
+      },
+      awards: [
+        ...team,
+        fastest && [fastest.pid, '⚡', 'Greičiausias kasėjas!'],
+        fw && [fw[0].pid, '🎆', 'Daugiausia fejerverkų!'],
+      ],
+    });
     rows.forEach(([r, c], i) => box.add(bodyText(this, 0, -150 + i * 58, r, 32, c)));
     const next = headText(this, 0, 250, 'ENTER - TOLIAU', 48, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });

@@ -16,6 +16,7 @@ import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { runwayY, runwayHW } from '../art-show.js';
 import { isBoy, GIRL_COLORS, BOY_COLORS, teacherLabel } from '../../common.js';
+import { phoneResult } from '../results.js';
 
 const STAGE = STAGES.podiumas;
 const BPM = 100;
@@ -474,6 +475,15 @@ export class PodiumasScene extends Phaser.Scene {
     if (wind) rows.push([`Stipriausias vėjas: ${wind[0].name}`, C.teal]);
     const sn = best('sniegas');
     if (sn) rows.push([`Daugiausiai sniego: ${sn[0].name}`, '#f1e6ff']);
+    phoneResult(this, {
+      head: `BALAS: ${this.fmtScore(this.scoreVal)} / 10`,
+      awards: [
+        foto && [foto[0].pid, '📸', 'Daugiausiai nuotraukų!'],
+        clap && [clap[0].pid, '👏', 'Garsiausiai plojai!'],
+        wind && [wind[0].pid, '💨', 'Stipriausias vėjas!'],
+        sn && [sn[0].pid, '❄️', 'Daugiausiai sniego!'],
+      ],
+    });
     rows.slice(0, 6).forEach(([r, c], i) => box.add(bodyText(this, 0, -150 + i * 54, r, 30, c)));
     const next = headText(this, 0, 250, 'ENTER - TOLIAU', 48, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });
@@ -484,7 +494,7 @@ export class PodiumasScene extends Phaser.Scene {
   // ---------------- klasiokų veiksmai ----------------
   stat(who, key) {
     const id = who.pid || who.name;
-    const st = this.stats.get(id) || { name: who.name, counts: {} };
+    const st = this.stats.get(id) || { pid: who.pid, name: who.name, counts: {} };
     st.counts[key] = (st.counts[key] || 0) + 1;
     this.stats.set(id, st);
     return st;

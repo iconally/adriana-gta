@@ -17,6 +17,7 @@ import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { BOARD } from '../art-class.js';
 import { isBoy, GIRL_COLORS, BOY_COLORS, shuffle, teacherLabel } from '../../common.js';
+import { phoneResult, sec } from '../results.js';
 
 const STAGE = STAGES.pamoka;
 const CAUGHT_BACK = 1;
@@ -470,7 +471,7 @@ export class PamokaScene extends Phaser.Scene {
   // ---------------- klasiokų veiksmai ----------------
   stat(who, key) {
     const id = who.pid || who.name;
-    const st = this.stats.get(id) || { name: who.name, counts: {} };
+    const st = this.stats.get(id) || { pid: who.pid, name: who.name, counts: {} };
     st.counts[key] = (st.counts[key] || 0) + 1;
     this.stats.set(id, st);
     return st;
@@ -718,6 +719,21 @@ export class PamokaScene extends Phaser.Scene {
     if (asker) rows.push([`Didžiausias smalsuolis: ${asker[0].name}`, C.orange]);
     const sneezer = best('ciaudeti');
     if (sneezer) rows.push([`Garsiausiai čiaudėjo: ${sneezer[0].name}`, C.white]);
+    phoneResult(this, {
+      head: ok ? 'ATVIRUKAS PAS MOKYTOJĄ!' : 'BEVEIK!', ok,
+      rows: (p, st, role) => (role === 'lenta'
+        ? [this.caught && ['🕵️ Pagavote perduodant', `${this.caught} k.`]]
+        : [
+          st?.counts.perdavimai && ['✉️ Perdavei atviruką', `${st.counts.perdavimai} k.`],
+          st?.best != null && ['⚡ Greičiausias perdavimas', sec(st.best)],
+          this.caughtWho.get(p.name) && ['👀 Mokytoja tave pagavo', `${this.caughtWho.get(p.name)} k.`],
+        ]),
+      awards: [
+        fastest && [fastest.pid, '⚡', 'Greičiausias perdavėjas!'],
+        asker && [asker[0].pid, '🙋', 'Didžiausias smalsuolis!'],
+        sneezer && [sneezer[0].pid, '🤧', 'Garsiausiai čiaudėjai!'],
+      ],
+    });
     rows.slice(0, 6).forEach(([r, c], i) => box.add(bodyText(this, 0, -140 + i * 54, r, 30, c)));
     const next = headText(this, 0, 240, 'ENTER - TOLIAU', 48, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });

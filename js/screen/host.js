@@ -21,6 +21,8 @@ export class Host extends EventBus {
     this.phase = 'lobby';
     this.stage = LOBBY;
     this.roles = {}; // pid -> roleId
+    this.presses = {}; // pid -> { mygtuko id: kiek kartų paspaudė šiame etape } (asmeniniam rezultatui telefone)
+    this.info = null; // papildoma telefonų informacija: { map } žemėlapio metu, { result } po misijos
     this.done = new Set(); // įvykdytų etapų id (žemėlapio maršrutas)
     this._syncTimer = null;
     this.restore();
@@ -215,11 +217,14 @@ export class Host extends EventBus {
   }
 
   // ---------- etapai ir rolės ----------
-  setPhase(phase, stage = this.stage) {
+  // info - papildoma telefonų informacija (žemėlapis: kita misija); keičiant fazę ji išvaloma.
+  setPhase(phase, stage = this.stage, info = null) {
     if (stage !== this.stage) { this.locks = {}; this.status = null; }
     const stageChanged = stage !== this.stage;
+    if (stageChanged || phase === 'intro') this.presses = {};
     this.phase = phase;
     this.stage = stage;
+    this.info = info;
     if (stageChanged || !Object.keys(this.roles).length) this.assignAll();
     this.emit('phase', { phase, stage });
     this.syncNow();
@@ -307,6 +312,10 @@ export class Host extends EventBus {
     if (btn.cd && now - (p.btnAt[a] || 0) < btn.cd * 0.85) return;
     p.btnAt[a] = now;
     p.lastPress = now;
+    if (this.phase === 'play') {
+      const c = this.presses[pid] || (this.presses[pid] = {});
+      c[a] = (c[a] || 0) + 1;
+    }
     this.emit('press', { player: p, action: a, role: role.id });
   }
 
@@ -325,7 +334,14 @@ export class Host extends EventBus {
       roles: { map: this.roles, defs },
       locks: this.locks || null,
       status: this.status || null,
+      info: this.info?.map ? { map: { ...this.info.map, tp: this.teachers().map((p) => p.pid) } } : this.info,
     };
+  }
+
+  // Asmeniniai rezultatai telefonuose po misijos (žr. results.js).
+  setResult(result) {
+    this.info = { result };
+    this.syncNow();
   }
 
   // Nuolatinė žinutė telefonų viršuje: all - visiems, by - konkretiems vaikams (null - nerodyti).

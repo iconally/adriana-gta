@@ -13,6 +13,7 @@ import { headText, bodyText, banner, subtitle, floatText, missionCard, C } from 
 import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { isBoy, GIRL_COLORS, BOY_COLORS, teacherLabel } from '../../common.js';
+import { phoneResult } from '../results.js';
 
 const STAGE = STAGES.laiptai;
 const RUN = 84; // laiptelio plotis
@@ -416,7 +417,7 @@ export class LaiptaiScene extends Phaser.Scene {
   }
 
   stat(player, key) {
-    const st = this.stats.get(player.pid) || { name: player.name, counts: {} };
+    const st = this.stats.get(player.pid) || { pid: player.pid, name: player.name, counts: {} };
     st.counts[key] = (st.counts[key] || 0) + 1;
     this.stats.set(player.pid, st);
   }
@@ -742,6 +743,13 @@ export class LaiptaiScene extends Phaser.Scene {
     const fruit = best('mandarinas');
     if (fruit) rows.push([`Mandarinų karalius: ${fruit[0].name} (${fruit[1]})`, C.orange]);
     if (this.bonus) rows.push([`Budėtoja laikė duris: +${this.bonus} s`, C.yellow]);
+    phoneResult(this, {
+      head: ok ? 'UŽLIPO!' : 'BEVEIK UŽLIPO!', ok,
+      awards: [
+        loader && [loader[0].pid, '📚', 'Sunkiausias krovikas!'],
+        fruit && [fruit[0].pid, '🍊', 'Mandarinų karalius!'],
+      ],
+    });
     rows.slice(0, 6).forEach(([r, c], i) => box.add(bodyText(this, 0, -140 + i * 54, r, 30, c)));
     const next = headText(this, 0, 240, 'ENTER - TOLIAU', 48, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });

@@ -61,7 +61,7 @@ function go(key) {
 }
 
 const bots = new Bots(host);
-window.AGTA = { net, host, lines, sfx, room, joinUrl, game, go, STAGES, bots };
+window.AGTA = { net, host, lines, sfx, room, joinUrl, game, go, STAGES, ROUTE, bots };
 
 // ---------------- garsas ----------------
 const unlock = () => {

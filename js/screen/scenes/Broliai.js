@@ -15,6 +15,7 @@ import { headText, bodyText, banner, subtitle, floatText, missionCard, C } from 
 import { Tribune } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { HOME_WINDOW, TOWER } from '../art-home.js';
+import { phoneResult } from '../results.js';
 
 const STAGE = STAGES.broliai;
 const FLOOR = 905; // Adrianos pėdų linija
@@ -406,7 +407,7 @@ export class BroliaiScene extends Phaser.Scene {
 
   // ---------------- klasiokų veiksmai ----------------
   stat(player, key) {
-    const st = this.stats.get(player.pid) || { name: player.name, counts: {} };
+    const st = this.stats.get(player.pid) || { pid: player.pid, name: player.name, counts: {} };
     st.counts[key] = (st.counts[key] || 0) + 1;
     this.stats.set(player.pid, st);
   }
@@ -713,6 +714,16 @@ export class BroliaiScene extends Phaser.Scene {
     const lights = best('tamsa');
     if (lights) rows.push([`Šviesų meistras: ${lights[0].name}`, C.teal]);
     if (this.miracleBy) rows.push([`TV bokštą uždegė: ${this.miracleBy}`, C.yellow]);
+    const pidOf = (name) => this.A.host.playerByName(name)?.pid;
+    phoneResult(this, {
+      head: ok ? 'BROLIUKAI RAMŪS!' : 'BEVEIK!', ok,
+      awards: [
+        calm && [calm[0].pid, '🧸', 'Geriausias ramintojas!'],
+        scary && [scary[0].pid, '👻', 'Baisiausias šešėlis!'],
+        lights && [lights[0].pid, '💡', 'Šviesų meistras!'],
+        this.miracleBy && [pidOf(this.miracleBy), '🗼', 'Uždegei TV bokštą!', 'Uždegėte TV bokštą!'],
+      ],
+    });
     rows.slice(0, 6).forEach(([r, c], i) => box.add(bodyText(this, 0, -140 + i * 54, r, 30, c)));
     const next = headText(this, 0, 240, 'ENTER - TOLIAU', 48, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });

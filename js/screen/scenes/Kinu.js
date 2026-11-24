@@ -16,6 +16,7 @@ import { Tribune, avatarKey } from '../tribune.js';
 import { STAGES } from '../stages.js';
 import { CJK_FONT, FLOOR_Y } from '../art-china.js';
 import { shuffle } from '../../common.js';
+import { phoneResult, sec } from '../results.js';
 
 const STAGE = STAGES.kinu;
 const WORDS = [
@@ -419,6 +420,20 @@ export class KinuScene extends Phaser.Scene {
     if (fast) rows.push([`Greičiausiai atsakė teisingai: ${fast.name} (${(fast.fast / 1000).toFixed(1).replace('.', ',')} s)`, C.teal]);
     const helper = best('padejo');
     if (helper) rows.push([`Geriausias padėjėjas: ${helper[0].name} (${helper[1]} pagauti)`, C.yellow]);
+    phoneResult(this, {
+      head: 'KINŲ KALBA ĮVEIKTA!',
+      rows: (p, st) => [
+        st?.counts.atsake && ['❓ Atsakei', `${st.counts.atsake} iš ${WORDS.length}`],
+        st?.counts.teisingai && ['✅ Iš jų teisingai', st.counts.teisingai],
+        st?.fast != null && ['⚡ Greičiausias teisingas', sec(st.fast)],
+        st?.counts.padejo && ['🏮 Adriana pagavo tavo kortelę', `${st.counts.padejo} k.`],
+      ],
+      awards: [
+        right && [right[0].pid, '✅', 'Daugiausiai teisingų atsakymų!'],
+        fast && [fast.pid, '⚡', 'Greičiausiai atsakei teisingai!'],
+        helper && [helper[0].pid, '🏮', 'Geriausias padėjėjas!'],
+      ],
+    });
     rows.slice(0, 6).forEach(([r, c], i) => box.add(bodyText(this, 0, -150 + i * 54, r, 30, c)));
     const next = headText(this, 0, 250, 'ENTER - TOLIAU', 48, C.white);
     this.tweens.add({ targets: next, alpha: 0.3, yoyo: true, repeat: -1, duration: 650 });
@@ -429,7 +444,7 @@ export class KinuScene extends Phaser.Scene {
   // ---------------- klasė ----------------
   stat(who, key) {
     const id = who.pid || who.name;
-    const st = this.stats.get(id) || { name: who.name, counts: {} };
+    const st = this.stats.get(id) || { pid: who.pid, name: who.name, counts: {} };
     st.counts[key] = (st.counts[key] || 0) + 1;
     this.stats.set(id, st);
     return st;
@@ -443,6 +458,7 @@ export class KinuScene extends Phaser.Scene {
     const choice = action === 'a' ? 0 : 1;
     const ms = this.time.now - this.quizStart;
     this.answers.set(player.pid, { choice, ms });
+    this.stat(player, 'atsake');
     if (choice === this.correctIdx) {
       const st = this.stat(player, 'teisingai');
       st.fast = st.fast == null ? ms : Math.min(st.fast, ms);
